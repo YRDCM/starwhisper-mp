@@ -334,3 +334,15 @@
   letter-spacing: 0.18em;
   color: var(--ink-dim2);
 }
+/* 寄语行：视觉收尾，展示字体 + 香槟金 + ✦ 点缀 */
+.f-wish {
+  margin-top: 12rpx;
+  font-family: var(--font-display);
+  font-size: 26rpx;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+}
+.f-wish .f-star {
+  font-size: 20rpx;
+  color: rgba(232, 196, 124, 0.55);
+}

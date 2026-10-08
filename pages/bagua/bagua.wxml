@@ -140,5 +140,8 @@
     </view>
   </view>
 
-  <view class="footer mono">星语 STARWHISPER · 仅供娱乐 · 愿你被星辰温柔以待</view>
+  <view class="footer mono">
+    <view class="f-legal">星语 STARWHISPER · 仅供娱乐</view>
+    <view class="f-wish"><text class="f-star">✦</text> 愿你被星辰温柔以待 <text class="f-star">✦</text></view>
+  </view>
 </view>
