@@ -84,6 +84,7 @@
   letter-spacing: 0.2em;
   color: var(--ink-dim2);
   margin-left: 16rpx;
+  white-space: nowrap; /* 英文短语不在空格/连字符处断成两截 */
 }
 
 /* ===== 抽牌仪式 ===== */
@@ -104,6 +105,7 @@
   border-radius: 8rpx;
   border: 1px solid rgba(139, 135, 176, 0.25);
   color: var(--ink-dim2);
+  white-space: nowrap; /* 牌阵名不折断 */
 }
 .mode-btn.active {
   border-color: var(--gold);
@@ -289,6 +291,8 @@
   padding: 32rpx 36rpx;
 }
 .toggle {
+  flex: none; /* 不被标题挤压 */
+  white-space: nowrap; /* 「收起 −」文字与符号同行，不在空格处折断 */
   font-size: 25rpx;
   letter-spacing: 0.2em;
   color: var(--gold);

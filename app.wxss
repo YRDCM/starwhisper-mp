@@ -104,6 +104,7 @@ page {
   color: var(--gold);
   font-size: 28rpx;
   letter-spacing: 0.22em;
+  white-space: nowrap; /* 按钮文案永不折行 */
 }
 .btn-gold.disabled {
   opacity: 0.55;

@@ -212,11 +212,13 @@
   font-size: 30rpx;
   letter-spacing: 0.16em;
   color: var(--ink);
+  white-space: nowrap; /* 维度中文名（如综合运势）不折断 */
 }
 .dim-en {
   font-size: 25rpx;
   letter-spacing: 0.14em;
   color: var(--ink-dim2);
+  white-space: nowrap;
 }
 .glyphs {
   letter-spacing: 0.24em;
@@ -379,6 +381,8 @@
   margin-top: 32rpx;
 }
 .share-btn {
+  flex: none;
+  white-space: nowrap; /* 「✦ 分享卡」符号与文字同行 */
   font-size: 25rpx;
   letter-spacing: 0.14em;
   color: var(--gold);
@@ -387,6 +391,8 @@
   padding: 8rpx 22rpx;
 }
 .source-tag {
+  flex: none;
+  white-space: nowrap; /* 「DATA · 万维易源 SHOWAPI」不折断 */
   font-size: 25rpx;
   letter-spacing: 0.16em;
   color: var(--ink-dim2);
@@ -411,6 +417,7 @@
   letter-spacing: 0.2em;
   color: var(--ink-dim2);
   margin-left: 16rpx;
+  white-space: nowrap; /* 英文短语不在空格/连字符处断成两截 */
 }
 .chart-canvas {
   width: 100%;

@@ -64,6 +64,7 @@
   display: flex;
   align-items: baseline;
   gap: 16rpx;
+  white-space: nowrap; /* 「连续 X 天 ✦ 共 Y 天」内部空格处不折断 */
 }
 .ci-streak {
   font-family: var(--font-display);
@@ -149,6 +150,7 @@
   letter-spacing: 0.18em;
   padding: 12rpx 40rpx;
   border-radius: 8rpx;
+  white-space: nowrap; /* 按钮文案永不折行 */
 }
 .btn-ghost::after, .btn-gold::after {
   border: none; /* 去掉 button 默认边框 */
@@ -207,6 +209,7 @@
   letter-spacing: 0.2em;
   color: var(--ink-dim2);
   margin-left: 16rpx;
+  white-space: nowrap; /* 英文短语不在空格/连字符处断成两截 */
 }
 .history-group {
   margin-top: 20rpx;
@@ -241,6 +244,7 @@
 }
 .record-time {
   flex: none;
+  white-space: nowrap; /* 「06.03 14:22」日期与时间不在空格处折断 */
   font-size: 24rpx;
   color: var(--ink-dim2);
 }
