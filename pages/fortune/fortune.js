@@ -496,6 +496,8 @@ Page({
       textStyle: { fontFamily: MONO },
       tooltip: {
         trigger: 'axis',
+        // 小程序无 DOM，tooltip 必须用画布内渲染，否则触摸时 document 调用会崩
+        renderMode: 'richText',
         backgroundColor: 'rgba(35, 32, 72, 0.95)',
         borderColor: 'rgba(232, 196, 124, 0.25)',
         textStyle: { color: '#E8E6F0', fontFamily: MONO, fontSize: 12.5 }

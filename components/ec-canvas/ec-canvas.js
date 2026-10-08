@@ -368,6 +368,9 @@ var WxCanvas = function () {
     this.canvasId = canvasId;
     this.chart = null;
     this.isNew = isNew;
+    // echarts 5.x 的 zrender 会把本对象当 DOM 节点读写（如 resize 时写 style.width），
+    // 小程序 canvas 没有 style —— 补一个占位对象防止 TypeError
+    this.style = {};
     if (isNew) {
       this.canvasNode = canvasNode;
     } else {
@@ -378,6 +381,22 @@ var WxCanvas = function () {
 
     this._initEvent();
   }
+
+  // zrender 的 HandlerDomProxy 初始化时会调用 dom.addEventListener/removeEventListener，
+  // 小程序 canvas 对象没有这两个方法（报错 t.addEventListener is not a function）。
+  // 触摸事件由 ec-canvas 的 touchStart/Move/End 手动分发给 zrender，这里空实现即可。
+  WxCanvas.prototype.addEventListener = function addEventListener() {
+    // noop
+  };
+
+  WxCanvas.prototype.removeEventListener = function removeEventListener() {
+    // noop
+  };
+
+  // zrender 事件坐标换算可能读取包围盒；触摸分发用的是相对坐标，返回零位矩形兜底
+  WxCanvas.prototype.getBoundingClientRect = function getBoundingClientRect() {
+    return { left: 0, top: 0, right: 0, bottom: 0, width: this.width || 0, height: this.height || 0 };
+  };
 
   WxCanvas.prototype.getContext = function getContext(contextType) {
     if (contextType === '2d') {

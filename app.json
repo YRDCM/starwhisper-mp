@@ -19,11 +19,36 @@
     "backgroundColor": "#0B1030",
     "borderStyle": "black",
     "list": [
-      { "pagePath": "pages/fortune/fortune", "text": "星运" },
-      { "pagePath": "pages/tarot/tarot", "text": "塔罗" },
-      { "pagePath": "pages/bagua/bagua", "text": "八卦" },
-      { "pagePath": "pages/match/match", "text": "配对" },
-      { "pagePath": "pages/profile/profile", "text": "我的" }
+      {
+        "pagePath": "pages/fortune/fortune",
+        "text": "星运",
+        "iconPath": "images/tabbar/fortune.png",
+        "selectedIconPath": "images/tabbar/fortune-active.png"
+      },
+      {
+        "pagePath": "pages/tarot/tarot",
+        "text": "塔罗",
+        "iconPath": "images/tabbar/tarot.png",
+        "selectedIconPath": "images/tabbar/tarot-active.png"
+      },
+      {
+        "pagePath": "pages/bagua/bagua",
+        "text": "八卦",
+        "iconPath": "images/tabbar/bagua.png",
+        "selectedIconPath": "images/tabbar/bagua-active.png"
+      },
+      {
+        "pagePath": "pages/match/match",
+        "text": "配对",
+        "iconPath": "images/tabbar/match.png",
+        "selectedIconPath": "images/tabbar/match-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tabbar/profile.png",
+        "selectedIconPath": "images/tabbar/profile-active.png"
+      }
     ]
   },
   "style": "v2",

@@ -435,20 +435,23 @@
 }
 .r-label {
   flex: none;
-  width: 220rpx;
+  /* 不定宽：按内容自然撑开，中文+英文一行放下（220rpx 会折行） */
   display: flex;
   align-items: baseline;
   gap: 12rpx;
+  white-space: nowrap;
 }
 .r-zh {
   font-size: 28rpx;
   letter-spacing: 0.14em;
   color: var(--ink);
+  white-space: nowrap;
 }
 .r-en {
   font-size: 24rpx;
   letter-spacing: 0.1em;
   color: var(--ink-dim2);
+  white-space: nowrap;
 }
 .r-bar {
   flex: 1;
@@ -493,6 +496,10 @@
   font-size: 26rpx;
   letter-spacing: 0.1em;
   color: var(--ink);
+}
+.p-item {
+  /* 单个档案项内部不折断，项与项之间由 .profile 的 flex-wrap 换行 */
+  white-space: nowrap;
 }
 .p-key {
   color: var(--ink-dim2);
