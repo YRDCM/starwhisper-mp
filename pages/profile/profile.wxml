@@ -1,0 +1,136 @@
+<!-- 我的页 -->
+<view class="page">
+  <star-layer />
+
+  <view class="eyebrow">ACCOUNT · 我的</view>
+  <view class="wordmark">
+    <text class="wm-zh">观星人</text>
+    <text class="wm-en">Profile</text>
+  </view>
+  <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+
+  <!-- ===== 打卡卡（顶部） ===== -->
+  <view class="glass-card checkin-card">
+    <view class="ci-head">
+      <text class="ci-title">每日打卡</text>
+      <text class="ci-title-en mono">CHECK-IN</text>
+    </view>
+    <!-- 未登录：引导复用登录 -->
+    <view wx:if="{{!token}}" class="ci-anon">
+      <view class="ci-anon-text">登录后开启打卡，记录每一天的星辰</view>
+    </view>
+    <!-- 已登录 -->
+    <block wx:elif="{{checkinStatus}}">
+      <view class="ci-stats">
+        <text class="ci-streak">连续 {{checkinStatus.streak}} 天</text>
+        <text class="ci-sep">✦</text>
+        <text class="ci-total">共 {{checkinStatus.totalDays}} 天</text>
+      </view>
+      <!-- 最近 14 天 mini 点阵（打过的金色点） -->
+      <view class="ci-dots">
+        <view
+          wx:for="{{checkinDots}}"
+          wx:key="date"
+          class="ci-dot {{item.done ? 'done' : ''}}"
+        ></view>
+      </view>
+      <button
+        class="btn-gold ci-btn {{checkinStatus.todayDone || checking ? 'disabled done' : ''}}"
+        bindtap="doCheckin"
+        disabled="{{checkinStatus.todayDone || checking}}"
+      >{{checkinStatus.todayDone ? '今日已打卡' : (checking ? '打卡中…' : '今日打卡')}}</button>
+    </block>
+    <view wx:else class="ci-anon"><view class="spinner"></view></view>
+  </view>
+
+  <!-- ===== 未登录 ===== -->
+  <view wx:if="{{!token}}" class="glass-card login-card">
+    <view class="avatar-placeholder">✦</view>
+    <view class="login-tip">登录后可同步保存塔罗抽牌与起卦记录</view>
+    <button class="btn-gold login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
+      {{logging ? '登录中…' : '微信登录'}}
+    </button>
+    <view wx:if="{{loginError}}" class="error-line">{{loginError}}</view>
+    <button class="btn-ghost" bindtap="onDevLogin">游客体验登录</button>
+  </view>
+
+  <!-- ===== 已登录 ===== -->
+  <block wx:else>
+    <view class="glass-card user-card">
+      <image wx:if="{{userInfo.avatarUrl}}" class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="avatar-placeholder sm">✦</view>
+      <view class="user-info">
+        <view class="user-name">{{userInfo.nickname || '星友'}}</view>
+        <view class="user-id mono">ID · {{userInfo.id}}</view>
+      </view>
+      <view class="logout mono" bindtap="onLogout">退出</view>
+    </view>
+
+    <!-- 我的记录 -->
+    <view class="glass-card history-card">
+      <view class="sec-title">我的记录 <text class="sec-title-en mono">HISTORY</text></view>
+
+      <view class="history-group">
+        <view class="group-label mono">塔罗 TAROT</view>
+        <view wx:if="{{!historyTarot.length}}" class="empty-line">
+          {{historyLoaded ? '暂无记录，去抽一张牌吧' : '读取中…'}}
+        </view>
+        <view
+          wx:for="{{historyTarot}}"
+          wx:key="id"
+          class="record {{expandedId === item.id ? 'open' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="onRecordTap"
+        >
+          <view class="record-head">
+            <text class="record-title">{{item.title}}</text>
+            <text class="record-time mono">{{item.timeText}}</text>
+          </view>
+          <view wx:if="{{expandedId === item.id}}" class="record-detail">{{item.detail}}</view>
+        </view>
+      </view>
+
+      <view class="history-group">
+        <view class="group-label mono">配对 MATCH</view>
+        <view wx:if="{{!historyMatch.length}}" class="empty-line">
+          {{historyLoaded ? '暂无记录，去配个对吧' : '读取中…'}}
+        </view>
+        <view
+          wx:for="{{historyMatch}}"
+          wx:key="id"
+          class="record {{expandedId === item.id ? 'open' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="onRecordTap"
+        >
+          <view class="record-head">
+            <text class="record-title">{{item.title}}</text>
+            <text class="record-time mono">{{item.timeText}}</text>
+          </view>
+          <view wx:if="{{expandedId === item.id}}" class="record-detail">{{item.detailText}}</view>
+        </view>
+      </view>
+
+      <view class="history-group">
+        <view class="group-label mono">八卦 BAGUA</view>
+        <view wx:if="{{!historyBagua.length}}" class="empty-line">
+          {{historyLoaded ? '暂无记录，去起一卦吧' : '读取中…'}}
+        </view>
+        <view
+          wx:for="{{historyBagua}}"
+          wx:key="id"
+          class="record {{expandedId === item.id ? 'open' : ''}}"
+          data-id="{{item.id}}"
+          bindtap="onRecordTap"
+        >
+          <view class="record-head">
+            <text class="record-title">{{item.title}}</text>
+            <text class="record-time mono">{{item.timeText}}</text>
+          </view>
+          <view wx:if="{{expandedId === item.id}}" class="record-detail">{{item.detail}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view class="footer mono">星语 STARWHISPER · 仅供娱乐 · 愿你被星辰温柔以待</view>
+</view>

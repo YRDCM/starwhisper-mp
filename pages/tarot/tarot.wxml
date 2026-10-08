@@ -1,0 +1,214 @@
+<!-- 塔罗页 -->
+<view class="page">
+  <star-layer />
+
+  <view class="eyebrow">TAROT · 塔罗</view>
+  <view class="wordmark">
+    <text class="wm-zh">塔罗</text>
+    <text class="wm-en">Tarot</text>
+  </view>
+  <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+
+  <!-- ===== 每日塔罗（自动加载） ===== -->
+  <view class="glass-card daily {{dailyLoading && daily ? 'refreshing' : ''}}">
+    <view wx:if="{{dailyError}}" class="state-box">
+      <view class="state-text">{{dailyError}}</view>
+      <button class="btn-gold" bindtap="loadDaily">重新连接</button>
+    </view>
+    <view wx:elif="{{dailyLoading && !daily}}" class="state-box">
+      <view class="spinner"></view>
+      <view class="state-text">正在洗牌…</view>
+    </view>
+    <block wx:elif="{{daily}}">
+      <view class="daily-face">
+        <tarot-card card="{{daily.card}}" orientation="{{daily.orientation}}" size="lg" />
+      </view>
+      <view class="daily-panel">
+        <view class="eyebrow">DAILY TAROT · {{todayStr}}</view>
+        <view class="daily-name">
+          <text class="zh">{{daily.card.name}}</text>
+          <text class="en">{{daily.card.nameEn}}</text>
+        </view>
+        <view>
+          <view class="stamp {{daily.orientation === 'reversed' ? 'cinnabar' : 'jade'}}">
+            {{daily.orientation === 'reversed' ? '逆位' : '正位'}}
+          </view>
+        </view>
+        <view class="kw-chips">
+          <text wx:for="{{dailyKeywords}}" wx:key="index" class="kw-chip">{{item}}</text>
+        </view>
+        <view class="meaning">{{daily.meaning}}</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- ===== 抽牌仪式 ===== -->
+  <view class="glass-card ritual">
+    <view class="sec-title">抽牌仪式 <text class="sec-title-en mono">RITUAL</text></view>
+
+    <view class="mode-row">
+      <view
+        wx:for="{{spreads}}"
+        wx:key="key"
+        class="mode-btn mono {{mode === item.key ? 'active' : ''}} {{drawing ? 'disabled' : ''}}"
+        data-mode="{{item.key}}"
+        bindtap="setMode"
+      >{{item.name}}</view>
+    </view>
+
+    <view wx:if="{{drawError}}" class="error-line">{{drawError}}</view>
+
+    <!-- 抽牌前：一排牌背 -->
+    <block wx:if="{{!drawn.length}}">
+      <view class="backs-row">
+        <view wx:for="{{backCount}}" wx:key="index" class="back-item">
+          <tarot-card faceDown size="md" />
+        </view>
+      </view>
+      <view class="stage-actions">
+        <button class="btn-gold {{drawing ? 'disabled' : ''}}" bindtap="doDraw" disabled="{{drawing}}">
+          {{drawing ? '洗牌抽牌中…' : '开始抽牌'}}
+        </button>
+      </view>
+    </block>
+
+    <!-- 抽牌后：3D 翻牌（逐张延迟 150ms） -->
+    <block wx:else>
+      <!-- single / three：横排 -->
+      <view wx:if="{{spread === 'single' || spread === 'three'}}" class="drawn-row">
+        <view wx:for="{{drawn}}" wx:key="index" class="drawn-item">
+          <view wx:if="{{item.position}}" class="pos mono">{{item.position}}</view>
+          <view class="flip {{flipped ? 'flipped' : ''}}">
+            <view class="flip-inner" style="transition-delay:{{flipped ? item.delay : 0}}ms">
+              <view class="flip-back"><tarot-card faceDown size="md" /></view>
+              <view class="flip-front"><tarot-card card="{{item.card}}" orientation="{{item.orientation}}" size="md" /></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- choice：现状居中略小（顶）+ 选择 A/B 左右两翼（分叉线装饰） -->
+      <view wx:elif="{{spread === 'choice'}}" class="choice-layout">
+        <view class="choice-top">
+          <view class="pos mono">{{choiceTop.position}}</view>
+          <view class="flip sm {{flipped ? 'flipped' : ''}}">
+            <view class="flip-inner" style="transition-delay:{{flipped ? choiceTop.delay : 0}}ms">
+              <view class="flip-back"><tarot-card faceDown size="sm" /></view>
+              <view class="flip-front"><tarot-card card="{{choiceTop.card}}" orientation="{{choiceTop.orientation}}" size="sm" /></view>
+            </view>
+          </view>
+        </view>
+        <view class="fork">
+          <view class="fork-line left"></view>
+          <view class="fork-line right"></view>
+        </view>
+        <view class="choice-wings">
+          <view wx:for="{{choiceWings}}" wx:key="index" class="drawn-item">
+            <view class="pos mono">{{item.position}}</view>
+            <view class="flip {{flipped ? 'flipped' : ''}}">
+              <view class="flip-inner" style="transition-delay:{{flipped ? item.delay : 0}}ms">
+                <view class="flip-back"><tarot-card faceDown size="md" /></view>
+                <view class="flip-front"><tarot-card card="{{item.card}}" orientation="{{item.orientation}}" size="md" /></view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- love：爱情十字（上=现实阻碍，左=你的状态，中=关系现状，右=对方的状态，下=结果与建议） -->
+      <view wx:elif="{{spread === 'love'}}" class="love-grid">
+        <view wx:for="{{[loveCells.top, loveCells.left, loveCells.center, loveCells.right, loveCells.bottom]}}"
+              wx:key="index"
+              class="love-cell c{{index}}">
+          <block wx:if="{{item}}">
+            <view class="pos mono">{{item.position}}</view>
+            <view class="flip {{flipped ? 'flipped' : ''}}">
+              <view class="flip-inner" style="transition-delay:{{flipped ? item.delay : 0}}ms">
+                <view class="flip-back"><tarot-card faceDown size="sm" /></view>
+                <view class="flip-front"><tarot-card card="{{item.card}}" orientation="{{item.orientation}}" size="sm" /></view>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <!-- 逐牌解读 -->
+      <view class="meaning-panels">
+        <view wx:for="{{drawn}}" wx:key="index" class="m-panel">
+          <view class="m-head">
+            <text wx:if="{{item.position}}" class="m-pos mono">{{item.position}}</text>
+            <text class="m-name">{{item.card.name}}</text>
+            <text class="m-ori mono {{item.orientation}}">{{item.orientation === 'reversed' ? '逆位' : '正位'}}</text>
+          </view>
+          <view class="kw-chips">
+            <text wx:for="{{item.keywordsArr}}" wx:for-item="k" wx:key="index" class="kw-chip">{{k}}</text>
+          </view>
+          <view class="m-text">{{item.meaning}}</view>
+        </view>
+      </view>
+
+      <view class="stage-actions">
+        <button class="btn-gold" bindtap="resetDraw">重新抽牌</button>
+      </view>
+    </block>
+  </view>
+
+  <!-- ===== 牌库（懒加载） ===== -->
+  <view class="glass-card archive">
+    <view class="archive-head" bindtap="toggleArchive">
+      <view class="sec-title">牌库 <text class="sec-title-en mono">ARCANA ARCHIVE</text></view>
+      <text class="toggle mono">{{archiveOpen ? '收起 −' : '展开 +'}}</text>
+    </view>
+    <view wx:if="{{archiveOpen}}" class="archive-body">
+      <view wx:if="{{cardsLoading}}" class="state-box"><view class="spinner"></view></view>
+      <view wx:elif="{{cardsError}}" class="error-line">{{cardsError}}</view>
+      <block wx:else>
+        <view wx:for="{{groups}}" wx:key="key" class="group">
+          <view class="group-title mono">{{item.zh}} · {{item.key}}</view>
+          <view class="card-grid">
+            <view
+              wx:for="{{item.cards}}"
+              wx:for-item="c"
+              wx:key="id"
+              class="grid-card"
+              data-card="{{c}}"
+              bindtap="onCardTap"
+            >
+              <tarot-card card="{{c}}" size="sm" />
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 牌详情弹层 -->
+  <view wx:if="{{activeCard}}" class="modal-mask" bindtap="closeModal">
+    <view class="modal glass-card" catchtap="noop">
+      <view class="modal-close mono" catchtap="closeModal">✕</view>
+      <view class="modal-face"><tarot-card card="{{activeCard}}" size="md" /></view>
+      <view class="modal-info">
+        <view class="m-title">
+          <text class="zh">{{activeCard.name}}</text>
+          <text class="en">{{activeCard.nameEn}}</text>
+        </view>
+        <view class="m-block">
+          <view class="m-label mono jade">正位 UPRIGHT</view>
+          <view class="kw-chips">
+            <text wx:for="{{activeCard.uprightArr}}" wx:key="index" class="kw-chip">{{item}}</text>
+          </view>
+          <view class="m-text">{{activeCard.uprightMeaning}}</view>
+        </view>
+        <view class="m-block">
+          <view class="m-label mono cinnabar">逆位 REVERSED</view>
+          <view class="kw-chips">
+            <text wx:for="{{activeCard.reversedArr}}" wx:key="index" class="kw-chip">{{item}}</text>
+          </view>
+          <view class="m-text">{{activeCard.reversedMeaning}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer mono">星语 STARWHISPER · 仅供娱乐 · 愿你被星辰温柔以待</view>
+</view>

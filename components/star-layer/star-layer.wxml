@@ -1,0 +1,5 @@
+<!-- CSS 星空层：~42 个绝对定位的闪烁圆点（纯 CSS 透明度呼吸），
+     固定定位铺满页面、不挡点击；比 canvas 星空便宜可靠 -->
+<view class="star-layer">
+  <view wx:for="{{stars}}" wx:key="index" class="star" style="{{s}}"></view>
+</view>

@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "star-layer": "/components/star-layer/star-layer",
+    "constellation-view": "/components/constellation-view/constellation-view",
+    "ec-canvas": "/components/ec-canvas/ec-canvas"
+  },
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "navigationBarTitleText": "星语 · 星运"
+}

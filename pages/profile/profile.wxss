@@ -1,0 +1,265 @@
+/* ===== 我的页样式 ===== */
+.page {
+  position: relative;
+  z-index: 1;
+  padding: 32rpx 24rpx 64rpx;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+  margin-top: 14rpx;
+}
+.wm-zh {
+  font-family: var(--font-display);
+  font-size: 56rpx;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+}
+.wm-en {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 32rpx;
+  color: var(--ink-dim2);
+}
+
+/* ===== 打卡卡 ===== */
+.checkin-card {
+  margin-top: 24rpx;
+  padding: 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+.ci-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+}
+.ci-title {
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+}
+.ci-title-en {
+  font-size: 24rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+}
+.ci-anon {
+  padding: 16rpx 0;
+}
+.ci-anon-text {
+  font-size: 28rpx;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim2);
+  line-height: 1.8;
+}
+.ci-stats {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+}
+.ci-streak {
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+}
+.ci-sep {
+  color: var(--gold-dim);
+  font-size: 24rpx;
+}
+.ci-total {
+  font-size: 28rpx;
+  color: var(--ink-dim2);
+}
+/* 最近 14 天点阵 */
+.ci-dots {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+.ci-dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: rgba(139, 135, 176, 0.18);
+}
+.ci-dot.done {
+  background: var(--gold);
+  box-shadow: 0 0 10rpx rgba(232, 196, 124, 0.45);
+}
+.ci-btn {
+  align-self: flex-start;
+}
+.ci-btn.done {
+  border-color: rgba(139, 135, 176, 0.3);
+  background: rgba(139, 135, 176, 0.08);
+  color: var(--ink-dim2);
+}
+
+/* ===== 登录卡片 ===== */
+.login-card {
+  margin-top: 48rpx;
+  padding: 64rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28rpx;
+}
+.avatar-placeholder {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  border: 1px solid var(--gold-hairline);
+  background: rgba(35, 32, 72, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  color: var(--gold);
+}
+.avatar-placeholder.sm {
+  width: 96rpx;
+  height: 96rpx;
+  font-size: 36rpx;
+  flex: none;
+}
+.login-tip {
+  font-size: 28rpx;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim2);
+  text-align: center;
+  line-height: 1.8;
+}
+.login-btn {
+  width: 60%;
+}
+.btn-ghost {
+  background: none;
+  border: 1px solid rgba(139, 135, 176, 0.25);
+  color: var(--ink-dim2);
+  font-size: 26rpx;
+  letter-spacing: 0.18em;
+  padding: 12rpx 40rpx;
+  border-radius: 8rpx;
+}
+.btn-ghost::after, .btn-gold::after {
+  border: none; /* 去掉 button 默认边框 */
+}
+
+/* ===== 用户卡片 ===== */
+.user-card {
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+.avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 1px solid var(--gold-hairline);
+  flex: none;
+}
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+.user-name {
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+.user-id {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--ink-dim2);
+}
+.logout {
+  font-size: 26rpx;
+  letter-spacing: 0.2em;
+  color: var(--cinnabar);
+  padding: 10rpx 20rpx;
+}
+
+/* ===== 历史记录 ===== */
+.history-card {
+  margin-top: 32rpx;
+  padding: 32rpx;
+}
+.sec-title {
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+  margin-bottom: 20rpx;
+}
+.sec-title-en {
+  font-size: 24rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+  margin-left: 16rpx;
+}
+.history-group {
+  margin-top: 20rpx;
+}
+.group-label {
+  font-size: 25rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+  padding-bottom: 12rpx;
+  margin-bottom: 12rpx;
+  border-bottom: 1px solid rgba(139, 135, 176, 0.16);
+}
+.empty-line {
+  font-size: 26rpx;
+  color: var(--ink-dim2);
+  padding: 20rpx 0;
+  letter-spacing: 0.1em;
+}
+.record {
+  padding: 16rpx 8rpx;
+  border-bottom: 1px solid rgba(139, 135, 176, 0.1);
+}
+.record-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.record-title {
+  font-size: 28rpx;
+  color: var(--ink);
+}
+.record-time {
+  flex: none;
+  font-size: 24rpx;
+  color: var(--ink-dim2);
+}
+.record-detail {
+  margin-top: 12rpx;
+  padding: 12rpx 16rpx;
+  border-left: 4rpx solid var(--gold-hairline);
+  font-size: 26rpx;
+  line-height: 1.9;
+  color: rgba(232, 230, 240, 0.9);
+  white-space: pre-line; /* 配对摘要里双方星座与点评分两行 */
+}
+
+/* 页脚 */
+.footer {
+  margin-top: auto;
+  padding-top: 72rpx;
+  text-align: center;
+  font-size: 25rpx;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim2);
+}

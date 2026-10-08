@@ -1,0 +1,144 @@
+<!-- 八卦页 -->
+<view class="page">
+  <star-layer />
+
+  <view class="eyebrow">I CHING · 八卦</view>
+  <view class="wordmark">
+    <text class="wm-zh">易经</text>
+    <text class="wm-en">Bagua</text>
+  </view>
+  <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+
+  <!-- ===== 每日一卦（自动加载） ===== -->
+  <view class="glass-card daily {{dailyLoading && daily ? 'refreshing' : ''}}">
+    <view wx:if="{{dailyError}}" class="state-box">
+      <view class="state-text">{{dailyError}}</view>
+      <button class="btn-gold" bindtap="loadDaily">重新连接</button>
+    </view>
+    <view wx:elif="{{dailyLoading && !daily}}" class="state-box">
+      <view class="spinner"></view>
+      <view class="state-text">正在排卦…</view>
+    </view>
+    <block wx:elif="{{daily}}">
+      <view class="daily-glyph"><hexagram-glyph lines="{{daily.lines}}" size="lg" /></view>
+      <view class="daily-panel">
+        <view class="eyebrow">DAILY HEXAGRAM · {{todayStr}} · 第{{daily.seqNumber}}卦</view>
+        <view class="daily-name">{{daily.name}}</view>
+        <view class="daily-seal-row">
+          <view class="stamp {{daily.levelClass}}">{{daily.fortuneLevel}}</view>
+          <text class="trigram-line mono">{{daily.trigramLine}}</text>
+        </view>
+        <view class="judgment">{{daily.judgment}}</view>
+        <view class="meaning">{{daily.meaning}}</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- ===== 铜钱起卦 ===== -->
+  <view class="glass-card cast">
+    <view class="sec-title">铜钱起卦 <text class="sec-title-en mono">CASTING</text></view>
+    <view wx:if="{{castError}}" class="error-line">{{castError}}</view>
+
+    <!-- 未起卦：仪式入口 -->
+    <view wx:if="{{!castResult}}" class="cast-entry">
+      <view class="cast-hint">静心默念所求之事，而后起卦</view>
+      <button class="btn-gold {{casting ? 'disabled' : ''}}" bindtap="doCast" disabled="{{casting}}">
+        {{casting ? '摇卦中…' : '起卦'}}
+      </button>
+    </view>
+
+    <!-- 起卦中/完成：六爻自下而上逐爻显现 -->
+    <block wx:else>
+      <view class="lines-stage">
+        <view
+          wx:for="{{castLines}}"
+          wx:key="pos"
+          class="line-row {{revealedCount >= item.pos ? 'revealed' : ''}}"
+        >
+          <block wx:if="{{revealedCount >= item.pos}}">
+            <view class="line-bar {{item.yang ? '' : 'yin'}}">
+              <view class="seg"></view>
+              <view wx:if="{{!item.yang}}" class="seg"></view>
+            </view>
+            <text class="line-label mono {{item.labelClass}}">{{item.label}}</text>
+          </block>
+        </view>
+      </view>
+
+      <!-- 六爻齐后：本卦（+之卦）面板 -->
+      <view wx:if="{{showResult}}" class="result-row">
+        <view class="hex-panel">
+          <view class="hp-tag mono">本卦</view>
+          <hexagram-glyph lines="{{castResult.primary.lines}}" size="md" />
+          <view class="hp-name">{{castResult.primary.name}}</view>
+          <view class="hp-seq mono">第{{castResult.primary.seqNumber}}卦</view>
+          <view class="stamp sm {{castResult.primary.levelClass}}">{{castResult.primary.fortuneLevel}}</view>
+          <view class="judgment sm">{{castResult.primary.judgment}}</view>
+          <view class="meaning sm">{{castResult.primary.meaning}}</view>
+        </view>
+
+        <block wx:if="{{castResult.changed}}">
+          <view class="arrow">
+            <text class="arrow-char">↓</text>
+            <text class="arrow-label mono">之卦</text>
+          </view>
+          <view class="hex-panel">
+            <view class="hp-tag mono">之卦</view>
+            <hexagram-glyph lines="{{castResult.changed.lines}}" size="md" />
+            <view class="hp-name">{{castResult.changed.name}}</view>
+            <view class="hp-seq mono">第{{castResult.changed.seqNumber}}卦</view>
+            <view class="stamp sm {{castResult.changed.levelClass}}">{{castResult.changed.fortuneLevel}}</view>
+            <view class="judgment sm">{{castResult.changed.judgment}}</view>
+            <view class="meaning sm">{{castResult.changed.meaning}}</view>
+          </view>
+        </block>
+      </view>
+
+      <view wx:if="{{showResult}}" class="cast-again">
+        <button class="btn-gold" bindtap="resetCast">重新起卦</button>
+      </view>
+    </block>
+  </view>
+
+  <!-- ===== 六十四卦（懒加载） ===== -->
+  <view class="glass-card archive">
+    <view class="archive-head" bindtap="toggleArchive">
+      <view class="sec-title">六十四卦 <text class="sec-title-en mono">SIXTY-FOUR HEXAGRAMS</text></view>
+      <text class="toggle mono">{{archiveOpen ? '收起 −' : '展开 +'}}</text>
+    </view>
+    <view wx:if="{{archiveOpen}}" class="archive-body">
+      <view wx:if="{{listLoading}}" class="state-box"><view class="spinner"></view></view>
+      <view wx:elif="{{listError}}" class="error-line">{{listError}}</view>
+      <view wx:else class="hex-grid">
+        <view
+          wx:for="{{hexagrams}}"
+          wx:key="seqNumber"
+          class="grid-cell"
+          data-hex="{{item}}"
+          bindtap="onHexTap"
+        >
+          <hexagram-glyph lines="{{item.lines}}" size="sm" />
+          <text class="cell-seq mono">{{item.seqNumber}}</text>
+          <text class="cell-name">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 卦详情弹层 -->
+  <view wx:if="{{activeHex}}" class="modal-mask" bindtap="closeModal">
+    <view class="modal glass-card" catchtap="noop">
+      <view class="modal-close mono" catchtap="closeModal">✕</view>
+      <view class="modal-glyph"><hexagram-glyph lines="{{activeHex.lines}}" size="md" /></view>
+      <view class="modal-info">
+        <view class="m-title">{{activeHex.name}}</view>
+        <view class="m-meta mono">第{{activeHex.seqNumber}}卦 · {{activeHex.trigramLine}}</view>
+        <view><view class="stamp sm {{activeHex.levelClass}}">{{activeHex.fortuneLevel}}</view></view>
+        <view class="judgment sm">{{activeHex.judgment}}</view>
+        <view class="meaning sm">{{activeHex.meaning}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer mono">星语 STARWHISPER · 仅供娱乐 · 愿你被星辰温柔以待</view>
+</view>

@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "star-layer": "/components/star-layer/star-layer"
+  },
+  "navigationBarTitleText": "星语 · 我的"
+}

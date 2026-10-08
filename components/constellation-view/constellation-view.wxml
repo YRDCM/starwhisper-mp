@@ -1,0 +1,8 @@
+<!-- 星座星联小图：小程序不支持内联 SVG，纯 CSS 实现——
+     星点 = 绝对定位圆点；连线 = 定位 + 旋转的细条 -->
+<view class="constellation">
+  <view wx:for="{{edges}}" wx:key="index" class="const-edge" style="{{item}}">
+    <view class="const-edge-fill"></view>
+  </view>
+  <view wx:for="{{points}}" wx:key="index" class="const-star" style="{{item}}"></view>
+</view>

@@ -1,0 +1,4 @@
+{
+  "desc": "星语小程序页面索引",
+  "rules": [{ "action": "allow", "page": "*" }]
+}

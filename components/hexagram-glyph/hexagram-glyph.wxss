@@ -1,0 +1,32 @@
+.hex-glyph {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.hex-line {
+  display: flex;
+  justify-content: space-between;
+}
+.hex-line .seg {
+  display: block;
+  width: 100%;
+  background: #E8C47C;
+  border-radius: 2rpx;
+}
+.hex-line.yin {
+  gap: 14%; /* 阴爻中间缺口 */
+}
+.hex-line.yin .seg {
+  width: 43%;
+}
+
+/* 尺寸变体：整体宽高 + 爻条高度 */
+.sz-sm { width: 64rpx; height: 64rpx; }
+.sz-sm .seg { height: 5rpx; }
+.sz-md { width: 160rpx; height: 160rpx; }
+.sz-md .seg { height: 12rpx; }
+.sz-lg { width: 240rpx; height: 240rpx; }
+.sz-lg .seg {
+  height: 16rpx;
+  box-shadow: 0 0 16rpx rgba(232, 196, 124, 0.35); /* 大号爻条微光晕 */
+}

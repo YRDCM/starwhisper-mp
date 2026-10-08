@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "star-layer": "/components/star-layer/star-layer",
+    "tarot-card": "/components/tarot-card/tarot-card"
+  },
+  "navigationBarTitleText": "星语 · 塔罗"
+}

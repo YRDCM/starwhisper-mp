@@ -1,0 +1,336 @@
+/* ===== 八卦页样式 ===== */
+.page {
+  position: relative;
+  z-index: 1;
+  padding: 32rpx 24rpx 64rpx;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+  margin-top: 14rpx;
+}
+.wm-zh {
+  font-family: var(--font-display);
+  font-size: 56rpx;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+}
+.wm-en {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 32rpx;
+  color: var(--ink-dim2);
+}
+
+/* ===== 每日一卦 ===== */
+.daily {
+  display: flex;
+  gap: 40rpx;
+  padding: 40rpx 36rpx;
+  transition: opacity 0.25s ease;
+}
+.daily.refreshing {
+  opacity: 0.55;
+}
+.daily-glyph {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  border: 1px solid var(--gold-hairline);
+  border-radius: 12rpx;
+  background: rgba(35, 32, 72, 0.4);
+}
+.daily-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+}
+.daily-name {
+  font-family: var(--font-display);
+  font-size: 56rpx;
+  color: var(--gold);
+  letter-spacing: 0.14em;
+}
+.daily-seal-row {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  flex-wrap: wrap;
+}
+.trigram-line {
+  font-size: 26rpx;
+  letter-spacing: 0.14em;
+  color: var(--ink-dim2);
+}
+
+/* 卦辞引文 / 释义 */
+.judgment {
+  padding: 8rpx 0 8rpx 28rpx;
+  border-left: 4rpx solid var(--gold);
+  font-family: var(--font-display);
+  font-size: 32rpx;
+  line-height: 1.9;
+  color: var(--ink);
+}
+.judgment.sm {
+  font-size: 28rpx;
+}
+.meaning {
+  font-size: 30rpx;
+  line-height: 2;
+  color: rgba(232, 230, 240, 0.9);
+}
+.meaning.sm {
+  font-size: 26rpx;
+  line-height: 1.9;
+}
+
+/* ===== 通用小节标题 ===== */
+.sec-title {
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+}
+.sec-title-en {
+  font-size: 24rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+  margin-left: 16rpx;
+}
+
+/* ===== 铜钱起卦 ===== */
+.cast {
+  margin-top: 36rpx;
+  padding: 36rpx;
+}
+.cast-entry {
+  text-align: center;
+  padding: 40rpx 0 32rpx;
+}
+.cast-hint {
+  font-size: 28rpx;
+  letter-spacing: 0.16em;
+  color: var(--ink-dim2);
+  margin-bottom: 32rpx;
+}
+
+/* 六爻显现区：自上而下 6..1 排列，未显现的爻占位保持高度 */
+.lines-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+  width: 560rpx;
+  margin: 28rpx auto 16rpx;
+}
+.line-row {
+  height: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32rpx;
+  opacity: 0;
+  transform: translateY(12rpx);
+}
+.line-row.revealed {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.line-bar {
+  display: flex;
+  justify-content: space-between;
+  width: 280rpx;
+}
+.line-bar .seg {
+  display: block;
+  height: 14rpx;
+  width: 100%;
+  background: var(--gold);
+  border-radius: 2rpx;
+}
+.line-bar.yin {
+  gap: 14%;
+}
+.line-bar.yin .seg {
+  width: 43%;
+}
+.line-label {
+  width: 170rpx;
+  font-size: 25rpx;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim2);
+}
+.line-label.lao-yang { color: var(--gold); }
+.line-label.lao-yin { color: var(--cinnabar); }
+
+/* 本卦 / 之卦面板（小程序竖屏默认纵排） */
+.result-row {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}
+.hex-panel {
+  border: 1px solid rgba(139, 135, 176, 0.16);
+  border-radius: 12rpx;
+  padding: 28rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  align-items: flex-start;
+}
+.hp-tag {
+  font-size: 24rpx;
+  letter-spacing: 0.24em;
+  color: var(--ink-dim2);
+}
+.hp-name {
+  font-family: var(--font-display);
+  font-size: 42rpx;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+.hp-seq {
+  font-size: 25rpx;
+  letter-spacing: 0.14em;
+  color: var(--ink-dim2);
+}
+.arrow {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+.arrow-char {
+  font-size: 36rpx;
+  color: var(--gold);
+}
+.arrow-label {
+  font-size: 24rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+}
+.cast-again {
+  text-align: center;
+  margin-top: 32rpx;
+}
+
+/* ===== 六十四卦 ===== */
+.archive {
+  margin-top: 36rpx;
+}
+.archive-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 36rpx;
+}
+.toggle {
+  font-size: 25rpx;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+}
+.archive-body {
+  padding: 0 36rpx 36rpx;
+}
+.hex-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20rpx;
+}
+.grid-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 20rpx 8rpx;
+  background: rgba(35, 32, 72, 0.4);
+  border: 1px solid rgba(139, 135, 176, 0.14);
+  border-radius: 12rpx;
+}
+.cell-seq {
+  font-size: 24rpx;
+  color: var(--ink-dim2);
+}
+.cell-name {
+  font-family: var(--font-display);
+  font-size: 24rpx;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+/* ===== 弹层 ===== */
+.modal-mask {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  z-index: 40;
+  background: rgba(7, 11, 30, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+.modal {
+  position: relative;
+  display: flex;
+  gap: 32rpx;
+  width: 100%;
+  padding: 40rpx 36rpx;
+  box-sizing: border-box;
+}
+.modal-close {
+  position: absolute;
+  top: 20rpx;
+  right: 24rpx;
+  color: var(--ink-dim2);
+  font-size: 32rpx;
+  padding: 8rpx 16rpx;
+}
+.modal-glyph {
+  flex: none;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border: 1px solid var(--gold-hairline);
+  border-radius: 12rpx;
+  background: rgba(35, 32, 72, 0.4);
+}
+.modal-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+.m-title {
+  font-family: var(--font-display);
+  font-size: 48rpx;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+}
+.m-meta {
+  font-size: 25rpx;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim2);
+}
+
+/* 页脚 */
+.footer {
+  margin-top: auto;
+  padding-top: 72rpx;
+  text-align: center;
+  font-size: 25rpx;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim2);
+}

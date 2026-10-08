@@ -1,0 +1,562 @@
+/* ===== 星运页样式（rpx，字号地板 ≥24rpx 对齐 Web fontfix） ===== */
+
+.page {
+  position: relative;
+  z-index: 1;
+  padding: 32rpx 24rpx 64rpx;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ===== 页眉 ===== */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  margin-bottom: 6rpx;
+}
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+}
+.wm-zh {
+  font-family: var(--font-display);
+  font-size: 64rpx;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+}
+.wm-en {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 36rpx;
+  color: var(--ink-dim2);
+}
+.today {
+  font-size: 26rpx;
+  letter-spacing: 0.14em;
+  color: var(--ink-dim2);
+}
+
+/* ===== 星盘 ===== */
+.wheel-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 24rpx 0 16rpx;
+}
+.wheel {
+  position: relative;
+  width: 726rpx;
+  height: 726rpx;
+}
+.wheel.animated {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bezel-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid var(--gold-hairline);
+}
+.bezel-ring.outer {
+  left: 6rpx; top: 6rpx; right: 6rpx; bottom: 6rpx;
+}
+.bezel-ring.inner {
+  left: 90rpx; top: 90rpx; right: 90rpx; bottom: 90rpx;
+  border-color: rgba(139, 135, 176, 0.14);
+}
+.tick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2rpx;
+  transform-origin: 0 0; /* JS 里 rotate + translateY(-350rpx) 外推 */
+}
+.wheel-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 320rpx;
+  margin: -80rpx 0 0 -160rpx;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.center-name {
+  font-family: var(--font-display);
+  font-size: 64rpx;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+}
+.center-en {
+  font-size: 25rpx;
+  letter-spacing: 0.3em;
+  color: var(--ink-dim2);
+  text-transform: uppercase;
+}
+
+/* 星座节点 */
+.sign-node {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -75rpx 0 0 -75rpx;
+  width: 150rpx;
+  height: 150rpx;
+}
+.node-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1px solid rgba(139, 135, 176, 0.22);
+  background: rgba(35, 32, 72, 0.5);
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.wheel:not(.animated) .node-inner {
+  transition: none;
+}
+.sign-node.active .node-inner {
+  border-color: var(--gold);
+  background: rgba(232, 196, 124, 0.10);
+  box-shadow: 0 0 32rpx rgba(232, 196, 124, 0.4), inset 0 0 20rpx rgba(232, 196, 124, 0.14);
+}
+.node-const {
+  width: 58rpx;
+  height: 58rpx;
+}
+.sign-name {
+  font-family: var(--font-display);
+  font-size: 28rpx;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+.sign-dates {
+  font-size: 20rpx;
+  line-height: 1.05;
+  white-space: nowrap; /* 单行 5 字符本就不会折行，兜底防挤压 */
+  color: var(--ink-dim2);
+}
+.sign-node.active .sign-name {
+  color: var(--gold);
+}
+
+/* ===== 主内容 ===== */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 36rpx;
+  transition: opacity 0.25s ease;
+}
+.content.refreshing {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ===== 运势卡 ===== */
+.fortune-card {
+  padding: 40rpx 36rpx 32rpx;
+}
+.fc-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.fc-name .zh {
+  font-family: var(--font-display);
+  font-size: 56rpx;
+  color: var(--gold);
+  letter-spacing: 0.14em;
+}
+.fc-name .en {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 32rpx;
+  color: var(--ink-dim2);
+  margin-left: 20rpx;
+}
+.fc-meta {
+  font-size: 26rpx;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim2);
+}
+.meta-seg {
+  /* 每段不折断，只在 · 分隔处换行 */
+  display: inline-block;
+}
+
+/* 评分 */
+.score-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.score-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.dim-label {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+}
+.dim-zh {
+  font-size: 30rpx;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+}
+.dim-en {
+  font-size: 25rpx;
+  letter-spacing: 0.14em;
+  color: var(--ink-dim2);
+}
+.glyphs {
+  letter-spacing: 0.24em;
+  font-size: 28rpx;
+}
+.glyphs .on {
+  color: var(--gold);
+}
+.glyphs .off {
+  color: rgba(139, 135, 176, 0.35);
+}
+
+/* 幸运条目 */
+.lucky-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx 56rpx;
+}
+.lucky-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+.lucky-label {
+  font-size: 25rpx;
+  letter-spacing: 0.14em;
+  color: var(--ink-dim2);
+}
+.lucky-value {
+  font-size: 30rpx;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+.lucky-value.number {
+  font-size: 38rpx;
+  color: var(--gold);
+}
+.color-chip {
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 230, 240, 0.4);
+}
+
+/* 点评引文 */
+.summary {
+  margin: 32rpx 0 24rpx;
+  padding: 8rpx 0 8rpx 28rpx;
+  border-left: 4rpx solid var(--gold);
+  font-family: var(--font-display);
+  font-size: 32rpx;
+  line-height: 2;
+  color: var(--ink);
+}
+
+/* 今日提醒横幅 */
+.notice {
+  display: flex;
+  align-items: baseline;
+  gap: 18rpx;
+  margin: 0 0 28rpx;
+  padding: 14rpx 22rpx;
+  border: 1px solid rgba(139, 135, 176, 0.16);
+  border-radius: 8rpx;
+}
+.notice-chip {
+  flex: none;
+  font-size: 25rpx;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  border: 1px solid var(--gold-hairline);
+  border-radius: 6rpx;
+  padding: 2rpx 14rpx;
+}
+.notice-text {
+  font-size: 28rpx;
+  line-height: 1.8;
+  color: var(--ink-dim2);
+}
+
+/* 宜 / 忌 + 速配 */
+.seal-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20rpx;
+}
+.seal-box {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 16rpx 22rpx;
+  border: 1px solid rgba(139, 135, 176, 0.16);
+  border-radius: 8rpx;
+  flex: 1 1 300rpx;
+}
+.seal-items {
+  font-size: 28rpx;
+  line-height: 1.8;
+  color: var(--ink);
+}
+.pair-box {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 12rpx 24rpx;
+  border: 1px solid rgba(139, 135, 176, 0.16);
+  border-radius: 8rpx;
+}
+.pair-label {
+  font-size: 24rpx;
+  letter-spacing: 0.16em;
+  color: var(--ink-dim2);
+}
+.pair-const {
+  width: 52rpx;
+  height: 52rpx;
+}
+.pair-name {
+  font-family: var(--font-display);
+  font-size: 28rpx;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+
+/* 分维解读 */
+.insights {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+.i-label {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  margin-bottom: 10rpx;
+}
+.i-zh {
+  font-size: 30rpx;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+}
+.i-en {
+  font-size: 25rpx;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim2);
+}
+.i-text {
+  font-size: 30rpx;
+  line-height: 2;
+  color: rgba(232, 230, 240, 0.9);
+}
+
+/* 来源签 */
+.fc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32rpx;
+}
+.share-btn {
+  font-size: 25rpx;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  border: 1px solid var(--gold-hairline);
+  border-radius: 6rpx;
+  padding: 8rpx 22rpx;
+}
+.source-tag {
+  font-size: 25rpx;
+  letter-spacing: 0.16em;
+  color: var(--ink-dim2);
+}
+.source-tag.showapi {
+  color: var(--gold);
+}
+
+/* ===== 图表卡 ===== */
+.chart-card {
+  padding: 36rpx 32rpx;
+}
+.chart-title {
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+  margin-bottom: 12rpx;
+}
+.chart-title-en {
+  font-size: 24rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+  margin-left: 16rpx;
+}
+.chart-canvas {
+  width: 100%;
+  height: 520rpx;
+  display: block;
+}
+.chart-canvas.tall {
+  height: 460rpx;
+}
+
+/* 读数条 */
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin-bottom: 32rpx;
+}
+.readout-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.r-label {
+  flex: none;
+  width: 220rpx;
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+}
+.r-zh {
+  font-size: 28rpx;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+.r-en {
+  font-size: 24rpx;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim2);
+}
+.r-bar {
+  flex: 1;
+  height: 4rpx;
+  background: rgba(139, 135, 176, 0.15);
+  border-radius: 2rpx;
+  overflow: hidden;
+}
+.r-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2rpx;
+  transition: width 0.5s ease;
+}
+.r-val {
+  flex: none;
+  width: 76rpx;
+  text-align: right;
+  font-size: 26rpx;
+  color: var(--gold);
+}
+
+/* 健康寄语 */
+.health-quote {
+  margin: 0 0 32rpx;
+  padding: 8rpx 0 8rpx 28rpx;
+  border-left: 4rpx solid var(--gold);
+  font-family: var(--font-display);
+  font-size: 30rpx;
+  line-height: 1.9;
+  color: var(--ink);
+}
+
+/* 星座档案 */
+.profile {
+  padding-top: 24rpx;
+  border-top: 1px solid rgba(139, 135, 176, 0.16);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx 40rpx;
+  font-size: 26rpx;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+.p-key {
+  color: var(--ink-dim2);
+  margin-right: 12rpx;
+}
+
+/* 状态图标 */
+.state-icon {
+  font-size: 60rpx;
+  color: var(--gold);
+}
+
+/* 页脚 */
+.footer {
+  margin-top: auto;
+  padding-top: 72rpx;
+  text-align: center;
+  font-size: 25rpx;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim2);
+}
+
+/* ===== 分享海报 ===== */
+/* 离屏画布：移出视口但保持可布局（display:none 会让 canvas 无尺寸） */
+.poster-canvas {
+  position: fixed;
+  left: -9999rpx;
+  top: 0;
+  width: 750rpx;
+  height: 1200rpx;
+}
+.poster-mask {
+  position: fixed;
+  left: 0; top: 0; right: 0; bottom: 0;
+  z-index: 50;
+  background: rgba(7, 11, 30, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+  box-sizing: border-box;
+}
+.poster-modal {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+}
+.poster-img {
+  width: 560rpx;
+  border-radius: 12rpx;
+  border: 1px solid var(--gold-hairline);
+}
+.poster-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+  width: 100%;
+}
+.poster-close {
+  font-size: 26rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+  padding: 8rpx 24rpx;
+}

@@ -1,0 +1,20 @@
+.star-layer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0; /* 压在渐变背景上、内容之下 */
+  pointer-events: none; /* 不挡任何点击 */
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #FFF4D6;
+  opacity: 0.16;
+  animation: twinkle 3s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.14; }
+  50% { opacity: 0.58; }
+}

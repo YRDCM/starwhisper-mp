@@ -1,0 +1,224 @@
+<!-- 星运页 -->
+<wxs module="dateUtil">
+  // 把 "09.23-10.23" 拆成起止两段，轮盘圆圈内分两行展示（单行会折行溢出圆圈）
+  module.exports = {
+    rangeParts: function (range) {
+      var parts = String(range || '').split('-')
+      return { start: parts[0] || '', end: parts.length > 1 ? parts[1] : '' }
+    }
+  }
+</wxs>
+<view class="page">
+  <star-layer />
+
+  <!-- 页眉：眉题 + 词标 + 日期 + ✦ 饰线 -->
+  <view class="header">
+    <view class="eyebrow">EPHEMERIS · 星历</view>
+    <view class="wordmark">
+      <text class="wm-zh">星语</text>
+      <text class="wm-en">StarWhisper</text>
+    </view>
+    <view class="today mono">{{todayText}}</view>
+  </view>
+  <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+
+  <!-- 断连错误态（不白屏） -->
+  <view wx:if="{{error}}" class="glass-card state-box">
+    <view class="state-icon">✧</view>
+    <view class="state-text">{{error}}</view>
+    <button class="btn-gold" bindtap="retry">重新连接</button>
+  </view>
+
+  <block wx:else>
+    <!-- 星盘选择器：刻度环 + 12 星座节点，点击旋转到正上方 -->
+    <view class="wheel-wrap">
+      <view class="wheel {{animated ? 'animated' : ''}}" style="transform:rotate({{ringAngle}}deg)">
+        <!-- 双环轨道线 -->
+        <view class="bezel-ring outer"></view>
+        <view class="bezel-ring inner"></view>
+        <!-- 60 格刻度 -->
+        <view wx:for="{{ticks}}" wx:key="index" class="tick" style="{{item}}"></view>
+        <!-- 中心：当前星座（反向旋转保持直立） -->
+        <view class="wheel-center" style="{{centerStyle}}">
+          <view class="center-name">{{currentSign ? currentSign.name : ''}}</view>
+          <view class="center-en mono">{{currentSign ? currentSign.nameEn : ''}}</view>
+        </view>
+        <!-- 星座节点 -->
+        <view
+          wx:for="{{signs}}"
+          wx:key="id"
+          class="sign-node {{item.id === currentSignId ? 'active' : ''}}"
+          style="{{nodeStyles[index]}}"
+          data-id="{{item.id}}"
+          bindtap="onSignTap"
+        >
+          <view class="node-inner" style="transform:rotate({{-ringAngle}}deg)">
+            <view class="node-const"><constellation-view sign="{{item.nameEn}}" /></view>
+            <view class="sign-name">{{item.name}}</view>
+            <view class="sign-dates mono">{{dateUtil.rangeParts(item.dateRange).start}}</view>
+            <view class="sign-dates mono">{{dateUtil.rangeParts(item.dateRange).end}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 首次加载态 -->
+    <view wx:if="{{loading && !fortune}}" class="glass-card state-box">
+      <view class="spinner"></view>
+      <view class="state-text">正在聆听星辰的低语…</view>
+    </view>
+
+    <!-- 主内容（刷新时保留旧内容，仅变淡） -->
+    <view wx:if="{{fortune}}" class="content {{loading ? 'refreshing' : ''}}">
+      <!-- ===== 今日运势卡 ===== -->
+      <view class="glass-card fortune-card">
+        <view class="fc-head">
+          <view class="fc-name">
+            <text class="zh">{{fortune.signName}}</text>
+            <text class="en">{{fortune.signNameEn}}</text>
+          </view>
+          <view class="fc-meta mono">
+            <text wx:for="{{view.metaParts}}" wx:key="index" class="meta-seg">{{item}}{{index < view.metaParts.length - 1 ? ' · ' : ''}}</text>
+          </view>
+        </view>
+
+        <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+
+        <!-- 评分（healthScore 为 null 时健康行自动隐藏） -->
+        <view class="score-list">
+          <view wx:for="{{view.dimensions}}" wx:key="en" class="score-row">
+            <view class="dim-label">
+              <text class="dim-zh">{{item.zh}}</text>
+              <text class="dim-en mono">{{item.en}}</text>
+            </view>
+            <view class="glyphs">
+              <text wx:for="{{[1,2,3,4,5]}}" wx:for-item="n" wx:key="n" class="{{n <= item.score ? 'on' : 'off'}}">✦</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+
+        <!-- 幸运条目 -->
+        <view class="lucky-row">
+          <view class="lucky-item">
+            <view class="lucky-label mono">LUCKY COLOR · 幸运色</view>
+            <view class="lucky-value">
+              <view class="color-chip" style="background:{{view.luckyColorBg}}"></view>
+              {{fortune.luckyColor}}
+            </view>
+          </view>
+          <view class="lucky-item">
+            <view class="lucky-label mono">NUMBER · 幸运数字</view>
+            <view class="lucky-value number mono">{{fortune.luckyNumber}}</view>
+          </view>
+          <view class="lucky-item">
+            <view class="lucky-label mono">HOUR · 吉时</view>
+            <view class="lucky-value mono">{{fortune.luckyTime}}</view>
+          </view>
+          <view wx:if="{{fortune.luckyDirection}}" class="lucky-item">
+            <view class="lucky-label mono">DIRECTION · 方位</view>
+            <view class="lucky-value">{{fortune.luckyDirection}}</view>
+          </view>
+        </view>
+
+        <!-- 点评引文 -->
+        <view class="summary">{{fortune.summary}}</view>
+
+        <!-- 今日提醒 -->
+        <view wx:if="{{fortune.dayNotice}}" class="notice">
+          <text class="notice-chip mono">提醒</text>
+          <text class="notice-text">{{fortune.dayNotice}}</text>
+        </view>
+
+        <!-- 宜 / 忌印章 + 速配/贵人 -->
+        <view class="seal-row">
+          <view class="seal-box">
+            <view class="stamp jade">宜</view>
+            <view class="seal-items">{{fortune.doText}}</view>
+          </view>
+          <view class="seal-box">
+            <view class="stamp cinnabar">忌</view>
+            <view class="seal-items">{{fortune.dontText}}</view>
+          </view>
+          <view class="pair-box">
+            <view class="pair-label mono">MATCH · {{view.pairLabel}}</view>
+            <view class="pair-const"><constellation-view sign="{{fortune.pairSignName}}" /></view>
+            <view class="pair-name">{{fortune.pairSignName}}</view>
+          </view>
+        </view>
+
+        <!-- 分维解读 -->
+        <block wx:if="{{view.insights.length}}">
+          <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+          <view class="insights">
+            <view wx:for="{{view.insights}}" wx:key="en" class="insight">
+              <view class="i-label">
+                <text class="i-zh">{{item.zh}}</text>
+                <text class="i-en mono">{{item.en}}</text>
+              </view>
+              <view class="i-text">{{item.txt}}</view>
+            </view>
+          </view>
+        </block>
+
+        <!-- 来源签 + 分享卡 -->
+        <view class="fc-footer">
+          <view class="share-btn mono" bindtap="onShareTap">✦ 分享卡</view>
+          <text class="source-tag mono {{view.isShowapi ? 'showapi' : ''}}">{{view.sourceTag}}</text>
+        </view>
+      </view>
+
+      <!-- ===== 五维/四象星图 ===== -->
+      <view class="glass-card chart-card">
+        <view class="chart-title">
+          {{fortune.healthScore != null ? '五维星图' : '四象星图'}}
+          <text class="chart-title-en mono">{{fortune.healthScore != null ? 'PENTAGRAM' : 'QUADGRAM'}}</text>
+        </view>
+        <ec-canvas id="radar-canvas" class="chart-canvas" canvas-id="radar" echarts="{{echarts}}" ec="{{radarEc}}"></ec-canvas>
+
+        <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+        <view class="readout">
+          <view wx:for="{{view.dimensions}}" wx:key="en" class="readout-item">
+            <view class="r-label">
+              <text class="r-zh">{{item.zh}}</text>
+              <text class="r-en mono">{{item.en}}</text>
+            </view>
+            <view class="r-bar"><view class="r-bar-fill" style="width:{{item.score / 5 * 100}}%"></view></view>
+            <text class="r-val mono">{{item.score}}/5</text>
+          </view>
+        </view>
+
+        <view wx:if="{{fortune.healthTxt}}" class="health-quote">{{fortune.healthTxt}}</view>
+
+        <view wx:if="{{view.profile || view.element}}" class="profile mono">
+          <text wx:if="{{view.element}}" class="p-item"><text class="p-key">元素</text>{{view.element}}</text>
+          <text wx:if="{{view.profile}}" class="p-item"><text class="p-key">守护星</text>{{view.profile.planet}}</text>
+          <text wx:if="{{view.profile}}" class="p-item"><text class="p-key">幸运石</text>{{view.profile.gem}}</text>
+        </view>
+      </view>
+
+      <!-- ===== 近 7 天趋势 ===== -->
+      <view class="glass-card chart-card">
+        <view class="chart-title">近 7 天运势趋势 <text class="chart-title-en mono">7-DAY TREND</text></view>
+        <ec-canvas id="trend-canvas" class="chart-canvas tall" canvas-id="trend" echarts="{{echarts}}" ec="{{trendEc}}"></ec-canvas>
+      </view>
+    </view>
+  </block>
+
+  <view class="footer mono">星语 STARWHISPER · 仅供娱乐 · 愿你被星辰温柔以待</view>
+
+  <!-- 分享海报：离屏 canvas（隐藏节点，仅用于绘制导出） -->
+  <canvas type="2d" id="poster-canvas" class="poster-canvas"></canvas>
+
+  <!-- 海报预览弹层 -->
+  <view wx:if="{{posterImage}}" class="poster-mask" bindtap="closePoster">
+    <view class="poster-modal" catchtap="noop">
+      <image class="poster-img" src="{{posterImage}}" mode="widthFix" show-menu-by-longpress />
+      <view class="poster-actions">
+        <button class="btn-gold" bindtap="savePoster">保存到相册</button>
+        <view class="poster-close mono" bindtap="closePoster">关闭</view>
+      </view>
+    </view>
+  </view>
+</view>

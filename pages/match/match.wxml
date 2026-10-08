@@ -1,0 +1,103 @@
+<!-- 配对页 -->
+<view class="page">
+  <star-layer />
+
+  <view class="eyebrow">COMPATIBILITY · 配对</view>
+  <view class="wordmark">
+    <text class="wm-zh">星座配对</text>
+    <text class="wm-en">Match</text>
+  </view>
+  <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+
+  <!-- ===== 选择器：两侧各一组 12 宫 chips + 性别切换 ===== -->
+  <view class="glass-card picker-card">
+    <view class="picker-side" wx:for="{{[1, 2]}}" wx:for-item="side" wx:key="side">
+      <view class="picker-head">
+        <text class="picker-label mono">{{side === 1 ? 'TA' : '对方'}}</text>
+        <view class="gender-row">
+          <view
+            class="gender-chip mono {{(side === 1 ? sel1.gender : sel2.gender) === g.v ? 'active' : ''}}"
+            wx:for="{{[{v: 1, t: '♂ 男'}, {v: 0, t: '♀ 女'}]}}"
+            wx:for-item="g"
+            wx:key="v"
+            data-side="{{side}}"
+            data-gender="{{g.v}}"
+            bindtap="onPickGender"
+          >{{g.t}}</view>
+        </view>
+      </view>
+      <view class="sign-grid">
+        <view
+          wx:for="{{signs}}"
+          wx:for-item="sign"
+          wx:key="id"
+          class="sign-chip {{(side === 1 ? sel1.signId : sel2.signId) === sign.id ? 'active' : ''}}"
+          data-side="{{side}}"
+          data-id="{{sign.id}}"
+          bindtap="onPickSign"
+        >{{sign.name}}</view>
+      </view>
+    </view>
+
+    <view class="match-action">
+      <button class="btn-gold {{loading ? 'disabled' : ''}}" bindtap="doMatch" disabled="{{loading}}">
+        {{loading ? '星象推演中…' : '开始配对'}}
+      </button>
+    </view>
+    <view wx:if="{{error}}" class="error-line">{{error}}</view>
+  </view>
+
+  <!-- ===== 结果区 ===== -->
+  <block wx:if="{{result}}">
+    <!-- 综合指数金环 -->
+    <view class="glass-card overall-card">
+      <view class="pair-names">
+        <text class="p-name">{{result.star1.name}}</text>
+        <text class="pair-x">✦</text>
+        <text class="p-name">{{result.star2.name}}</text>
+      </view>
+      <view class="pair-meta mono" wx:if="{{proportion}}">配对比重 {{proportion}}</view>
+      <view class="ring-wrap">
+        <view class="ring" style="{{ringStyle}}">
+          <view class="ring-hole">
+            <text class="ring-num">{{result.scores.overall}}</text>
+            <text class="ring-unit mono">综合指数</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 六维细分横条 -->
+    <view class="glass-card sub-card">
+      <view class="sec-title">细分指数 <text class="sec-title-en mono">BREAKDOWN</text></view>
+      <view class="sub-row" wx:for="{{subScores}}" wx:key="zh">
+        <text class="sub-label">{{item.zh}}</text>
+        <view class="sub-bar"><view class="sub-bar-fill" style="width:{{item.width}}"></view></view>
+        <text class="sub-val mono">{{item.score}}</text>
+      </view>
+    </view>
+
+    <!-- 文案分块 -->
+    <view class="glass-card text-card">
+      <view class="m-section" wx:for="{{sections}}" wx:key="zh">
+        <view class="m-label">
+          <text class="m-zh">{{item.zh}}</text>
+          <text class="m-en mono">{{item.en}}</text>
+        </view>
+        <view class="m-text">{{item.text}}</view>
+      </view>
+      <view class="m-section" wx:if="{{matchCase}}">
+        <view class="m-label">
+          <text class="m-zh">配对案例</text>
+          <text class="m-en mono">CASE</text>
+        </view>
+        <view class="m-text">{{matchCase}}</view>
+      </view>
+      <view class="mc-footer">
+        <text class="source-tag mono {{isShowapi ? 'showapi' : ''}}">{{sourceTag}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="footer mono">星语 STARWHISPER · 仅供娱乐 · 愿你被星辰温柔以待</view>
+</view>

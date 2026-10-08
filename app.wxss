@@ -1,0 +1,142 @@
+/* ===== 星语全局样式：星历 EPHEMERIS 设计系统（小程序 WXSS 版） =====
+   注：小程序无法加载 npm 字体包，字体栈回落系统衬线/等宽；
+   设计 tokens 与 Web 版（starwhisper-web）完全一致。 */
+
+page {
+  /* 设计 tokens（WXSS 支持 CSS 变量，作用于 page 全域） */
+  --bg: #070B1E;            /* 夜空 */
+  --nebula: #232048;        /* 星云紫 */
+  --gold: #E8C47C;          /* 星金（香槟金） */
+  --gold-dim: rgba(232, 196, 124, 0.55);
+  --gold-hairline: rgba(232, 196, 124, 0.18);
+  --ink: #E8E6F0;           /* 月白 */
+  --ink-dim: #8B87B0;       /* 暗紫灰（装饰性） */
+  --ink-dim2: #A9A4CC;      /* 小号文字专用次级色 */
+  --jade: #7FBF9E;          /* 宜 / 正位 / 吉 */
+  --cinnabar: #C25E5E;      /* 忌 / 逆位 / 凶 */
+  --panel-bg: rgba(35, 32, 72, 0.55);
+  /* 字体栈：小程序用系统衬线/等宽兜底 */
+  --font-display: "Songti SC", "STSong", "SimSun", serif;
+  --font-mono: "Courier New", ui-monospace, monospace;
+
+  background: linear-gradient(165deg, #070B1E 0%, #10163A 48%, #232048 100%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-size: 30rpx;
+  min-height: 100vh;
+}
+
+/* 面板：低透明星云紫 + 1px 细金边 + 小圆角 */
+.glass-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--gold-hairline);
+  border-radius: 12rpx;
+}
+
+/* 等宽字体工具类 */
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* 小 caps 眉题 */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 25rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim);
+}
+
+/* ✦ 居中饰线 */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin: 28rpx 0;
+  color: var(--gold-dim);
+  font-size: 22rpx;
+}
+.divider .d-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(139, 135, 176, 0.16);
+}
+
+/* 印章（宜/忌、正/逆位、卦运等级共用）：1px 同色描边 + 内阴影双线 */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 18rpx;
+  font-family: var(--font-display);
+  font-size: 30rpx;
+  letter-spacing: 0.1em;
+  border: 1px solid currentColor;
+  border-radius: 8rpx;
+  box-shadow: inset 0 0 0 6rpx #070B1E, inset 0 0 0 8rpx currentColor;
+  text-shadow: 0 2rpx 0 rgba(0, 0, 0, 0.4);
+}
+.stamp.jade { color: var(--jade); }
+.stamp.cinnabar { color: var(--cinnabar); }
+.stamp.gold { color: var(--gold); }
+.stamp.sm {
+  font-size: 26rpx;
+  padding: 4rpx 14rpx;
+  box-shadow: inset 0 0 0 4rpx #070B1E, inset 0 0 0 6rpx currentColor;
+}
+
+/* 关键词签 */
+.kw-chip {
+  font-family: var(--font-mono);
+  font-size: 25rpx;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  border: 1px solid var(--gold-hairline);
+  border-radius: 6rpx;
+  padding: 6rpx 18rpx;
+}
+
+/* 主按钮（金色描边） */
+.btn-gold {
+  padding: 16rpx 64rpx;
+  border-radius: 8rpx;
+  border: 1px solid var(--gold);
+  background: rgba(232, 196, 124, 0.08);
+  color: var(--gold);
+  font-size: 28rpx;
+  letter-spacing: 0.22em;
+}
+.btn-gold.disabled {
+  opacity: 0.55;
+}
+
+/* 加载/错误状态 */
+.state-box {
+  padding: 80rpx 0;
+  text-align: center;
+}
+.state-text {
+  margin: 24rpx 0 32rpx;
+  font-size: 28rpx;
+  letter-spacing: 0.15em;
+  color: var(--ink);
+}
+.error-line {
+  margin: 16rpx 0 24rpx;
+  font-size: 28rpx;
+  letter-spacing: 0.1em;
+  color: var(--cinnabar);
+}
+
+/* 旋转 spinner */
+.spinner {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(232, 196, 124, 0.18);
+  border-top-color: var(--gold);
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

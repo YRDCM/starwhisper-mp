@@ -1,0 +1,8 @@
+<!-- 六爻卦形：纯 CSS 爻条（不用 Unicode 卦符，字体支持不稳）。
+     lines 为自下而上字符串，显示时最上一爻在顶 → 渲染前倒序 -->
+<view class="hex-glyph sz-{{size}}">
+  <view wx:for="{{displayLines}}" wx:key="index" class="hex-line {{item === '0' ? 'yin' : ''}}">
+    <view class="seg"></view>
+    <view wx:if="{{item === '0'}}" class="seg"></view>
+  </view>
+</view>

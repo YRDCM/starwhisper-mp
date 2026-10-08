@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.vscode/
+.idea/
+# 微信开发者工具个人本地配置（含本地路径，不入库）
+project.private.config.json

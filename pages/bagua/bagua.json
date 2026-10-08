@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "star-layer": "/components/star-layer/star-layer",
+    "hexagram-glyph": "/components/hexagram-glyph/hexagram-glyph"
+  },
+  "navigationBarTitleText": "星语 · 八卦"
+}
