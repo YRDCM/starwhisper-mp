@@ -441,12 +441,12 @@
   gap: 20rpx;
 }
 .r-label {
-  flex: none;
-  /* 不定宽：按内容自然撑开，中文+英文一行放下（220rpx 会折行） */
+  /* 定宽对齐：各行进度条起点一致；264rpx ≥ 最长内容「综合运势 OVERALL」约 258rpx */
+  flex: 0 0 264rpx;
   display: flex;
   align-items: baseline;
   gap: 12rpx;
-  white-space: nowrap;
+  white-space: nowrap; /* 保留防折行：中文+英文一行放下 */
 }
 .r-zh {
   font-size: 28rpx;
