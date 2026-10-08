@@ -46,7 +46,7 @@ function request({ url, method = 'GET', data, auth = true }) {
         }
       },
       fail: () => {
-        reject(new Error('无法连接星语服务器，请确认后端已启动（localhost:8080），且开发者工具已勾选「不校验合法域名」'))
+        reject(new Error('无法连接星语服务器。开发者工具请勾选「不校验合法域名」；真机体验版请打开「开发调试」模式'))
       }
     })
   })
