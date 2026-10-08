@@ -53,6 +53,7 @@
   font-size: 52rpx;
   color: var(--gold);
   letter-spacing: 0.14em;
+  white-space: nowrap; /* 牌名不折断 */
 }
 .daily-name .en {
   font-family: var(--font-display);
@@ -149,10 +150,14 @@
 }
 .pos {
   text-align: center;
-  font-size: 25rpx;
-  letter-spacing: 0.2em;
+  font-size: 22rpx; /* 原 25rpx：给 5 字牌位（对方的状态/结果与建议）在窄卡片上留余量 */
+  letter-spacing: 0.16em;
   color: var(--ink-dim2);
   margin-bottom: 12rpx;
+  white-space: nowrap; /* 牌位名一行放下，不在空格/字间断折 */
+  overflow: hidden;
+  text-overflow: ellipsis; /* 极端情况（系统大字体）省略号兜底，不折行 */
+  max-width: 100%;
 }
 .flip {
   perspective: 1200rpx;
@@ -257,20 +262,25 @@
   gap: 16rpx;
 }
 .m-pos {
+  flex: none; /* 不被牌名挤压 */
   font-size: 24rpx;
   letter-spacing: 0.2em;
   color: var(--ink-dim2);
+  white-space: nowrap; /* 与牌面标签同款防折行 */
 }
 .m-name {
   font-family: var(--font-display);
   font-size: 34rpx;
   letter-spacing: 0.12em;
   color: var(--ink);
+  white-space: nowrap; /* 牌名不折断 */
 }
 .m-ori {
+  flex: none;
   font-size: 24rpx;
   letter-spacing: 0.16em;
   margin-left: auto;
+  white-space: nowrap; /* 正位/逆位印章文字不折断 */
 }
 .m-ori.upright { color: var(--jade); }
 .m-ori.reversed { color: var(--cinnabar); }
