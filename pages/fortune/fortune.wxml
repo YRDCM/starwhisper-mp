@@ -1,13 +1,4 @@
 <!-- 星运页 -->
-<wxs module="dateUtil">
-  // 把 "09.23-10.23" 拆成起止两段，轮盘圆圈内分两行展示（单行会折行溢出圆圈）
-  module.exports = {
-    rangeParts: function (range) {
-      var parts = String(range || '').split('-')
-      return { start: parts[0] || '', end: parts.length > 1 ? parts[1] : '' }
-    }
-  }
-</wxs>
 <view class="page">
   <star-layer />
 
@@ -30,20 +21,13 @@
   </view>
 
   <block wx:else>
-    <!-- 星盘选择器：刻度环 + 12 星座节点，点击旋转到正上方 -->
+    <!-- 星轨仪：细环轨道 + 无底座符号，点击旋转星环把选中星座转到 12 点指针下 -->
     <view class="wheel-wrap">
       <view class="wheel {{animated ? 'animated' : ''}}" style="transform:rotate({{ringAngle}}deg)">
-        <!-- 双环轨道线 -->
-        <view class="bezel-ring outer"></view>
-        <view class="bezel-ring inner"></view>
-        <!-- 60 格刻度 -->
-        <view wx:for="{{ticks}}" wx:key="index" class="tick" style="{{item}}"></view>
-        <!-- 中心：当前星座（反向旋转保持直立） -->
-        <view class="wheel-center" style="{{centerStyle}}">
-          <view class="center-name">{{currentSign ? currentSign.name : ''}}</view>
-          <view class="center-en mono">{{currentSign ? currentSign.nameEn : ''}}</view>
-        </view>
-        <!-- 星座节点 -->
+        <!-- 双环轨道（发丝级，极淡） -->
+        <view class="orbit-ring outer"></view>
+        <view class="orbit-ring inner"></view>
+        <!-- 星座节点：无底座，符号直接落在轨道上；反向旋转保持正向可读 -->
         <view
           wx:for="{{signs}}"
           wx:key="id"
@@ -53,12 +37,20 @@
           bindtap="onSignTap"
         >
           <view class="node-inner" style="transform:rotate({{-ringAngle}}deg)">
-            <view class="node-const"><constellation-view sign="{{item.nameEn}}" /></view>
-            <view class="sign-name">{{item.name}}</view>
-            <view class="sign-dates mono">{{dateUtil.rangeParts(item.dateRange).start}}</view>
-            <view class="sign-dates mono">{{dateUtil.rangeParts(item.dateRange).end}}</view>
+            <view class="node-const">
+              <constellation-view sign="{{item.nameEn}}" tone="{{item.id === currentSignId ? 'gold' : 'dim'}}" />
+            </view>
+            <view wx:if="{{item.id === currentSignId}}" class="node-name">{{item.name}}</view>
           </view>
         </view>
+      </view>
+      <!-- 固定指针：12 点金色 ✦，不随环转 -->
+      <view class="wheel-pointer">✦</view>
+      <!-- 中心信息：衬线中文名 + 英文斜体 + 日期范围，不随环转 -->
+      <view class="wheel-center">
+        <view class="center-name">{{currentSign ? currentSign.name : ''}}</view>
+        <view class="center-en">{{currentSign ? currentSign.nameEn : ''}}</view>
+        <view class="center-range mono">{{currentSign ? currentSign.dateRange : ''}}</view>
       </view>
     </view>
 

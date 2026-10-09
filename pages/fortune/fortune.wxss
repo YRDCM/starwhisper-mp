@@ -40,11 +40,12 @@
   color: var(--ink-dim2);
 }
 
-/* ===== 星盘 ===== */
+/* ===== 星轨仪 Astrolabe ===== */
 .wheel-wrap {
+  position: relative;
   display: flex;
   justify-content: center;
-  padding: 24rpx 0 16rpx;
+  padding: 32rpx 0 24rpx;
 }
 .wheel {
   position: relative;
@@ -52,100 +53,106 @@
   height: 726rpx;
 }
 .wheel.animated {
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.6s ease-out; /* 签名交互：旋转星环 */
 }
-.bezel-ring {
+/* 轨道：发丝级细环，极淡；内圈更淡作层次，不再加更多装饰 */
+.orbit-ring {
   position: absolute;
   border-radius: 50%;
-  border: 1px solid var(--gold-hairline);
 }
-.bezel-ring.outer {
+.orbit-ring.outer {
   left: 6rpx; top: 6rpx; right: 6rpx; bottom: 6rpx;
+  border: 1rpx solid rgba(232, 201, 122, 0.15);
 }
-.bezel-ring.inner {
+.orbit-ring.inner {
   left: 90rpx; top: 90rpx; right: 90rpx; bottom: 90rpx;
-  border-color: rgba(139, 135, 176, 0.14);
+  border: 1rpx solid rgba(139, 135, 176, 0.10);
 }
-.tick {
+/* 固定指针：12 点金色小菱形，不随环转 */
+.wheel-pointer {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: 2rpx;
-  transform-origin: 0 0; /* JS 里 rotate + translateY(-350rpx) 外推 */
+  top: 6rpx;
+  transform: translateX(-50%);
+  z-index: 3;
+  font-size: 30rpx;
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 0 16rpx rgba(232, 196, 124, 0.8);
+  pointer-events: none; /* 不挡 12 点位置节点的点击 */
 }
+/* 中心三行：不随环转；pointer-events 放行，避免挡节点点击 */
 .wheel-center {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 320rpx;
-  margin: -80rpx 0 0 -160rpx;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  width: 340rpx;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 10rpx;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 8rpx;
+  pointer-events: none;
 }
 .center-name {
   font-family: var(--font-display);
   font-size: 64rpx;
   color: var(--gold);
   letter-spacing: 0.2em;
+  text-indent: 0.2em; /* letter-spacing 末位补偿，视觉居中 */
 }
 .center-en {
-  font-size: 25rpx;
-  letter-spacing: 0.3em;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 28rpx;
   color: var(--ink-dim2);
-  text-transform: uppercase;
+}
+.center-range {
+  font-size: 23rpx;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim2);
 }
 
-/* 星座节点 */
+/* 星座节点：无底座，符号直接落在轨道环上；仅命中的点击热区保留 120rpx */
 .sign-node {
   position: absolute;
   left: 50%;
   top: 50%;
-  margin: -75rpx 0 0 -75rpx;
-  width: 150rpx;
-  height: 150rpx;
+  margin: -60rpx 0 0 -60rpx;
+  width: 120rpx;
+  height: 120rpx;
 }
 .node-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4rpx;
+  gap: 6rpx;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  border: 1px solid rgba(139, 135, 176, 0.22);
-  background: rgba(35, 32, 72, 0.5);
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  transition: transform 0.6s ease-out; /* 与星环同步 counter-rotate */
 }
 .wheel:not(.animated) .node-inner {
   transition: none;
 }
-.sign-node.active .node-inner {
-  border-color: var(--gold);
-  background: rgba(232, 196, 124, 0.10);
-  box-shadow: 0 0 32rpx rgba(232, 196, 124, 0.4), inset 0 0 20rpx rgba(232, 196, 124, 0.14);
-}
 .node-const {
-  width: 58rpx;
-  height: 58rpx;
+  width: 32rpx;
+  height: 32rpx;
+  transition: width 0.25s, height 0.25s, filter 0.25s;
 }
-.sign-name {
+.sign-node.active .node-const {
+  width: 48rpx;
+  height: 48rpx;
+  filter: drop-shadow(0 0 12rpx rgba(232, 196, 124, 0.7)); /* 选中光晕 */
+}
+.node-name {
   font-family: var(--font-display);
-  font-size: 28rpx;
-  letter-spacing: 0.1em;
-  color: var(--ink);
-}
-.sign-dates {
-  font-size: 20rpx;
-  line-height: 1.05;
-  white-space: nowrap; /* 单行 5 字符本就不会折行，兜底防挤压 */
-  color: var(--ink-dim2);
-}
-.sign-node.active .sign-name {
+  font-size: 24rpx;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
   color: var(--gold);
+  text-shadow: 0 0 12rpx rgba(232, 196, 124, 0.6);
 }
 
 /* ===== 主内容 ===== */

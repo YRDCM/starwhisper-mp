@@ -18,8 +18,8 @@ const COLOR_MAP = {
   灰色: '#8B87B0', 珊瑚橙: '#E08A63', 玫瑰红: '#C25E7A', 天蓝色: '#6EA8D8', 米色: '#D8CBA8'
 }
 
-// 星盘几何（rpx）：轮盘直径 726，节点圆 150，节点轨道半径 288
-const WHEEL_RADIUS = 288
+// 星盘几何（rpx）：轮盘直径 726，节点落在最外圈轨道环上（环内缩 6，半径 357）
+const WHEEL_RADIUS = 357
 
 Page({
   data: {
@@ -37,8 +37,6 @@ Page({
     ringAngle: 0,
     animated: false,
     nodeStyles: [],       // 每个星座节点的定位 transform
-    ticks: [],            // 60 格刻度样式
-    centerStyle: '',      // 中心文字反向旋转
     // 图表懒初始化容器（onInit 在 canvas 就绪后回调）
     radarEc: null,
     trendEc: null,
@@ -54,12 +52,6 @@ Page({
     const p = (n) => String(n).padStart(2, '0')
     this.setData({
       todayText: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} · 星期${weekNames[d.getDay()]}`,
-      // 刻度 bezel：60 格，每 5 格（30°）为长刻度
-      ticks: Array.from({ length: 60 }, (_, k) => {
-        const long = k % 5 === 0
-        return `transform:rotate(${k * 6}deg) translateY(-350rpx);height:${long ? 22 : 12}rpx;` +
-          `background:${long ? 'rgba(232,196,124,0.55)' : 'rgba(139,135,176,0.35)'};`
-      }),
       radarEc: { onInit: (canvas, w, h, dpr) => this.initRadar(canvas, w, h, dpr) },
       trendEc: { onInit: (canvas, w, h, dpr) => this.initTrend(canvas, w, h, dpr) }
     })
@@ -474,11 +466,8 @@ Page({
       angle = cur + delta
       this.setData({ ringAngle: angle })
     }
-    // 中心文字反向旋转保持直立
-    this.setData({ centerStyle: `transform:rotate(${-angle}deg)` })
+    // 节点内符号的直立由 WXML 内联 counter-rotate 实现，中心信息在环外不随转
   },
-
-  // 节点内容直立：WXML 内联 transform:rotate({{-ringAngle}}deg) 直接实现
 
   /* ===== 星座区间判断（摩羯跨年边界） ===== */
   inRange(sign, month, day) {

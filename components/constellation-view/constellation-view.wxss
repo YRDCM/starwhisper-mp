@@ -23,3 +23,11 @@
   height: 100%;
   background: rgba(232, 196, 124, 0.55);
 }
+
+/* dim 色调：星轨仪非选中星座（暗蓝灰） */
+.constellation.dim .const-star {
+  background: #6B7194;
+}
+.constellation.dim .const-edge-fill {
+  background: rgba(107, 113, 148, 0.5);
+}

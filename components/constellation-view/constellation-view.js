@@ -9,7 +9,8 @@ const FALLBACK = {
 
 Component({
   properties: {
-    sign: { type: String, value: '' } // 英文名 nameEn（不区分大小写）或中文名
+    sign: { type: String, value: '' }, // 英文名 nameEn（不区分大小写）或中文名
+    tone: { type: String, value: 'gold' } // gold=主题金（默认） / dim=暗蓝灰（星轨仪非选中态）
   },
   data: {
     points: [],
