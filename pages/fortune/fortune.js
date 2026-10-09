@@ -18,7 +18,7 @@ const COLOR_MAP = {
   灰色: '#8B87B0', 珊瑚橙: '#E08A63', 玫瑰红: '#C25E7A', 天蓝色: '#6EA8D8', 米色: '#D8CBA8'
 }
 
-// 星盘几何（rpx）：轮盘直径 726，节点落在最外圈轨道环上（环内缩 6，半径 357）
+// 星盘几何（rpx）：轮盘直径 750（满屏出血），轨道环内缩 18，节点落在环上（半径 357）
 const WHEEL_RADIUS = 357
 
 Page({
@@ -37,6 +37,7 @@ Page({
     ringAngle: 0,
     animated: false,
     nodeStyles: [],       // 每个星座节点的定位 transform
+    ticks: [],            // 60 格刻度样式（每 5 格主刻度）
     // 图表懒初始化容器（onInit 在 canvas 就绪后回调）
     radarEc: null,
     trendEc: null,
@@ -52,6 +53,12 @@ Page({
     const p = (n) => String(n).padStart(2, '0')
     this.setData({
       todayText: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} · 星期${weekNames[d.getDay()]}`,
+      // 刻度环：60 格，每 5 格（30°，即每个星座分界）为亮主刻度，其余淡刻度
+      ticks: Array.from({ length: 60 }, (_, k) => {
+        const long = k % 5 === 0
+        return `transform:rotate(${k * 6}deg) translateY(-350rpx);height:${long ? 22 : 12}rpx;` +
+          `background:${long ? 'rgba(232,196,124,0.55)' : 'rgba(139,135,176,0.35)'};`
+      }),
       radarEc: { onInit: (canvas, w, h, dpr) => this.initRadar(canvas, w, h, dpr) },
       trendEc: { onInit: (canvas, w, h, dpr) => this.initTrend(canvas, w, h, dpr) }
     })
@@ -414,11 +421,6 @@ Page({
       title: `${f.signName || '星语'}今日运势${stars}`,
       query: ''
     }
-  },
-
-  // 每日一卦入口
-  goHexagram() {
-    wx.navigateTo({ url: '/pages/hexagram/hexagram' })
   },
 
   // 并行拉今日运势 + 近 7 天（切换星座时保留旧数据，仅置 refreshing 态）

@@ -24,9 +24,10 @@
     <!-- 星轨仪：细环轨道 + 无底座符号，点击旋转星环把选中星座转到 12 点指针下 -->
     <view class="wheel-wrap">
       <view class="wheel {{animated ? 'animated' : ''}}" style="transform:rotate({{ringAngle}}deg)">
-        <!-- 双环轨道（发丝级，极淡） -->
+        <!-- 双环轨道（清晰可见） + 60 格刻度（天文钟精密感） -->
         <view class="orbit-ring outer"></view>
         <view class="orbit-ring inner"></view>
+        <view wx:for="{{ticks}}" wx:key="index" class="tick" style="{{item}}"></view>
         <!-- 星座节点：无底座，符号直接落在轨道上；反向旋转保持正向可读 -->
         <view
           wx:for="{{signs}}"
@@ -46,22 +47,15 @@
       </view>
       <!-- 固定指针：12 点金色 ✦，不随环转 -->
       <view class="wheel-pointer">✦</view>
-      <!-- 中心信息：衬线中文名 + 英文斜体 + 日期范围，不随环转 -->
+      <!-- 中心信息：星联线描底衬 + 衬线中文名 + 英文斜体 + 日期范围，不随环转 -->
       <view class="wheel-center">
+        <view class="center-const">
+          <constellation-view sign="{{currentSign ? currentSign.nameEn : ''}}" />
+        </view>
         <view class="center-name">{{currentSign ? currentSign.name : ''}}</view>
         <view class="center-en">{{currentSign ? currentSign.nameEn : ''}}</view>
         <view class="center-range mono">{{currentSign ? currentSign.dateRange : ''}}</view>
       </view>
-    </view>
-
-    <!-- 每日一卦入口（不进 tabBar，导航至独立页） -->
-    <view class="hex-entry glass-card" bindtap="goHexagram">
-      <view class="hex-symbol">䷀</view>
-      <view class="hex-text">
-        <view class="hex-title">每日一卦</view>
-        <view class="hex-sub mono">DAILY HEXAGRAM · 今日卦象</view>
-      </view>
-      <view class="hex-arrow">›</view>
     </view>
 
     <!-- 首次加载态 -->

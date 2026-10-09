@@ -40,19 +40,21 @@
   color: var(--ink-dim2);
 }
 
-/* ===== 星轨仪 Astrolabe ===== */
+/* ===== 星轨仪 Astrolabe · 华贵版 ===== */
 .wheel-wrap {
   position: relative;
   display: flex;
   justify-content: center;
-  /* 节点热区超出 wheel 盒 54rpx（半径 357 + 半热区 60 > 半径 363），
-     上下 padding 须吃掉溢出，否则星盘与下方入口卡视觉相贴 */
-  padding: 48rpx 0 64rpx;
+  /* 满屏出血：抵消 page 左右 24rpx padding，轮盘 750rpx 撑满屏宽 */
+  margin: 0 -24rpx;
+  /* 节点热区超出 wheel 盒 32rpx（半径 357 + 半热区 50 > 半径 375），
+     上下 padding 须吃掉溢出，否则星盘与下方内容视觉相贴 */
+  padding: 48rpx 0 72rpx;
 }
 .wheel {
   position: relative;
-  width: 726rpx;
-  height: 726rpx;
+  width: 750rpx;
+  height: 750rpx;
 }
 .wheel.animated {
   transition: transform 0.6s ease-out; /* 签名交互：旋转星环 */
@@ -64,18 +66,26 @@
   border-radius: 50%;
 }
 .orbit-ring.outer {
-  left: 6rpx; top: 6rpx; right: 6rpx; bottom: 6rpx;
+  left: 18rpx; top: 18rpx; right: 18rpx; bottom: 18rpx;
   border: 1px solid rgba(232, 201, 122, 0.22);
 }
 .orbit-ring.inner {
-  left: 90rpx; top: 90rpx; right: 90rpx; bottom: 90rpx;
+  left: 110rpx; top: 110rpx; right: 110rpx; bottom: 110rpx;
   border: 1px solid rgba(139, 135, 176, 0.14);
+}
+/* 60 格刻度：JS 内联 rotate+translateY(-350rpx) 外推 + 高度/颜色分级（12 主刻度亮） */
+.tick {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2rpx;
+  transform-origin: 0 0;
 }
 /* 固定指针：12 点金色小菱形，不随环转 */
 .wheel-pointer {
   position: absolute;
   left: 50%;
-  top: 24rpx; /* 底缘恰好贴上环顶（padding 48 + 环内缩 6 = 54） */
+  top: 36rpx; /* 底缘恰好贴上环顶（padding 48 + 环内缩 18 = 66） */
   transform: translateX(-50%);
   z-index: 3;
   font-size: 30rpx;
@@ -98,6 +108,17 @@
   gap: 8rpx;
   pointer-events: none;
 }
+/* 中心星联底衬：选中星座的点线图形放大铺底，暗金低透明度做背景艺术 */
+.center-const {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1; /* 压在三行文字之下 */
+  width: 320rpx;
+  height: 320rpx;
+  opacity: 0.16;
+}
 .center-name {
   font-family: var(--font-display);
   font-size: 64rpx;
@@ -117,14 +138,14 @@
   color: var(--ink-dim2);
 }
 
-/* 星座节点：无底座，符号直接落在轨道环上；仅命中的点击热区保留 120rpx */
+/* 星座节点：无底座，符号直接落在轨道环上；点击热区 100rpx */
 .sign-node {
   position: absolute;
   left: 50%;
   top: 50%;
-  margin: -60rpx 0 0 -60rpx;
-  width: 120rpx;
-  height: 120rpx;
+  margin: -50rpx 0 0 -50rpx;
+  width: 100rpx;
+  height: 100rpx;
 }
 .node-inner {
   display: flex;
@@ -134,10 +155,19 @@
   gap: 6rpx;
   width: 100%;
   height: 100%;
-  transition: transform 0.6s ease-out; /* 与星环同步 counter-rotate */
+  border-radius: 50%;
+  border: 1px solid transparent; /* 占位防抖动，选中时显现 */
+  transition: transform 0.6s ease-out, border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
 .wheel:not(.animated) .node-inner {
   transition: none;
+}
+/* 唯一 medallion：只有选中星座配金色圆座（细金环 + 径向光晕），12 选 1 的仪式感 */
+.sign-node.active .node-inner {
+  border-color: rgba(232, 196, 124, 0.55);
+  background: radial-gradient(circle at 50% 50%,
+    rgba(232, 196, 124, 0.16) 0%, rgba(232, 196, 124, 0.05) 58%, rgba(232, 196, 124, 0) 78%);
+  box-shadow: 0 0 40rpx rgba(232, 196, 124, 0.22);
 }
 .node-const {
   width: 32rpx;
@@ -595,49 +625,4 @@
   letter-spacing: 0.2em;
   color: var(--ink-dim2);
   padding: 8rpx 24rpx;
-}
-
-/* ===== 每日一卦入口卡 ===== */
-.hex-entry {
-  margin-top: 36rpx;
-  padding: 30rpx 36rpx;
-  display: flex;
-  align-items: center;
-  gap: 28rpx;
-}
-.hex-symbol {
-  flex: none;
-  width: 88rpx;
-  height: 88rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 56rpx;
-  color: var(--gold);
-  border: 1px solid var(--gold-hairline);
-  border-radius: 12rpx;
-  background: rgba(232, 196, 124, 0.06);
-}
-.hex-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-}
-.hex-title {
-  font-family: var(--font-display);
-  font-size: 34rpx;
-  letter-spacing: 0.24em;
-  color: var(--ink);
-}
-.hex-sub {
-  font-size: 22rpx;
-  letter-spacing: 0.18em;
-  color: var(--ink-dim2);
-}
-.hex-arrow {
-  flex: none;
-  font-size: 44rpx;
-  color: var(--gold-dim);
 }
