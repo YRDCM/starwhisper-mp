@@ -45,7 +45,9 @@
   position: relative;
   display: flex;
   justify-content: center;
-  padding: 32rpx 0 24rpx;
+  /* 节点热区超出 wheel 盒 54rpx（半径 357 + 半热区 60 > 半径 363），
+     上下 padding 须吃掉溢出，否则星盘与下方入口卡视觉相贴 */
+  padding: 48rpx 0 64rpx;
 }
 .wheel {
   position: relative;
@@ -55,24 +57,25 @@
 .wheel.animated {
   transition: transform 0.6s ease-out; /* 签名交互：旋转星环 */
 }
-/* 轨道：发丝级细环，极淡；内圈更淡作层次，不再加更多装饰 */
+/* 轨道：清晰可见但克制。1rpx 在真机高分屏上会被圆整/抗锯齿吃掉导致不可见，
+   必须用 1px 实体像素 + 适当提高透明度（对齐 PC 端 SVG 环的视觉重量） */
 .orbit-ring {
   position: absolute;
   border-radius: 50%;
 }
 .orbit-ring.outer {
   left: 6rpx; top: 6rpx; right: 6rpx; bottom: 6rpx;
-  border: 1rpx solid rgba(232, 201, 122, 0.15);
+  border: 1px solid rgba(232, 201, 122, 0.22);
 }
 .orbit-ring.inner {
   left: 90rpx; top: 90rpx; right: 90rpx; bottom: 90rpx;
-  border: 1rpx solid rgba(139, 135, 176, 0.10);
+  border: 1px solid rgba(139, 135, 176, 0.14);
 }
 /* 固定指针：12 点金色小菱形，不随环转 */
 .wheel-pointer {
   position: absolute;
   left: 50%;
-  top: 6rpx;
+  top: 24rpx; /* 底缘恰好贴上环顶（padding 48 + 环内缩 6 = 54） */
   transform: translateX(-50%);
   z-index: 3;
   font-size: 30rpx;
