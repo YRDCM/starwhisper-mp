@@ -113,7 +113,17 @@
             <text class="record-title">{{item.title}}</text>
             <text class="record-time mono">{{item.timeText}}</text>
           </view>
-          <view wx:if="{{expandedId === item.id}}" class="record-detail">{{item.detail}}</view>
+          <view wx:if="{{expandedId === item.id}}" class="record-detail">
+            <view
+              wx:for="{{item.detailLines}}"
+              wx:for-item="line"
+              wx:key="index"
+              class="rd-line {{line.cont ? 'rd-cont' : ''}}"
+            >
+              <text wx:if="{{line.label}}" class="rd-label">{{line.label}}</text>
+              <text class="rd-text">{{line.text}}</text>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -133,7 +143,17 @@
             <text class="record-title">{{item.title}}</text>
             <text class="record-time mono">{{item.timeText}}</text>
           </view>
-          <view wx:if="{{expandedId === item.id}}" class="record-detail">{{item.detailText}}</view>
+          <view wx:if="{{expandedId === item.id}}" class="record-detail">
+            <view
+              wx:for="{{item.detailLines}}"
+              wx:for-item="line"
+              wx:key="index"
+              class="rd-line {{line.cont ? 'rd-cont' : ''}}"
+            >
+              <text wx:if="{{line.label}}" class="rd-label">{{line.label}}</text>
+              <text class="rd-text">{{line.text}}</text>
+            </view>
+          </view>
         </view>
       </view>
 
@@ -153,7 +173,17 @@
             <text class="record-title">{{item.title}}</text>
             <text class="record-time mono">{{item.timeText}}</text>
           </view>
-          <view wx:if="{{expandedId === item.id}}" class="record-detail">{{item.detail}}</view>
+          <view wx:if="{{expandedId === item.id}}" class="record-detail">
+            <view
+              wx:for="{{item.detailLines}}"
+              wx:for-item="line"
+              wx:key="index"
+              class="rd-line {{line.cont ? 'rd-cont' : ''}}"
+            >
+              <text wx:if="{{line.label}}" class="rd-label">{{line.label}}</text>
+              <text class="rd-text">{{line.text}}</text>
+            </view>
+          </view>
         </view>
       </view>
     </view>

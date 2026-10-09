@@ -151,8 +151,8 @@ Page({
         fetchHistory('MATCH')
       ])
       this.setData({
-        historyTarot: this.formatList(tarot),
-        historyBagua: this.formatList(bagua),
+        historyTarot: this.formatList(tarot).map((it) => this.decorateTarot(it)),
+        historyBagua: this.formatList(bagua).map((it) => this.decorateBagua(it)),
         historyMatch: this.formatList(match).map((it) => this.decorateMatch(it)),
         historyLoaded: true
       })
@@ -165,24 +165,85 @@ Page({
   formatList(list) {
     return (list || []).slice(0, 5).map((it) => ({
       ...it,
+      title: this.polishTitle(it.title),
       // createdAt 格式化：2026-09-24 18:30
       timeText: String(it.createdAt || '').replace('T', ' ').slice(0, 16)
     }))
   },
 
-  // 配对记录：detail 是 MatchVO JSON 字符串 → 解析出双方星座 + 综合分 + review 首句；
-  // 解析失败降级显示 title
-  decorateMatch(item) {
+  // 标题展示层润色：配对原标题「星座配对 · 天秤座 × 狮子座 · 90分」太长会折行，
+  // 重排为「天秤座 × 狮子座 · 契合度 90」；其他类型标题原样保留（由 CSS 保证单行省略）
+  polishTitle(title) {
+    const t = String(title || '')
+    const m = t.match(/^星座配对 · (.+?) × (.+?)(?: · (\d+)\s*分)?$/)
+    if (m) return m[3] ? `${m[1]} × ${m[2]} · 契合度 ${m[3]}` : `${m[1]} × ${m[2]}`
+    return t
+  },
+
+  // detail JSON 安全解析：失败 / 非对象都返回 null
+  safeParse(detail) {
     try {
-      const m = JSON.parse(item.detail)
-      const pair = `${m.star1 ? m.star1.name : '?'} × ${m.star2 ? m.star2.name : '?'}`
-      const score = m.scores && m.scores.overall != null ? `综合 ${m.scores.overall} 分` : ''
-      // review 取一句话（首个句号前）
-      const review = m.review ? String(m.review).split('。')[0] + '。' : ''
-      return { ...item, detailText: [pair + (score ? ' · ' + score : ''), review].filter(Boolean).join('\n') }
+      const d = typeof detail === 'string' ? JSON.parse(detail) : detail
+      return d && typeof d === 'object' ? d : null
     } catch (e) {
-      return { ...item, detailText: item.title }
+      return null
     }
+  },
+
+  // 八卦记录：detail 是 CastVO JSON {primary, changed, changingLines, linesDetail}
+  // → 结构化行 [{label, text}]，解析失败兜底「暂无详情」
+  decorateBagua(item) {
+    const c = this.safeParse(item.detail)
+    if (!c || !c.primary) return { ...item, detailLines: [{ text: '暂无详情' }] }
+    const p = c.primary
+    const hexLine = (h) =>
+      [h.symbol, h.name].filter(Boolean).join(' ') + (h.fortuneLevel ? ` · ${h.fortuneLevel}` : '')
+    const lines = [{ label: '本卦', text: hexLine(p) }]
+    if (p.judgment) lines.push({ label: '卦辞', text: p.judgment })
+    if (p.meaning) lines.push({ label: '象曰', text: p.meaning })
+    if (c.changed && c.changed.name && c.changed.name !== p.name) {
+      lines.push({ label: '变卦', text: hexLine(c.changed) })
+      if (c.changed.judgment) lines.push({ label: '变卦卦辞', text: c.changed.judgment })
+    }
+    const moving = (c.linesDetail || []).filter((l) => l.changing).map((l) => l.position)
+    if (moving.length) lines.push({ label: '动爻', text: `第 ${moving.join('、')} 爻` })
+    return { ...item, detailLines: lines }
+  },
+
+  // 塔罗记录：detail 是 DrawResultVO JSON {spread, spreadName, cards:[{card, orientation,
+  // position, positionDesc, keywords, meaning}]} → 每张牌：牌位行 + 解读行
+  decorateTarot(item) {
+    const d = this.safeParse(item.detail)
+    if (!d || !Array.isArray(d.cards) || !d.cards.length) {
+      return { ...item, detailLines: [{ text: '暂无详情' }] }
+    }
+    const lines = []
+    d.cards.forEach((dc, i) => {
+      const name = (dc.card && dc.card.name) || '未知牌'
+      const ori = dc.orientation === 'reversed' ? '逆位' : '正位'
+      const label = dc.position || (d.cards.length > 1 ? `第 ${i + 1} 张` : '牌面')
+      lines.push({ label, text: `${name} · ${ori}${dc.keywords ? ' · ' + dc.keywords : ''}` })
+      if (dc.positionDesc) lines.push({ cont: true, text: dc.positionDesc })
+      if (dc.meaning) lines.push({ cont: true, text: dc.meaning })
+    })
+    return { ...item, detailLines: lines }
+  },
+
+  // 配对记录：detail 是 MatchVO JSON → 指数 + 点评 + 建议；
+  // 解析失败兜底「暂无详情」
+  decorateMatch(item) {
+    const m = this.safeParse(item.detail)
+    if (!m) return { ...item, detailLines: [{ text: '暂无详情' }] }
+    const lines = []
+    const s = m.scores || {}
+    const scoreParts = [
+      ['综合', s.overall], ['爱情', s.love], ['友情', s.friendship], ['婚姻', s.marriage]
+    ].filter(([, v]) => v != null).map(([k, v]) => `${k} ${v}`)
+    if (scoreParts.length) lines.push({ label: '指数', text: scoreParts.join(' · ') })
+    if (m.review) lines.push({ label: '点评', text: m.review })
+    if (m.suggest) lines.push({ label: '建议', text: m.suggest })
+    if (!lines.length) lines.push({ text: '暂无详情' })
+    return { ...item, detailLines: lines }
   },
 
   // 点击记录：展开 / 收起 detail 摘要

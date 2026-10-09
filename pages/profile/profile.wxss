@@ -239,8 +239,13 @@
   gap: 16rpx;
 }
 .record-title {
+  flex: 1;
+  min-width: 0; /* flex 子项允许收缩，省略号才生效 */
   font-size: 28rpx;
   color: var(--ink);
+  white-space: nowrap; /* 标题一律单行，超出省略号 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .record-time {
   flex: none;
@@ -252,10 +257,30 @@
   margin-top: 12rpx;
   padding: 12rpx 16rpx;
   border-left: 4rpx solid var(--gold-hairline);
+}
+/* 结构化详情行：标签（金色次级） + 正文；cont 行为上一行的延续，缩进对齐 */
+.rd-line {
+  display: flex;
+  gap: 16rpx;
+  padding: 6rpx 0;
+}
+.rd-line.rd-cont {
+  padding-left: 112rpx; /* 标签 96rpx + 间距 16rpx */
+}
+.rd-label {
+  flex: none;
+  min-width: 96rpx;
+  font-size: 24rpx;
+  letter-spacing: 0.1em;
+  color: var(--gold-dim);
+  line-height: 1.9;
+}
+.rd-text {
+  flex: 1;
+  min-width: 0;
   font-size: 26rpx;
   line-height: 1.9;
   color: rgba(232, 230, 240, 0.9);
-  white-space: pre-line; /* 配对摘要里双方星座与点评分两行 */
 }
 
 /* 页脚 */
