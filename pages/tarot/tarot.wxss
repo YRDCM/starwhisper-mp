@@ -348,6 +348,8 @@
   padding: 40rpx 36rpx;
   overflow-y: auto;
   box-sizing: border-box;
+  /* 覆盖 glass-card 的 55% 透明底：弹层必须不透出下层牌库网格 */
+  background: linear-gradient(165deg, #232048 0%, #0D1230 100%);
 }
 .modal-close {
   position: absolute;
