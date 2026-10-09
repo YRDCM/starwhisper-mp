@@ -93,13 +93,25 @@
   margin-top: 36rpx;
   padding: 36rpx;
 }
+/* 牌阵选择分组：组标签 + 按钮（名称 + 牌数角标） */
+.mode-group {
+  margin-top: 28rpx;
+}
+.mode-group-label {
+  font-size: 22rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+  margin-bottom: 14rpx;
+}
 .mode-row {
   display: flex;
   gap: 20rpx;
-  margin: 28rpx 0 32rpx;
   flex-wrap: wrap;
 }
 .mode-btn {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
   font-size: 26rpx;
   letter-spacing: 0.16em;
   padding: 14rpx 28rpx;
@@ -107,6 +119,15 @@
   border: 1px solid rgba(139, 135, 176, 0.25);
   color: var(--ink-dim2);
   white-space: nowrap; /* 牌阵名不折断 */
+}
+.mode-count {
+  font-size: 20rpx;
+  letter-spacing: 0.05em;
+  color: rgba(139, 135, 176, 0.6);
+  white-space: nowrap;
+}
+.mode-btn.active .mode-count {
+  color: rgba(232, 196, 124, 0.75);
 }
 .mode-btn.active {
   border-color: var(--gold);
@@ -240,6 +261,88 @@
 .love-cell.c2 { grid-row: 2; grid-column: 2; }
 .love-cell.c3 { grid-row: 2; grid-column: 3; }
 .love-cell.c4 { grid-row: 3; grid-column: 2; }
+
+/* ===== 凯尔特十字（10 牌，sm 小牌） ===== */
+.celtic-layout {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* 十字区与杖列垂直居中对齐 */
+  gap: 20rpx;
+  padding: 12rpx 0 32rpx;
+}
+.celtic-cross {
+  display: grid;
+  grid-template-columns: repeat(3, 140rpx); /* 3 列：左/中/右 */
+  gap: 14rpx 10rpx;
+}
+.cc-cell {
+  width: 140rpx;
+}
+/* 中心格：1 号牌正置 + 2 号牌横压其上，叠放层压过左右邻格 */
+.cc-center {
+  position: relative;
+  z-index: 2;
+}
+.cc-stack {
+  position: relative;
+  width: 100%;
+}
+.cc-cross-over {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  transform: rotate(90deg); /* 横压经典摆法：视觉旋转后探出左右各约 50rpx */
+}
+.cc-pos2 {
+  margin-top: 6rpx;
+  margin-bottom: 0;
+  color: rgba(232, 196, 124, 0.75); /* 横压牌标签用淡金，与正置牌区分 */
+}
+/* 杖列：自上而下 10/9/8/7 */
+.celtic-staff {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+/* ===== 六芒星（7 牌，sm 小牌） ===== */
+.hex-layout {
+  display: grid;
+  grid-template-columns: repeat(3, 140rpx);
+  justify-content: center;
+  gap: 10rpx 24rpx;
+  padding: 12rpx 0 32rpx;
+}
+.hex-cell {
+  width: 140rpx;
+}
+/* ▽ 时间三角：过去(左上) 未来(右上) 现在(下顶点)；△ 境遇三角：建议(上顶点) 阻碍(左下) 助力(右下)；中心=结果 */
+.hx0 { grid-row: 1; grid-column: 1; }
+.hx2 { grid-row: 1; grid-column: 3; }
+.hx1 { grid-row: 2; grid-column: 2; }
+.hx6 { grid-row: 3; grid-column: 2; }
+.hx5 { grid-row: 4; grid-column: 2; }
+.hx3 { grid-row: 5; grid-column: 1; }
+.hx4 { grid-row: 5; grid-column: 3; }
+.hx6 .flip {
+  border-radius: 12rpx;
+  box-shadow: 0 0 28rpx rgba(232, 196, 124, 0.35); /* 中心结果牌金辉强调 */
+}
+
+/* 大牌阵的牌位标签缩小一档：5-6 字牌位（障碍与挑战/潜意识根源/希望与恐惧）132rpx ≤ 格宽 140rpx */
+.celtic-layout .pos,
+.hex-layout .pos {
+  font-size: 20rpx;
+  letter-spacing: 0.1em;
+}
+
+/* 牌位释义（v3 positionDesc）：淡金左边线引文 */
+.m-posdesc {
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: var(--ink-dim2);
+  padding-left: 16rpx;
+  border-left: 2rpx solid rgba(232, 196, 124, 0.35);
+}
 
 /* 逐牌解读 */
 .meaning-panels {

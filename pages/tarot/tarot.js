@@ -1,5 +1,5 @@
 // 塔罗页：每日塔罗 + 抽牌仪式（3D 翻牌）+ 牌库（懒加载）
-const { fetchTarotDaily, drawTarot, fetchTarotCards } = require('../../utils/request')
+const { fetchTarotDaily, fetchTarotCards, request } = require('../../utils/request')
 
 // 牌组元信息（牌库分组展示顺序）
 const GROUP_META = [
@@ -25,12 +25,24 @@ Page({
     dailyLoading: false,
     dailyError: '',
     // 抽牌仪式
-    mode: 'single',     // single（单牌指引）/ three（时间之流）/ choice（二选一）/ love（爱情十字）
-    spreads: [          // 牌阵选择器
-      { key: 'single', name: '单牌指引' },
-      { key: 'three', name: '时间之流' },
-      { key: 'choice', name: '二选一' },
-      { key: 'love', name: '爱情十字' }
+    mode: 'single',     // 当前牌阵 key（见 spreadGroups）
+    spreadGroups: [     // 牌阵选择器：日常 / 进阶两组，count 用于按钮标注与牌背数量
+      {
+        label: '日常牌阵',
+        items: [
+          { key: 'single', name: '单牌指引', count: 1 },
+          { key: 'three', name: '时间之流', count: 3 },
+          { key: 'choice', name: '二选一', count: 3 },
+          { key: 'love', name: '爱情十字', count: 5 }
+        ]
+      },
+      {
+        label: '进阶牌阵',
+        items: [
+          { key: 'celtic', name: '凯尔特十字', count: 10 },
+          { key: 'hexagram', name: '六芒星', count: 7 }
+        ]
+      }
     ],
     drawn: [],          // [{card, orientation, position, keywordsArr[], meaning, delay}]
     spread: '',         // 实际返回的牌阵 key
@@ -41,7 +53,7 @@ Page({
     flipped: false,     // 是否已翻开（驱动 3D 翻转）
     drawing: false,
     drawError: '',
-    backCount: [1, 2, 3, 4, 5, 6], // 牌背展示数量
+    backCount: [0],     // 牌背展示数量（跟随所选牌阵的牌数，初始 single=1）
     // 牌库
     archiveOpen: false,
     groups: [],
@@ -70,7 +82,10 @@ Page({
   setMode(e) {
     if (this.data.drawing) return
     const mode = e.currentTarget.dataset.mode
-    const patch = { mode }
+    // 牌背数量跟随牌阵牌数
+    let count = 1
+    this.data.spreadGroups.forEach((g) => g.items.forEach((s) => { if (s.key === mode) count = s.count }))
+    const patch = { mode, backCount: Array.from({ length: count }, (_, i) => i) }
     if (this.data.drawn.length) Object.assign(patch, { drawn: [], flipped: false, drawError: '' })
     this.setData(patch)
   },
@@ -78,8 +93,9 @@ Page({
   async doDraw() {
     this.setData({ drawing: true, drawError: '' })
     try {
-      // 新契约：{ spread, spreadName, cards }
-      const result = await drawTarot(this.data.mode)
+      // 后端 v3：spread 是 @RequestParam——wx.request 默认发 JSON body，服务端读不到，
+      // 必须拼进 query，否则任何牌阵都会回退成 single（utils/request.js 的封装不支持 query，这里直调）
+      const result = await request({ url: `/tarot/draw?spread=${this.data.mode}`, method: 'POST' })
       const drawn = (result.cards || []).map((d, i) => ({
         ...d,
         keywordsArr: splitKw(d.keywords),

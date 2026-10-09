@@ -1,4 +1,19 @@
 <!-- 塔罗页 -->
+
+<!-- 大牌阵通用小牌格（sm）：牌位标签 + 3D 翻牌；spreadCard 无标签版供中心叠放格复用 -->
+<template name="spreadCard">
+  <view class="flip sm {{flipped ? 'flipped' : ''}}">
+    <view class="flip-inner" style="transition-delay:{{flipped ? cell.delay : 0}}ms">
+      <view class="flip-back"><tarot-card faceDown size="sm" /></view>
+      <view class="flip-front"><tarot-card card="{{cell.card}}" orientation="{{cell.orientation}}" size="sm" /></view>
+    </view>
+  </view>
+</template>
+<template name="spreadCell">
+  <view class="pos mono">{{cell.position}}</view>
+  <template is="spreadCard" data="{{cell, flipped}}" />
+</template>
+
 <view class="page">
   <star-layer />
 
@@ -46,14 +61,22 @@
   <view class="glass-card ritual">
     <view class="sec-title">抽牌仪式 <text class="sec-title-en mono">RITUAL</text></view>
 
-    <view class="mode-row">
-      <view
-        wx:for="{{spreads}}"
-        wx:key="key"
-        class="mode-btn mono {{mode === item.key ? 'active' : ''}} {{drawing ? 'disabled' : ''}}"
-        data-mode="{{item.key}}"
-        bindtap="setMode"
-      >{{item.name}}</view>
+    <!-- 牌阵选择：日常 / 进阶两组，按钮标注牌数 -->
+    <view class="mode-group" wx:for="{{spreadGroups}}" wx:key="label">
+      <view class="mode-group-label mono">{{item.label}}</view>
+      <view class="mode-row">
+        <view
+          wx:for="{{item.items}}"
+          wx:for-item="s"
+          wx:key="key"
+          class="mode-btn mono {{mode === s.key ? 'active' : ''}} {{drawing ? 'disabled' : ''}}"
+          data-mode="{{s.key}}"
+          bindtap="setMode"
+        >
+          <text>{{s.name}}</text>
+          <text class="mode-count">{{s.count}} 张</text>
+        </view>
+      </view>
     </view>
 
     <view wx:if="{{drawError}}" class="error-line">{{drawError}}</view>
@@ -132,6 +155,50 @@
         </view>
       </view>
 
+      <!-- 凯尔特十字（10 牌）：左十字区 3×3 + 右杖列
+           十字区：row1 [空, 5 显意识目标, 空]
+                   row2 [4 过去的印记, 1 现状核心 + 2 障碍与挑战横压其上, 6 未来的发展]
+                   row3 [空, 3 潜意识根源, 空]
+           杖列自上而下 10/9/8/7（牌阵自下而上 7→10 建起） -->
+      <view wx:elif="{{spread === 'celtic'}}" class="celtic-layout">
+        <view class="celtic-cross">
+          <view></view>
+          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[4], flipped}}" /></view>
+          <view></view>
+          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[3], flipped}}" /></view>
+          <view class="cc-cell cc-center">
+            <view class="pos mono">{{drawn[0].position}}</view>
+            <view class="cc-stack">
+              <template is="spreadCard" data="{{cell: drawn[0], flipped}}" />
+              <!-- 2 号牌横压：容器整体旋转 90°，视觉探向左右邻格（经典摆法） -->
+              <view class="cc-cross-over"><template is="spreadCard" data="{{cell: drawn[1], flipped}}" /></view>
+            </view>
+            <view class="pos mono cc-pos2">{{drawn[1].position}}</view>
+          </view>
+          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[5], flipped}}" /></view>
+          <view></view>
+          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[2], flipped}}" /></view>
+          <view></view>
+        </view>
+        <view class="celtic-staff">
+          <view class="cc-cell" wx:for="{{[9, 8, 7, 6]}}" wx:key="index">
+            <template is="spreadCell" data="{{cell: drawn[item], flipped}}" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 六芒星（7 牌）：▽ 时间三角（过去/现在/未来）+ △ 境遇三角（阻碍/助力/建议）+ 中心结果
+           网格定位：过去 r1c1 / 未来 r1c3 / 现在 r2c2 / 结果 r3c2（中心金辉）/ 建议 r4c2 / 阻碍 r5c1 / 助力 r5c3 -->
+      <view wx:elif="{{spread === 'hexagram'}}" class="hex-layout">
+        <view class="hex-cell hx0"><template is="spreadCell" data="{{cell: drawn[0], flipped}}" /></view>
+        <view class="hex-cell hx2"><template is="spreadCell" data="{{cell: drawn[2], flipped}}" /></view>
+        <view class="hex-cell hx1"><template is="spreadCell" data="{{cell: drawn[1], flipped}}"/></view>
+        <view class="hex-cell hx6"><template is="spreadCell" data="{{cell: drawn[6], flipped}}" /></view>
+        <view class="hex-cell hx5"><template is="spreadCell" data="{{cell: drawn[5], flipped}}" /></view>
+        <view class="hex-cell hx3"><template is="spreadCell" data="{{cell: drawn[3], flipped}}" /></view>
+        <view class="hex-cell hx4"><template is="spreadCell" data="{{cell: drawn[4], flipped}}" /></view>
+      </view>
+
       <!-- 逐牌解读 -->
       <view class="meaning-panels">
         <view wx:for="{{drawn}}" wx:key="index" class="m-panel">
@@ -140,6 +207,8 @@
             <text class="m-name">{{item.card.name}}</text>
             <text class="m-ori mono {{item.orientation}}">{{item.orientation === 'reversed' ? '逆位' : '正位'}}</text>
           </view>
+          <!-- v3 契约：牌位释义一句话（6 个牌阵都有） -->
+          <view wx:if="{{item.positionDesc}}" class="m-posdesc">{{item.positionDesc}}</view>
           <view class="kw-chips">
             <text wx:for="{{item.keywordsArr}}" wx:for-item="k" wx:key="index" class="kw-chip">{{k}}</text>
           </view>
