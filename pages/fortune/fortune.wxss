@@ -40,16 +40,14 @@
   color: var(--ink-dim2);
 }
 
-/* ===== 星轨仪 Astrolabe · 华贵版 ===== */
+/* ===== 星盘（旧版底座风 · 加大圆隙） ===== */
 .wheel-wrap {
   position: relative;
   display: flex;
   justify-content: center;
   /* 满屏出血：抵消 page 左右 24rpx padding，轮盘 750rpx 撑满屏宽 */
   margin: 0 -24rpx;
-  /* 节点热区超出 wheel 盒 32rpx（半径 357 + 半热区 50 > 半径 375），
-     上下 padding 须吃掉溢出，否则星盘与下方内容视觉相贴 */
-  padding: 48rpx 0 72rpx;
+  padding: 40rpx 0 48rpx;
 }
 .wheel {
   position: relative;
@@ -57,42 +55,20 @@
   height: 750rpx;
 }
 .wheel.animated {
-  transition: transform 0.6s ease-out; /* 签名交互：旋转星环 */
+  transition: transform 0.6s ease-out; /* 旋转星环：选中转到正上方 */
 }
-/* 轨道：清晰可见但克制。1rpx 在真机高分屏上会被圆整/抗锯齿吃掉导致不可见，
-   必须用 1px 实体像素 + 适当提高透明度（对齐 PC 端 SVG 环的视觉重量） */
+/* 轨道双环：1px 实体像素（1rpx 在真机高分屏会被圆整吃掉），清晰可见但克制 */
 .orbit-ring {
   position: absolute;
   border-radius: 50%;
 }
 .orbit-ring.outer {
-  left: 18rpx; top: 18rpx; right: 18rpx; bottom: 18rpx;
+  left: 6rpx; top: 6rpx; right: 6rpx; bottom: 6rpx;
   border: 1px solid rgba(232, 201, 122, 0.22);
 }
 .orbit-ring.inner {
   left: 110rpx; top: 110rpx; right: 110rpx; bottom: 110rpx;
   border: 1px solid rgba(139, 135, 176, 0.14);
-}
-/* 60 格刻度：JS 内联 rotate+translateY(-350rpx) 外推 + 高度/颜色分级（12 主刻度亮） */
-.tick {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 2rpx;
-  transform-origin: 0 0;
-}
-/* 固定指针：12 点金色小菱形，不随环转 */
-.wheel-pointer {
-  position: absolute;
-  left: 50%;
-  top: 36rpx; /* 底缘恰好贴上环顶（padding 48 + 环内缩 18 = 66） */
-  transform: translateX(-50%);
-  z-index: 3;
-  font-size: 30rpx;
-  line-height: 1;
-  color: var(--gold);
-  text-shadow: 0 0 16rpx rgba(232, 196, 124, 0.8);
-  pointer-events: none; /* 不挡 12 点位置节点的点击 */
 }
 /* 中心三行：不随环转；pointer-events 放行，避免挡节点点击 */
 .wheel-center {
@@ -107,17 +83,6 @@
   flex-direction: column;
   gap: 8rpx;
   pointer-events: none;
-}
-/* 中心星联底衬：选中星座的点线图形放大铺底，暗金低透明度做背景艺术 */
-.center-const {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: -1; /* 压在三行文字之下 */
-  width: 320rpx;
-  height: 320rpx;
-  opacity: 0.16;
 }
 .center-name {
   font-family: var(--font-display);
@@ -138,14 +103,14 @@
   color: var(--ink-dim2);
 }
 
-/* 星座节点：无底座，符号直接落在轨道环上；点击热区 100rpx */
+/* 星座节点：圆形底座 + 符号 + 名字；Ø138、轨道半径 305 → 相邻圆净隙约 20rpx */
 .sign-node {
   position: absolute;
   left: 50%;
   top: 50%;
-  margin: -50rpx 0 0 -50rpx;
-  width: 100rpx;
-  height: 100rpx;
+  margin: -69rpx 0 0 -69rpx;
+  width: 138rpx;
+  height: 138rpx;
 }
 .node-inner {
   display: flex;
@@ -156,36 +121,32 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 1px solid transparent; /* 占位防抖动，选中时显现 */
+  border: 1px solid rgba(139, 135, 176, 0.22);
+  background: rgba(35, 32, 72, 0.5);
   transition: transform 0.6s ease-out, border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
 .wheel:not(.animated) .node-inner {
   transition: none;
 }
-/* 唯一 medallion：只有选中星座配金色圆座（细金环 + 径向光晕），12 选 1 的仪式感 */
+/* 选中：金色高亮底座（旧版选中态） */
 .sign-node.active .node-inner {
-  border-color: rgba(232, 196, 124, 0.55);
-  background: radial-gradient(circle at 50% 50%,
-    rgba(232, 196, 124, 0.16) 0%, rgba(232, 196, 124, 0.05) 58%, rgba(232, 196, 124, 0) 78%);
-  box-shadow: 0 0 40rpx rgba(232, 196, 124, 0.22);
+  border-color: var(--gold);
+  background: rgba(232, 196, 124, 0.10);
+  box-shadow: 0 0 32rpx rgba(232, 196, 124, 0.4), inset 0 0 20rpx rgba(232, 196, 124, 0.14);
 }
 .node-const {
-  width: 32rpx;
-  height: 32rpx;
-  transition: width 0.25s, height 0.25s, filter 0.25s;
-}
-.sign-node.active .node-const {
-  width: 48rpx;
-  height: 48rpx;
-  filter: drop-shadow(0 0 12rpx rgba(232, 196, 124, 0.7)); /* 选中光晕 */
+  width: 52rpx;
+  height: 52rpx;
 }
 .node-name {
   font-family: var(--font-display);
-  font-size: 24rpx;
-  letter-spacing: 0.12em;
+  font-size: 26rpx;
+  letter-spacing: 0.1em;
   white-space: nowrap;
+  color: var(--ink);
+}
+.sign-node.active .node-name {
   color: var(--gold);
-  text-shadow: 0 0 12rpx rgba(232, 196, 124, 0.6);
 }
 
 /* ===== 主内容 ===== */

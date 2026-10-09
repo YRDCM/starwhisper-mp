@@ -27,8 +27,7 @@
         <!-- 双环轨道（清晰可见） + 60 格刻度（天文钟精密感） -->
         <view class="orbit-ring outer"></view>
         <view class="orbit-ring inner"></view>
-        <view wx:for="{{ticks}}" wx:key="index" class="tick" style="{{item}}"></view>
-        <!-- 星座节点：无底座，符号直接落在轨道上；反向旋转保持正向可读 -->
+        <!-- 星座节点：圆形底座 + 符号 + 名字；反向旋转保持正向可读 -->
         <view
           wx:for="{{signs}}"
           wx:key="id"
@@ -38,20 +37,13 @@
           bindtap="onSignTap"
         >
           <view class="node-inner" style="transform:rotate({{-ringAngle}}deg)">
-            <view class="node-const">
-              <constellation-view sign="{{item.nameEn}}" tone="{{item.id === currentSignId ? 'gold' : 'dim'}}" />
-            </view>
-            <view wx:if="{{item.id === currentSignId}}" class="node-name">{{item.name}}</view>
+            <view class="node-const"><constellation-view sign="{{item.nameEn}}" /></view>
+            <view class="node-name">{{item.name}}</view>
           </view>
         </view>
       </view>
-      <!-- 固定指针：12 点金色 ✦，不随环转 -->
-      <view class="wheel-pointer">✦</view>
-      <!-- 中心信息：星联线描底衬 + 衬线中文名 + 英文斜体 + 日期范围，不随环转 -->
+      <!-- 中心信息：衬线中文名 + 英文斜体 + 日期范围，不随环转 -->
       <view class="wheel-center">
-        <view class="center-const">
-          <constellation-view sign="{{currentSign ? currentSign.nameEn : ''}}" />
-        </view>
         <view class="center-name">{{currentSign ? currentSign.name : ''}}</view>
         <view class="center-en">{{currentSign ? currentSign.nameEn : ''}}</view>
         <view class="center-range mono">{{currentSign ? currentSign.dateRange : ''}}</view>
