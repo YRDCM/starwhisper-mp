@@ -9,7 +9,7 @@
 
   <block wx:else>
     <view class="face-inner {{orientation === 'reversed' ? 'reversed' : ''}}">
-      <view class="face-top mono">{{card.arcanaGroup}} · {{card.cardNumber}}</view>
+      <view class="face-top mono">{{card.arcanaGroup}}·{{card.cardNumber}}</view>
       <view class="face-center">
         <view class="suit-seal {{isMajor ? 'major' : ''}}">{{sealText}}</view>
         <view class="face-name">{{card.name}}</view>

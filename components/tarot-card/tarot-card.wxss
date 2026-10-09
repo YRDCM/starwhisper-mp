@@ -56,6 +56,7 @@
   font-size: 22rpx;
   letter-spacing: 0.14em;
   color: var(--ink-dim2);
+  white-space: nowrap; /* 「PENTACLES·14」这类长标签不折行 */
 }
 .face-center {
   display: flex;
@@ -121,5 +122,6 @@
 .sz-sm .face-name { font-size: 24rpx; letter-spacing: 0.06em; }
 .sz-sm .face-en { font-size: 18rpx; }
 .sz-sm .suit-seal { font-size: 22rpx; width: 48rpx; height: 48rpx; }
-.sz-sm .face-top { font-size: 18rpx; letter-spacing: 0.08em; }
+.sz-sm .face-inner { padding: 8% 4%; } /* 侧 padding 6%→4%，给顶部标签让位 */
+.sz-sm .face-top { font-size: 16rpx; letter-spacing: 0.05em; } /* 18→16rpx：PENTACLES·14 约 125rpx ≤ 内容宽 131rpx */
 .sz-sm .ori-tag { display: none; } /* 牌库小图不显示角签 */
