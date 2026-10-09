@@ -51,12 +51,30 @@
 .face-inner.reversed {
   transform: rotateZ(180deg); /* 逆位：牌名倒置 */
 }
+/* 顶部角标：组名一行 + 编号一行（· 点缀），竖向居中堆叠 */
 .face-top {
   font-family: var(--font-mono);
-  font-size: 22rpx;
-  letter-spacing: 0.14em;
   color: var(--ink-dim2);
-  white-space: nowrap; /* 「PENTACLES·14」这类长标签不折行 */
+  white-space: nowrap; /* 双保险：单行内部也绝不折断 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rpx;
+  line-height: 1.2;
+}
+.ft-group {
+  font-size: 22rpx;
+  letter-spacing: 0.1em;
+}
+.ft-num {
+  font-size: 18rpx;
+  letter-spacing: 0.08em;
+}
+.ft-num::before,
+.ft-num::after {
+  content: '·';
+  margin: 0 8rpx;
+  color: rgba(139, 135, 176, 0.6);
 }
 .face-center {
   display: flex;
@@ -123,5 +141,11 @@
 .sz-sm .face-en { font-size: 18rpx; }
 .sz-sm .suit-seal { font-size: 22rpx; width: 48rpx; height: 48rpx; }
 .sz-sm .face-inner { padding: 8% 4%; } /* 侧 padding 6%→4%，给顶部标签让位 */
-.sz-sm .face-top { font-size: 16rpx; letter-spacing: 0.05em; } /* 18→16rpx：PENTACLES·14 约 125rpx ≤ 内容宽 131rpx */
+/* 角标分级：md 略缩、sm 再缩（最长组名 PENTACLES 9 字符均有 ≥6% 余量） */
+.sz-md .ft-group { font-size: 18rpx; letter-spacing: 0.08em; }
+.sz-md .ft-num { font-size: 15rpx; }
+.sz-md .ft-num::before, .sz-md .ft-num::after { margin: 0 6rpx; }
+.sz-sm .ft-group { font-size: 16rpx; letter-spacing: 0.05em; }
+.sz-sm .ft-num { font-size: 14rpx; }
+.sz-sm .ft-num::before, .sz-sm .ft-num::after { margin: 0 4rpx; }
 .sz-sm .ori-tag { display: none; } /* 牌库小图不显示角签 */
