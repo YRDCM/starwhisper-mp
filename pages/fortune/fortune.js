@@ -118,26 +118,33 @@ Page({
           return
         }
         const canvas = res[0].node
-        const ctx = canvas.getContext('2d')
-        // 逻辑尺寸 750×1200，按设备像素比放大保证清晰
-        const dpr = wx.getWindowInfo ? wx.getWindowInfo().pixelRatio : 2
-        canvas.width = 750 * dpr
-        canvas.height = 1200 * dpr
-        ctx.scale(dpr, dpr)
-        this.paintPoster(ctx)
-        // 绘制完成 → 导出临时图片 → 弹层预览
-        wx.canvasToTempFilePath({
-          canvas,
-          success: (r) => {
-            wx.hideLoading()
-            this.setData({ posterImage: r.tempFilePath, posterDrawing: false })
-          },
-          fail: () => {
-            wx.hideLoading()
-            this.setData({ posterDrawing: false })
-            wx.showToast({ title: '海报生成失败', icon: 'none' })
-          }
-        })
+        try {
+          const ctx = canvas.getContext('2d')
+          // 逻辑尺寸 750×1200，按设备像素比放大保证清晰
+          const dpr = wx.getWindowInfo ? wx.getWindowInfo().pixelRatio : 2
+          canvas.width = 750 * dpr
+          canvas.height = 1200 * dpr
+          ctx.scale(dpr, dpr)
+          this.paintPoster(ctx)
+          // 绘制完成 → 导出临时图片 → 弹层预览
+          wx.canvasToTempFilePath({
+            canvas,
+            success: (r) => {
+              wx.hideLoading()
+              this.setData({ posterImage: r.tempFilePath, posterDrawing: false })
+            },
+            fail: () => {
+              wx.hideLoading()
+              this.setData({ posterDrawing: false })
+              wx.showToast({ title: '海报生成失败', icon: 'none' })
+            }
+          })
+        } catch (e) {
+          // 绘制过程同步异常（canvas 上下文/字段缺失等）：必须复位 loading 与按钮态
+          wx.hideLoading()
+          this.setData({ posterDrawing: false })
+          wx.showToast({ title: '海报生成失败', icon: 'none' })
+        }
       })
   },
 

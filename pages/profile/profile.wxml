@@ -40,6 +40,11 @@
         disabled="{{checkinStatus.todayDone || checking}}"
       >{{checkinStatus.todayDone ? '今日已打卡' : (checking ? '打卡中…' : '今日打卡')}}</button>
     </block>
+    <!-- 加载失败：错误文案 + 重试（不再无限 spinner） -->
+    <view wx:elif="{{checkinError}}" class="ci-anon">
+      <view class="ci-anon-text">{{checkinError}}</view>
+      <button class="btn-ghost ci-retry" bindtap="loadCheckinStatus">重新加载</button>
+    </view>
     <view wx:else class="ci-anon"><view class="spinner"></view></view>
   </view>
 

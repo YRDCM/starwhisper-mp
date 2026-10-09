@@ -16,6 +16,7 @@ Page({
     checkinStatus: null, // {todayDone, streak, totalDays, recentDates}
     checkinDots: [],     // 最近 14 天点阵 [{date, done}]
     checking: false,
+    checkinError: '',    // 打卡状态加载失败文案（空串=正常/加载中）
     // 打卡汇总（连续/最长/总天数 + 勋章墙），接口失败时保持 null 静默隐藏
     checkinSummary: null, // {currentStreak, maxStreak, totalDays, todayChecked}
     badges: []           // [{code, name, desc, threshold, unlocked, progressText}]
@@ -39,7 +40,8 @@ Page({
     this.setData({ logging: true, loginError: '' })
     try {
       const { code } = await new Promise((resolve, reject) => {
-        wx.login({ success: resolve, fail: () => reject(new Error('wx.login 调用失败')) })
+        // 10s 超时兜底：wx.login 偶发无回调时 logging 态不至于卡死
+        wx.login({ timeout: 10000, success: resolve, fail: () => reject(new Error('wx.login 调用失败')) })
       })
       const data = await wechatLogin(code)
       this.applyLogin(data)
@@ -83,18 +85,20 @@ Page({
     this.setData({
       token: '', userInfo: null,
       historyTarot: [], historyBagua: [], historyMatch: [], historyLoaded: false, expandedId: null,
-      checkinStatus: null, checkinDots: [], checkinSummary: null, badges: []
+      checkinStatus: null, checkinDots: [], checkinSummary: null, badges: [], checkinError: ''
     })
     wx.showToast({ title: '已退出登录', icon: 'none' })
   },
 
   /* ===== 打卡 ===== */
   async loadCheckinStatus() {
+    this.setData({ checkinError: '' })
     try {
       const st = await fetchCheckinStatus()
-      this.setData({ checkinStatus: st, checkinDots: this.buildDots(st.recentDates) })
+      this.setData({ checkinStatus: st, checkinDots: this.buildDots(st.recentDates), checkinError: '' })
     } catch (e) {
-      // 401 等场景 request 已统一处理
+      // 失败必须显式置错误态——否则打卡卡会一直停在 loading  spinner
+      this.setData({ checkinError: e.message || '打卡状态加载失败，请重试' })
     }
   },
 
