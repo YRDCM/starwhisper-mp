@@ -53,6 +53,13 @@
   flex-direction: column;
   gap: 22rpx;
 }
+/* 每日卦卡 eyebrow「DAILY HEXAGRAM · 日期 · 第N卦」较宽，窄屏强制单行省略 */
+.daily-panel .eyebrow {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.12em;
+}
 .daily-name {
   font-family: var(--font-display);
   font-size: 56rpx;
@@ -325,9 +332,12 @@
   letter-spacing: 0.12em;
 }
 .m-meta {
-  font-size: 25rpx;
-  letter-spacing: 0.12em;
+  font-size: 24rpx;
+  letter-spacing: 0.06em; /* 收紧字距给卦名让位 */
   color: var(--ink-dim2);
+  white-space: nowrap; /* 「第15卦 · 上坤 ☷ · 下艮 ☶」强制单行，超出省略 */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 页脚 */
