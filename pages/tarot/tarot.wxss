@@ -48,6 +48,11 @@
   flex-direction: column;
   gap: 24rpx;
 }
+.daily-name {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx; /* 中文一行、英文一行，不混排 */
+}
 .daily-name .zh {
   font-family: var(--font-display);
   font-size: 52rpx;
@@ -60,7 +65,7 @@
   font-style: italic;
   font-size: 30rpx;
   color: var(--ink-dim2);
-  margin-left: 16rpx;
+  white-space: nowrap; /* 英文牌名任何长度都不折断单词 */
 }
 .meaning {
   font-size: 30rpx;
@@ -471,6 +476,11 @@
   flex: 1;
   min-width: 0;
 }
+.m-title {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx; /* 中文一行、英文一行，不混排 */
+}
 .m-title .zh {
   font-family: var(--font-display);
   font-size: 44rpx;
@@ -482,7 +492,7 @@
   font-style: italic;
   font-size: 28rpx;
   color: var(--ink-dim2);
-  margin-left: 16rpx;
+  white-space: nowrap; /* 英文牌名任何长度都不折断单词 */
 }
 .m-block {
   margin-top: 28rpx;

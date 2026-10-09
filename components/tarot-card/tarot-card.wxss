@@ -106,6 +106,10 @@
   font-family: var(--font-display);
   font-style: italic;
   color: var(--ink-dim2);
+  white-space: nowrap; /* 英文牌名独立一行，绝不折断单词 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 .face-bottom {
   width: 60%;
@@ -138,7 +142,7 @@
 .sz-md .face-en { font-size: 24rpx; }
 
 .sz-sm .face-name { font-size: 24rpx; letter-spacing: 0.06em; }
-.sz-sm .face-en { font-size: 18rpx; }
+.sz-sm .face-en { display: none; } /* 小卡（凯尔特十字/六芒星/牌库）空间紧张，只显中文名 */
 .sz-sm .suit-seal { font-size: 22rpx; width: 48rpx; height: 48rpx; }
 .sz-sm .face-inner { padding: 8% 4%; } /* 侧 padding 6%→4%，给顶部标签让位 */
 /* 角标分级：md 略缩、sm 再缩（最长组名 PENTACLES 9 字符均有 ≥6% 余量） */
