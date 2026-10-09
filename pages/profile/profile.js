@@ -1,5 +1,5 @@
 // 我的页：登录（微信 / 游客体验）+ 打卡 + 历史记录（塔罗 / 八卦各最近 5 条）
-const { wechatLogin, devLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus } = require('../../utils/request')
+const { wechatLogin, devLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus, fetchCheckinSummary } = require('../../utils/request')
 
 Page({
   data: {
@@ -15,7 +15,10 @@ Page({
     // 打卡
     checkinStatus: null, // {todayDone, streak, totalDays, recentDates}
     checkinDots: [],     // 最近 14 天点阵 [{date, done}]
-    checking: false
+    checking: false,
+    // 打卡汇总（连续/最长/总天数 + 勋章墙），接口失败时保持 null 静默隐藏
+    checkinSummary: null, // {currentStreak, maxStreak, totalDays, todayChecked}
+    badges: []           // [{code, name, desc, threshold, unlocked, progressText}]
   },
 
   onShow() {
@@ -26,6 +29,7 @@ Page({
     if (token) {
       this.loadHistory()
       this.loadCheckinStatus() // onShow 刷新打卡状态
+      this.loadCheckinSummary() // 连续打卡 + 勋章墙（失败静默）
     }
   },
 
@@ -79,7 +83,7 @@ Page({
     this.setData({
       token: '', userInfo: null,
       historyTarot: [], historyBagua: [], historyMatch: [], historyLoaded: false, expandedId: null,
-      checkinStatus: null, checkinDots: []
+      checkinStatus: null, checkinDots: [], checkinSummary: null, badges: []
     })
     wx.showToast({ title: '已退出登录', icon: 'none' })
   },
@@ -91,6 +95,22 @@ Page({
       this.setData({ checkinStatus: st, checkinDots: this.buildDots(st.recentDates) })
     } catch (e) {
       // 401 等场景 request 已统一处理
+    }
+  },
+
+  // 打卡汇总：连续/最长/总天数 + 勋章墙；失败静默兜底（置 null，不打扰用户）
+  async loadCheckinSummary() {
+    try {
+      const openid = (this.data.userInfo && (this.data.userInfo.openid || this.data.userInfo.id)) || ''
+      const sum = await fetchCheckinSummary(openid)
+      const badges = (sum.badges || []).map((b) => ({
+        ...b,
+        // 未解锁显示进度：当前连续天数 / 解锁门槛
+        progressText: b.unlocked ? '' : `${Math.min(sum.currentStreak || 0, b.threshold)}/${b.threshold}`
+      }))
+      this.setData({ checkinSummary: sum, badges })
+    } catch (e) {
+      this.setData({ checkinSummary: null, badges: [] })
     }
   },
 
@@ -114,6 +134,7 @@ Page({
       await checkin()
       wx.showToast({ title: '打卡成功', icon: 'none' })
       this.loadCheckinStatus()
+      this.loadCheckinSummary()
     } catch (e) {
       wx.showToast({ title: e.message || '打卡失败', icon: 'none' })
     } finally {

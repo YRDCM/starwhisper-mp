@@ -1,0 +1,142 @@
+/* ===== 每日一卦页样式 ===== */
+.page {
+  position: relative;
+  z-index: 1;
+  padding: 32rpx 24rpx 64rpx;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+  margin-top: 14rpx;
+}
+.wm-zh {
+  font-family: var(--font-display);
+  font-size: 56rpx;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+}
+.wm-en {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 32rpx;
+  color: var(--ink-dim2);
+}
+
+/* ===== 卦象主卡 ===== */
+.hex-card {
+  margin-top: 24rpx;
+  padding: 48rpx 36rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+}
+.hex-date {
+  font-size: 24rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+}
+.hex-symbol {
+  font-size: 128rpx;
+  line-height: 1.1;
+  color: var(--gold);
+}
+.hex-name {
+  font-family: var(--font-display);
+  font-size: 48rpx;
+  letter-spacing: 0.3em;
+  color: var(--ink);
+}
+.hex-stars {
+  display: flex;
+  gap: 14rpx;
+  font-size: 30rpx;
+}
+.hex-stars .on { color: var(--gold); }
+.hex-stars .off { color: rgba(139, 135, 176, 0.35); }
+.hex-card .divider {
+  width: 100%;
+}
+.guaci {
+  font-family: var(--font-display);
+  font-size: 32rpx;
+  line-height: 2.1;
+  letter-spacing: 0.12em;
+  color: rgba(232, 230, 240, 0.92);
+  text-align: center;
+}
+
+/* ===== 现代解读 ===== */
+.reading-card {
+  margin-top: 24rpx;
+  padding: 36rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.sec-title {
+  font-family: var(--font-display);
+  font-size: 36rpx;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+}
+.sec-title-en {
+  font-size: 24rpx;
+  letter-spacing: 0.2em;
+  color: var(--ink-dim2);
+  margin-left: 16rpx;
+  white-space: nowrap;
+}
+.reading-text {
+  font-size: 29rpx;
+  line-height: 2;
+  color: rgba(232, 230, 240, 0.88);
+}
+
+/* ===== 今日建议（金边盒） ===== */
+.advice-box {
+  margin-top: 24rpx;
+  padding: 32rpx 36rpx;
+  border: 1px solid var(--gold-hairline);
+  border-radius: 16rpx;
+  background: rgba(232, 196, 124, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+.advice-label {
+  font-size: 22rpx;
+  letter-spacing: 0.2em;
+  color: var(--gold-dim);
+}
+.advice-text {
+  font-size: 29rpx;
+  line-height: 1.9;
+  color: var(--gold);
+}
+
+/* 页脚 */
+.footer {
+  margin-top: auto;
+  padding-top: 72rpx;
+  text-align: center;
+  font-size: 25rpx;
+  letter-spacing: 0.18em;
+  color: var(--ink-dim2);
+}
+.f-wish {
+  margin-top: 12rpx;
+  font-family: var(--font-display);
+  font-size: 26rpx;
+  letter-spacing: 0.3em;
+  color: var(--gold);
+}
+.f-wish .f-star {
+  font-size: 20rpx;
+  color: rgba(232, 196, 124, 0.55);
+}

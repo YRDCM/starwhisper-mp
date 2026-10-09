@@ -4,7 +4,8 @@
     "pages/tarot/tarot",
     "pages/bagua/bagua",
     "pages/match/match",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/hexagram/hexagram"
   ],
   "window": {
     "navigationBarBackgroundColor": "#070B1E",

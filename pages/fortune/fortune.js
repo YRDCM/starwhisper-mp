@@ -168,105 +168,164 @@ Page({
       ctx.fill()
     }
 
-    // ===== 垂直配重（750×1200 逻辑像素） =====
-    // 参考区间：头部词标 60-180；主体均分；点评后留 ~120；落款钉底 1080-1160
-    const Y = {
-      EYEBROW: 100,          // 眉题
-      WORDMARK: 172,         // 词标
-      DIVIDER: 232,          // ✦ 饰线
-      NAME: 335,             // 星座名
-      META: 385,             // nameEn · dateRange · 日期
-      DIMS_START: 472,       // 评分区首行
-      DIMS_STEP: 52,         // 评分行距
-      FOOTER_LINE: 1080,     // 落款分隔线（钉底）
-      FOOTER_NAME: 1132,     // 落款名
-      FOOTER_SUB: 1162       // 落款副题
-    }
+    // ===== 流式布局：y 游标自顶向下推进，任何长文案都不会越界/重叠 =====
+    const MARGIN = 90
+    const RIGHT = W - MARGIN
+    let y = 100
 
-    // 词标
+    // 眉题
     ctx.textAlign = 'center'
     ctx.fillStyle = DIM
     ctx.font = '22px monospace'
-    ctx.fillText('EPHEMERIS · 星历', W / 2, Y.EYEBROW)
+    ctx.fillText('EPHEMERIS · 星历', W / 2, y)
+
+    // 词标：中英分两行（单行并排会在 750 宽内重叠）
+    y += 72
     ctx.fillStyle = GOLD
     ctx.font = '64px serif'
-    ctx.fillText('星语', W / 2 - 30, Y.WORDMARK)
-    ctx.font = 'italic 34px serif'
+    ctx.fillText('星语', W / 2, y)
+    y += 46
     ctx.fillStyle = DIM
-    ctx.fillText('StarWhisper', W / 2 + 110, Y.WORDMARK)
+    ctx.font = 'italic 30px serif'
+    ctx.fillText('StarWhisper', W / 2, y)
 
     // ✦ 饰线
+    y += 46
     ctx.strokeStyle = 'rgba(139,135,176,0.25)'
     ctx.lineWidth = 1
-    ctx.beginPath(); ctx.moveTo(80, Y.DIVIDER); ctx.lineTo(330, Y.DIVIDER); ctx.stroke()
-    ctx.beginPath(); ctx.moveTo(420, Y.DIVIDER); ctx.lineTo(670, Y.DIVIDER); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(80, y); ctx.lineTo(330, y); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(420, y); ctx.lineTo(670, y); ctx.stroke()
     ctx.fillStyle = GOLD
     ctx.font = '20px sans-serif'
-    ctx.fillText('✦', W / 2, Y.DIVIDER + 8)
+    ctx.fillText('✦', W / 2, y + 8)
 
     // 星座名 + dateRange
+    y += 88
     ctx.fillStyle = GOLD
     ctx.font = '72px serif'
-    ctx.fillText(f.signName, W / 2, Y.NAME)
+    ctx.fillText(f.signName, W / 2, y)
+    y += 50
     ctx.fillStyle = DIM
     ctx.font = '24px monospace'
     const range = this.data.currentSign ? (this.data.currentSign.dateRange || '') : ''
-    ctx.fillText(`${String(f.signNameEn).toUpperCase()} · ${range} · ${f.fortuneDate}`, W / 2, Y.META)
+    ctx.fillText(`${String(f.signNameEn).toUpperCase()} · ${range} · ${f.fortuneDate}`, W / 2, y)
 
     // 评分 ✦（综合/爱情/事业/财富/健康，null 自动跳过）
     const dims = (v.dimensions || [])
+    y += 82
     ctx.textAlign = 'left'
     dims.forEach((d, i) => {
-      const y = Y.DIMS_START + i * Y.DIMS_STEP
+      const dy = y + i * 52
       ctx.fillStyle = INK
       ctx.font = '26px sans-serif'
-      ctx.fillText(d.zh, 90, y)
+      ctx.fillText(d.zh, MARGIN, dy)
       ctx.fillStyle = DIM
       ctx.font = '20px monospace'
-      ctx.fillText(d.en, 250, y)
+      ctx.fillText(d.en, 250, dy)
       // ✦ 实/空
       let gx = 480
       for (let n = 1; n <= 5; n++) {
         ctx.fillStyle = n <= d.score ? GOLD : 'rgba(139,135,176,0.35)'
         ctx.font = '24px sans-serif'
-        ctx.fillText('✦', gx, y)
+        ctx.fillText('✦', gx, dy)
         gx += 36
       }
     })
+    y += dims.length * 52
 
-    // 幸运条目（单行合并，标签与值同排，节省纵向空间）
-    const ly = Y.DIMS_START + dims.length * Y.DIMS_STEP + 46
-    ctx.fillStyle = DIM
-    ctx.font = '20px monospace'
-    ctx.fillText('LUCKY', 90, ly)
-    ctx.fillStyle = INK
-    ctx.font = '26px sans-serif'
-    const luckyParts = [`幸运色 ${f.luckyColor}`, `数字 ${f.luckyNumber}`, `吉时 ${f.luckyTime}`]
-    if (f.luckyDirection) luckyParts.push(`方位 ${f.luckyDirection}`)
-    ctx.fillText(luckyParts.join('  ·  '), 210, ly)
+    // 幸运条目：流式布局，超宽自动换行（最多 2 行），避免吉时/方位被裁出画布
+    const luckyItems = [
+      { label: '幸运色', value: String(f.luckyColor || '') },
+      { label: '数字', value: String(f.luckyNumber != null ? f.luckyNumber : '') },
+      { label: '吉时', value: String(f.luckyTime || '') }
+    ]
+    if (f.luckyDirection) luckyItems.push({ label: '方位', value: String(f.luckyDirection) })
+    y += 46
+    ctx.textAlign = 'left'
+    y = this.flowLucky(ctx, luckyItems.filter((it) => it.value), MARGIN, y, RIGHT)
 
     // 宜 / 忌
+    y += 52
     ctx.fillStyle = JADE
     ctx.font = '28px sans-serif'
-    ctx.fillText(`宜  ${f.doText}`, 90, ly + 64)
+    ctx.fillText(`宜  ${f.doText}`, MARGIN, y)
+    y += 44
     ctx.fillStyle = CINNABAR
-    ctx.fillText(`忌  ${f.dontText}`, 90, ly + 108)
+    ctx.fillText(`忌  ${f.dontText}`, MARGIN, y)
 
-    // summary 自动换行（避头尾 + 最多 3 行截断），结束点距落款线 ~120
+    // summary 自动换行（避头尾），按剩余空间动态给 1-3 行，不压到底部落款
+    y += 52
+    const maxLines = Math.max(1, Math.min(3, Math.floor((1028 - y) / 44)))
     ctx.fillStyle = INK
     ctx.font = '28px sans-serif'
-    this.wrapText(ctx, f.summary || '', 90, ly + 178, W - 180, 44, 3)
+    this.wrapText(ctx, f.summary || '', MARGIN, y, W - MARGIN * 2, 44, maxLines)
 
-    // 底部 branding（钉底 1080-1160）
-    ctx.textAlign = 'center'
+    // ===== 底部 branding（钉底）：饰线 + 左侧落款 + 右侧小程序码占位（分享裂变预留） =====
+    const fy = 1056
     ctx.strokeStyle = 'rgba(139,135,176,0.2)'
-    ctx.beginPath(); ctx.moveTo(90, Y.FOOTER_LINE); ctx.lineTo(660, Y.FOOTER_LINE); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(MARGIN, fy); ctx.lineTo(RIGHT, fy); ctx.stroke()
+    ctx.textAlign = 'left'
     ctx.fillStyle = GOLD
     ctx.font = '26px serif'
-    ctx.fillText('星语 StarWhisper', W / 2, Y.FOOTER_NAME)
+    ctx.fillText('星语 StarWhisper', MARGIN, fy + 56)
     ctx.fillStyle = DIM
     ctx.font = '20px monospace'
-    ctx.fillText('星辰低语 · 今日运势', W / 2, Y.FOOTER_SUB)
+    ctx.fillText('星辰低语 · 今日运势', MARGIN, fy + 88)
+    // 小程序码占位框（84×84，码图位预留）
+    const QS = 84
+    const qx = RIGHT - QS
+    const qy = fy + 16
+    ctx.strokeStyle = 'rgba(232,196,124,0.55)'
+    ctx.lineWidth = 1
+    ctx.strokeRect(qx, qy, QS, QS)
+    ctx.textAlign = 'center'
+    ctx.fillStyle = GOLD
+    ctx.font = '24px sans-serif'
+    ctx.fillText('✦', qx + QS / 2, qy + 36)
+    ctx.fillStyle = DIM
+    ctx.font = '14px sans-serif'
+    ctx.fillText('小程序码', qx + QS / 2, qy + 62)
+    ctx.font = '15px sans-serif'
+    ctx.fillText('长按识别小程序', qx + QS / 2, qy + QS + 26)
+  },
+
+  // 幸运条目流式排版：「标签 值 · 标签 值 …」，超出右界自动换行（最多 2 行），
+  // 返回末行基线 y。换行后行首不画分隔点。
+  flowLucky(ctx, items, x, y, right) {
+    const LINE_STEP = 44
+    const MAX_LINES = 2
+    let cx = x
+    let cy = y
+    let lines = 1
+    for (const it of items) {
+      ctx.font = '22px sans-serif'
+      const lw = ctx.measureText(it.label).width
+      ctx.font = '26px sans-serif'
+      const vw = ctx.measureText(it.value).width
+      const sepW = ctx.measureText('·').width + 24 // 圆点 + 两侧空隙
+      const itemW = lw + 8 + vw
+      if (cx > x && cx + sepW + itemW > right) {
+        if (lines >= MAX_LINES) break // 放不下就舍弃，绝不出界
+        cx = x
+        cy += LINE_STEP
+        lines++
+      }
+      if (cx > x) {
+        ctx.fillStyle = DIM
+        ctx.font = '26px sans-serif'
+        ctx.fillText('·', cx + 12, cy)
+        cx += sepW
+      }
+      ctx.fillStyle = DIM
+      ctx.font = '22px sans-serif'
+      ctx.fillText(it.label, cx, cy)
+      cx += lw + 8
+      ctx.fillStyle = INK
+      ctx.font = '26px sans-serif'
+      ctx.fillText(it.value, cx, cy)
+      cx += vw
+    }
+    return cy
   },
 
   // 自动换行（避头尾版）：
@@ -333,6 +392,34 @@ Page({
         }
       }
     })
+  },
+
+  // 转发给好友/群：标题带星座与星级，附海报图（若已生成）
+  onShareAppMessage() {
+    const f = this.data.fortune || {}
+    const score = Math.max(0, Math.min(5, Number(f.overallScore) || 0))
+    const stars = '★'.repeat(score) + '☆'.repeat(5 - score)
+    return {
+      title: `${f.signName || '星语'}今日运势${stars} 速看`,
+      path: '/pages/fortune/fortune',
+      imageUrl: this.data.posterImage || undefined
+    }
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    const f = this.data.fortune || {}
+    const score = Math.max(0, Math.min(5, Number(f.overallScore) || 0))
+    const stars = '★'.repeat(score) + '☆'.repeat(5 - score)
+    return {
+      title: `${f.signName || '星语'}今日运势${stars}`,
+      query: ''
+    }
+  },
+
+  // 每日一卦入口
+  goHexagram() {
+    wx.navigateTo({ url: '/pages/hexagram/hexagram' })
   },
 
   // 并行拉今日运势 + 近 7 天（切换星座时保留旧数据，仅置 refreshing 态）

@@ -1,0 +1,53 @@
+<!-- 每日一卦 -->
+<view class="page">
+  <star-layer />
+
+  <view class="eyebrow">DAILY HEXAGRAM · 每日一卦</view>
+  <view class="wordmark">
+    <text class="wm-zh">今日卦象</text>
+    <text class="wm-en">Hexagram</text>
+  </view>
+  <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+
+  <!-- 断连错误态（不白屏） -->
+  <view wx:if="{{error}}" class="glass-card state-box">
+    <view class="state-icon">✧</view>
+    <view class="state-text">{{error}}</view>
+    <button class="btn-gold" bindtap="retry">重新连接</button>
+  </view>
+
+  <!-- 加载态 -->
+  <view wx:elif="{{loading && !hex}}" class="glass-card state-box">
+    <view class="spinner"></view>
+    <view class="state-text">正在起卦…</view>
+  </view>
+
+  <!-- 卦象内容 -->
+  <block wx:elif="{{hex}}">
+    <view class="glass-card hex-card">
+      <view class="hex-date mono">{{hex.date}}</view>
+      <view class="hex-symbol">{{hex.symbol}}</view>
+      <view class="hex-name">{{hex.name}}</view>
+      <view class="hex-stars">
+        <text wx:for="{{stars}}" wx:key="index" class="{{item ? 'on' : 'off'}}">✦</text>
+      </view>
+      <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+      <view class="guaci">{{hex.guaCi}}</view>
+    </view>
+
+    <view wx:if="{{hex.reading}}" class="glass-card reading-card">
+      <view class="sec-title">现代解读 <text class="sec-title-en mono">READING</text></view>
+      <view class="reading-text">{{hex.reading}}</view>
+    </view>
+
+    <view wx:if="{{hex.advice}}" class="advice-box">
+      <view class="advice-label mono">今日建议 · ADVICE</view>
+      <view class="advice-text">{{hex.advice}}</view>
+    </view>
+  </block>
+
+  <view class="footer mono">
+    <view class="f-legal">星语 STARWHISPER · 仅供娱乐</view>
+    <view class="f-wish"><text class="f-star">✦</text> 愿你被星辰温柔以待 <text class="f-star">✦</text></view>
+  </view>
+</view>

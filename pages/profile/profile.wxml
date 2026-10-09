@@ -43,6 +43,33 @@
     <view wx:else class="ci-anon"><view class="spinner"></view></view>
   </view>
 
+  <!-- ===== 连续打卡 + 勋章墙（汇总接口失败时整块隐藏） ===== -->
+  <view wx:if="{{token && checkinSummary}}" class="glass-card streak-card">
+    <!-- 连续打卡横幅 -->
+    <view class="streak-banner">
+      <text class="streak-flame">🔥</text>
+      <view class="streak-main">
+        <view class="streak-num">
+          <text class="n">{{checkinSummary.currentStreak}}</text>
+          <text class="unit">天连续打卡</text>
+        </view>
+        <view class="streak-sub mono">最长纪录 {{checkinSummary.maxStreak}} 天 · 累计 {{checkinSummary.totalDays}} 天</view>
+      </view>
+      <view wx:if="{{checkinSummary.todayChecked}}" class="streak-today mono">今日已打卡 ✓</view>
+    </view>
+    <!-- 勋章墙 -->
+    <block wx:if="{{badges.length}}">
+      <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
+      <view class="badge-wall">
+        <view wx:for="{{badges}}" wx:key="code" class="badge {{item.unlocked ? 'unlocked' : ''}}">
+          <view class="badge-star">{{item.unlocked ? '★' : '☆'}}</view>
+          <view class="badge-name">{{item.name}}</view>
+          <view class="badge-desc">{{item.unlocked ? item.desc : (item.progressText + ' · ' + item.desc)}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+
   <!-- ===== 未登录 ===== -->
   <view wx:if="{{!token}}" class="glass-card login-card">
     <view class="avatar-placeholder">✦</view>

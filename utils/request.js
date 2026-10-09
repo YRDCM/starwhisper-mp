@@ -39,7 +39,7 @@ function request({ url, method = 'GET', data, auth = true }) {
           reject(new Error(`星语服务器响应异常（HTTP ${res.statusCode}）`))
           return
         }
-        if (body && body.code === 200) {
+        if (body && (body.code === 200 || body.code === 0)) {
           resolve(body.data)
         } else {
           reject(new Error((body && body.message) || '星语服务器返回异常'))
@@ -88,5 +88,12 @@ module.exports = {
 
   /* ===== 打卡（需登录，401 由 request 统一处理） ===== */
   checkin: () => request({ url: '/checkin', method: 'POST' }),
-  fetchCheckinStatus: () => request({ url: '/checkin/status' })
+  fetchCheckinStatus: () => request({ url: '/checkin/status' }),
+  // 打卡汇总：连续/最长/总天数 + 勋章墙（openid 可选，后端也可从 token 取）
+  fetchCheckinSummary: (openid) =>
+    request({ url: '/checkin/summary', data: openid ? { openid } : {} }),
+
+  /* ===== 每日一卦 ===== */
+  fetchHexagramToday: (openid) =>
+    request({ url: '/hexagram/today', data: openid ? { openid } : {} })
 }

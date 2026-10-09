@@ -62,6 +62,16 @@
       </view>
     </view>
 
+    <!-- 每日一卦入口（不进 tabBar，导航至独立页） -->
+    <view class="hex-entry glass-card" bindtap="goHexagram">
+      <view class="hex-symbol">䷀</view>
+      <view class="hex-text">
+        <view class="hex-title">每日一卦</view>
+        <view class="hex-sub mono">DAILY HEXAGRAM · 今日卦象</view>
+      </view>
+      <view class="hex-arrow">›</view>
+    </view>
+
     <!-- 首次加载态 -->
     <view wx:if="{{loading && !fortune}}" class="glass-card state-box">
       <view class="spinner"></view>
