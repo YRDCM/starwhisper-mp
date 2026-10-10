@@ -118,14 +118,15 @@ page {
   color: var(--ink-dim2);
 }
 
-/* 星座节点：圆形底座 + 符号 + 名字；Ø138、轨道半径 305 → 相邻圆净隙约 20rpx */
+/* 星座节点：圆形底座 + 符号 + 名字；Ø120、轨道半径 305 → 节点外缘 365，
+   距屏边（375）留 10rpx 呼吸；相邻圆心弦距约 158 → 圆间净隙约 38rpx */
 .sign-node {
   position: absolute;
   left: 50%;
   top: 50%;
-  margin: -69rpx 0 0 -69rpx;
-  width: 138rpx;
-  height: 138rpx;
+  margin: -60rpx 0 0 -60rpx;
+  width: 120rpx;
+  height: 120rpx;
 }
 .node-inner {
   display: flex;
@@ -150,13 +151,13 @@ page {
   box-shadow: 0 0 32rpx rgba(232, 196, 124, 0.4), inset 0 0 20rpx rgba(232, 196, 124, 0.14);
 }
 .node-const {
-  width: 52rpx;
-  height: 52rpx;
+  width: 44rpx;
+  height: 44rpx;
 }
 .node-name {
   font-family: var(--font-display);
-  font-size: 26rpx;
-  letter-spacing: 0.1em;
+  font-size: 24rpx;
+  letter-spacing: 0.08em;
   white-space: nowrap;
   color: var(--ink);
 }

@@ -297,6 +297,8 @@ Page({
   // 幸运条目流式排版：「标签 值 · 标签 值 …」，超出右界自动换行（最多 2 行），
   // 返回末行基线 y。换行后行首不画分隔点。
   flowLucky(ctx, items, x, y, right) {
+    const INK = '#E8E6F0' // 与 paintPoster 同值（本方法独立作用域，须自带色值）
+    const DIM = '#A9A4CC'
     const LINE_STEP = 44
     const MAX_LINES = 2
     let cx = x
