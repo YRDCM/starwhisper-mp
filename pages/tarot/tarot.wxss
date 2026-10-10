@@ -109,17 +109,20 @@
   margin-bottom: 14rpx;
 }
 .mode-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 两列均分，按钮同宽 */
   gap: 20rpx;
-  flex-wrap: wrap;
 }
 .mode-btn {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 8rpx;
+  height: 88rpx; /* 固定高度，全组同高 */
+  box-sizing: border-box;
   font-size: 26rpx;
   letter-spacing: 0.16em;
-  padding: 14rpx 28rpx;
+  padding: 0 16rpx;
   border-radius: 8rpx;
   border: 1px solid rgba(139, 135, 176, 0.25);
   color: var(--ink-dim2);

@@ -105,6 +105,8 @@ Page({
       .fields({ node: true, size: true })
       .exec((res) => {
         if (!res || !res[0] || !res[0].node) {
+          // vConsole 排查线索：节点查询失败通常是 canvas 被 display:none / 未渲染
+          console.error('[poster] canvas node query failed:', JSON.stringify(res))
           wx.hideLoading()
           this.setData({ posterDrawing: false })
           wx.showToast({ title: '海报画布初始化失败', icon: 'none' })
@@ -126,7 +128,9 @@ Page({
               wx.hideLoading()
               this.setData({ posterImage: r.tempFilePath, posterDrawing: false })
             },
-            fail: () => {
+            fail: (err) => {
+              // vConsole 排查线索：errMsg 会注明尺寸/内存/权限原因
+              console.error('[poster] canvasToTempFilePath failed:', err && err.errMsg)
               wx.hideLoading()
               this.setData({ posterDrawing: false })
               wx.showToast({ title: '海报生成失败', icon: 'none' })
@@ -134,6 +138,7 @@ Page({
           })
         } catch (e) {
           // 绘制过程同步异常（canvas 上下文/字段缺失等）：必须复位 loading 与按钮态
+          console.error('[poster] paint threw:', e && (e.stack || e.message || e))
           wx.hideLoading()
           this.setData({ posterDrawing: false })
           wx.showToast({ title: '海报生成失败', icon: 'none' })

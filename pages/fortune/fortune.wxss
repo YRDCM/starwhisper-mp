@@ -543,13 +543,18 @@
 }
 
 /* ===== 分享海报 ===== */
-/* 离屏画布：移出视口但保持可布局（display:none 会让 canvas 无尺寸） */
+/* 离屏画布：不能 display:none（canvas 无尺寸节点查询会失败），也不能移出视口
+   （iOS 对屏外 canvas 跳过栅格化，canvasToTempFilePath 会导出空白/失败）——
+   保持在视口内但完全透明、不响应触摸、压在最底层 */
 .poster-canvas {
   position: fixed;
-  left: -9999rpx;
+  left: 0;
   top: 0;
+  z-index: -1;
   width: 750rpx;
   height: 1200rpx;
+  opacity: 0;
+  pointer-events: none;
 }
 .poster-mask {
   position: fixed;
