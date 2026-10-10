@@ -1,5 +1,10 @@
 /* ===== 星运页样式（rpx，字号地板 ≥24rpx 对齐 Web fontfix） ===== */
 
+/* 页面级横向溢出兜底：星盘满屏出血 + 选中光晕的阴影墨溢出会把页面撑宽 */
+page {
+  overflow-x: hidden;
+}
+
 .page {
   position: relative;
   z-index: 1;
@@ -47,6 +52,8 @@
   justify-content: center;
   /* 满屏出血：抵消 page 左右 24rpx padding，轮盘 750rpx 撑满屏宽 */
   margin: 0 -24rpx;
+  /* 选中底座 box-shadow 光晕（32rpx）超出屏宽会撑出横向滚动条，裁在容器内 */
+  overflow: hidden;
   padding: 40rpx 0 48rpx;
 }
 .wheel {
@@ -543,18 +550,15 @@
 }
 
 /* ===== 分享海报 ===== */
-/* 离屏画布：不能 display:none（canvas 无尺寸节点查询会失败），也不能移出视口
-   （iOS 对屏外 canvas 跳过栅格化，canvasToTempFilePath 会导出空白/失败）——
-   保持在视口内但完全透明、不响应触摸、压在最底层 */
+/* 离屏画布：移出视口左侧（主流海报方案；canvas 绘制缓冲与位置无关）。
+   绝不能放进视口——canvas 是原生组件，同层渲染退化时 opacity/z-index/
+   pointer-events 全部失效，会隐形盖住首屏拦截触摸导致页面划不动 */
 .poster-canvas {
   position: fixed;
-  left: 0;
+  left: -9999rpx;
   top: 0;
-  z-index: -1;
   width: 750rpx;
   height: 1200rpx;
-  opacity: 0;
-  pointer-events: none;
 }
 .poster-mask {
   position: fixed;
