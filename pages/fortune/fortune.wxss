@@ -58,23 +58,31 @@ page {
 }
 .wheel {
   position: relative;
+  flex: none; /* 轮盘 750×750 刚性正方形，不允许 flex 拉伸/收缩 */
   width: 750rpx;
   height: 750rpx;
 }
 .wheel.animated {
   transition: transform 0.6s ease-out; /* 旋转星环：选中转到正上方 */
 }
-/* 轨道双环：1px 实体像素（1rpx 在真机高分屏会被圆整吃掉），清晰可见但克制 */
+/* 轨道双环：显式 rpx 正方形尺寸 + 居中（与节点 rotate/translate 共用 750rpx 正方形几何基准）。
+   不用四向内缩/百分比充满——任何包含块解析差异都不会把环拉成椭圆；
+   1px 实体像素描边（1rpx 在真机高分屏会被圆整吃掉） */
 .orbit-ring {
   position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
 }
 .orbit-ring.outer {
-  left: 6rpx; top: 6rpx; right: 6rpx; bottom: 6rpx;
+  width: 738rpx;
+  height: 738rpx;
   border: 1px solid rgba(232, 201, 122, 0.22);
 }
 .orbit-ring.inner {
-  left: 110rpx; top: 110rpx; right: 110rpx; bottom: 110rpx;
+  width: 530rpx;
+  height: 530rpx;
   border: 1px solid rgba(139, 135, 176, 0.14);
 }
 /* 中心三行：不随环转；pointer-events 放行，避免挡节点点击 */

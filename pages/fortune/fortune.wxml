@@ -21,7 +21,7 @@
   </view>
 
   <block wx:else>
-    <!-- 星轨仪：细环轨道 + 无底座符号，点击旋转星环把选中星座转到 12 点指针下 -->
+    <!-- 星盘：12 圆形底座节点骑双环轨道，点击旋转把选中星座转到正上方 -->
     <view class="wheel-wrap">
       <view class="wheel {{animated ? 'animated' : ''}}" style="transform:rotate({{ringAngle}}deg)">
         <!-- 双环轨道（清晰可见） + 60 格刻度（天文钟精密感） -->
