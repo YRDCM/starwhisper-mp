@@ -78,6 +78,8 @@ Page({
       this.setData({ signs, currentSignId: todaySign.id, currentSign: todaySign, nodeStyles })
       this.rotateRingTo(todaySign.id, true)
       await this.loadFortune(todaySign)
+      // 设备本地日期可能不准：以运势接口返回的服务器日期 fortuneDate 为准校正默认选中
+      this.correctSignByServerDate()
     } catch (e) {
       this.setData({ error: e.message || '无法连接星语服务器', loading: false })
     } finally {
@@ -478,9 +480,29 @@ Page({
     if (sm > em) return (month === sm && day >= sd) || (month === em && day <= ed)
     return (month === sm && day >= sd) || (month === em && day <= ed)
   },
+  findSignByDate(list, month, day) {
+    return list.find((s) => this.inRange(s, month, day)) || list[0]
+  },
   findTodaySign(list) {
     const now = new Date()
-    return list.find((s) => this.inRange(s, now.getMonth() + 1, now.getDate())) || list[0]
+    return this.findSignByDate(list, now.getMonth() + 1, now.getDate())
+  },
+
+  // 默认选中校正：设备本地日期可能不准（真机曾出现按设备日期选出的星座与
+  // 服务器日期不符）——运势接口返回的 fortuneDate 是服务器权威日期，
+  // 用它重新判定太阳星座；不一致则校正（仅在加载流程内调用，不覆盖用户手动选择）
+  correctSignByServerDate() {
+    const f = this.data.fortune
+    if (!f || !f.fortuneDate) return
+    const m = String(f.fortuneDate).match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if (!m) return
+    const serverSign = this.findSignByDate(this.data.signs, Number(m[2]), Number(m[3]))
+    if (serverSign && serverSign.id !== this.data.currentSignId) {
+      console.warn('[sign] 设备日期与服务器日期不符，已按服务器日期校正默认星座:', f.fortuneDate, '→', serverSign.name)
+      this.setData({ currentSignId: serverSign.id, currentSign: serverSign })
+      this.rotateRingTo(serverSign.id, false)
+      this.loadFortune(serverSign)
+    }
   },
 
   /* ===== 展示数据派生（FortuneVO v2） ===== */
