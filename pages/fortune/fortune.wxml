@@ -119,16 +119,8 @@
           <text class="notice-text">{{fortune.dayNotice}}</text>
         </view>
 
-        <!-- 宜 / 忌印章 + 速配/贵人 -->
-        <view class="seal-row">
-          <view class="seal-box">
-            <view class="stamp jade">宜</view>
-            <view class="seal-items">{{fortune.doText}}</view>
-          </view>
-          <view class="seal-box">
-            <view class="stamp cinnabar">忌</view>
-            <view class="seal-items">{{fortune.dontText}}</view>
-          </view>
+        <!-- 速配/贵人（pairSignName 为 null 时整块隐藏） -->
+        <view wx:if="{{fortune.pairSignName}}" class="seal-row">
           <view class="pair-box">
             <view class="pair-label mono">MATCH · {{view.pairLabel}}</view>
             <view class="pair-const"><constellation-view sign="{{fortune.pairSignName}}" /></view>

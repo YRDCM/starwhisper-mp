@@ -317,25 +317,11 @@ page {
   color: var(--ink-dim2);
 }
 
-/* 宜 / 忌 + 速配 */
+/* 速配/贵人（宜/忌已随后端去伪改造移除） */
 .seal-row {
   display: flex;
   flex-wrap: wrap;
   gap: 20rpx;
-}
-.seal-box {
-  display: flex;
-  align-items: center;
-  gap: 18rpx;
-  padding: 16rpx 22rpx;
-  border: 1px solid rgba(139, 135, 176, 0.16);
-  border-radius: 8rpx;
-  flex: 1 1 300rpx;
-}
-.seal-items {
-  font-size: 28rpx;
-  line-height: 1.8;
-  color: var(--ink);
 }
 .pair-box {
   flex: none;

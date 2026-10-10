@@ -156,8 +156,6 @@ Page({
     const GOLD = '#E8C47C'
     const INK = '#E8E6F0'
     const DIM = '#A9A4CC'
-    const JADE = '#7FBF9E'
-    const CINNABAR = '#C25E5E'
 
     // 深空渐变底
     const bg = ctx.createLinearGradient(0, 0, 0, 1200)
@@ -251,17 +249,9 @@ Page({
     ctx.textAlign = 'left'
     y = this.flowLucky(ctx, luckyItems.filter((it) => it.value), MARGIN, y, RIGHT)
 
-    // 宜 / 忌
-    y += 52
-    ctx.fillStyle = JADE
-    ctx.font = '28px sans-serif'
-    ctx.fillText(`宜  ${f.doText}`, MARGIN, y)
-    y += 44
-    ctx.fillStyle = CINNABAR
-    ctx.fillText(`忌  ${f.dontText}`, MARGIN, y)
-
-    // summary 自动换行（避头尾），按剩余空间动态给 1-3 行，不压到底部落款
-    y += 52
+    // summary 自动换行（避头尾），按剩余空间动态给 1-3 行，不压到底部落款。
+    // 宜/忌已随后端去伪改造移除，此处间距放宽至 64 保持垂直节奏
+    y += 64
     const maxLines = Math.max(1, Math.min(3, Math.floor((1028 - y) / 44)))
     ctx.fillStyle = INK
     ctx.font = '28px sans-serif'
