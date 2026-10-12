@@ -255,7 +255,12 @@
   <view wx:if="{{activeCard}}" class="modal-mask" bindtap="closeModal">
     <view class="modal glass-card" catchtap="noop">
       <view class="modal-close mono" catchtap="closeModal">✕</view>
-      <view class="modal-face"><tarot-card card="{{activeCard}}" size="md" /></view>
+      <view class="modal-face {{activeCard.imgSrc ? 'has-img' : ''}}">
+        <!-- 有 RWS 牌图：标题旁展示牌面（aspectFit + 圆角 + 微暗 + 淡金描边），逆位旋转 180° -->
+        <image wx:if="{{activeCard.imgSrc}}" class="m-card-img {{activeCard.orientation === 'reversed' ? 'reversed' : ''}}" src="{{activeCard.imgSrc}}" mode="aspectFit" />
+        <!-- 无牌图的牌：保持纯样式牌面 -->
+        <tarot-card wx:else card="{{activeCard}}" size="md" />
+      </view>
       <view class="modal-info">
         <view class="m-title">
           <text class="zh">{{activeCard.name}}</text>

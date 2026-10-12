@@ -16,6 +16,15 @@ function splitKw(s) {
   return String(s).split(/[、,，\/|]/).map((x) => x.trim()).filter(Boolean)
 }
 
+// 已有 RWS 牌图（公有领域, 1909 原版扫描, WebP 500x850）登记表：
+// key = `${arcanaGroup}-${cardNumber}`（宫廷牌 Page=11 Knight=12 Queen=13 King=14）
+// 仅用于牌详情弹层展示；未登记的牌弹层保持纯样式牌面，不显示图片占位
+const CARD_IMAGES = {
+  'MAJOR-0': '/images/tarot/fool-0.webp',            // 愚者 The Fool
+  'WANDS-10': '/images/tarot/ten-of-wands.webp',     // 权杖十 Ten of Wands
+  'PENTACLES-13': '/images/tarot/queen-of-pentacles.webp' // 星币皇后 Queen of Pentacles
+}
+
 Page({
   data: {
     todayStr: '',
@@ -156,14 +165,15 @@ Page({
     }
   },
 
-  // 点开牌详情弹层（预拆正逆位关键词）
+  // 点开牌详情弹层（预拆正逆位关键词, 查表附牌图路径——无图牌 imgSrc 为空串）
   onCardTap(e) {
     const card = e.currentTarget.dataset.card
     this.setData({
       activeCard: {
         ...card,
         uprightArr: splitKw(card.uprightKeywords),
-        reversedArr: splitKw(card.reversedKeywords)
+        reversedArr: splitKw(card.reversedKeywords),
+        imgSrc: CARD_IMAGES[`${card.arcanaGroup}-${card.cardNumber}`] || ''
       }
     })
   },

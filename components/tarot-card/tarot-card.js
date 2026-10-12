@@ -1,7 +1,8 @@
 // 塔罗牌面组件
-// 已有 RWS 牌图（公有领域, 1909 原版扫描, WebP 500x850）登记表：
+// 【备用】RWS 牌图登记表（公有领域, 1909 原版扫描, WebP 500x850）：
 // key = `${arcanaGroup}-${cardNumber}`（宫廷牌 Page=11 Knight=12 Queen=13 King=14）
-// 未登记的 75 张保持纯样式牌面；全量 78 张时规划分包加载
+// 当前外层牌面不渲染图片（用户反馈），牌图仅用于塔罗页详情弹层（pages/tarot/tarot.js 内有同款表）
+// 若日后外层需要图片牌面，在 observers 里查表 setData 即可
 const CARD_IMAGES = {
   'MAJOR-0': '/images/tarot/fool-0.webp',            // 愚者 The Fool
   'WANDS-10': '/images/tarot/ten-of-wands.webp',     // 权杖十 Ten of Wands
@@ -18,7 +19,6 @@ Component({
   data: {
     isMajor: false,
     sealText: '✦',
-    imgSrc: '',
     // 牌背散点星（固定坐标，避免每次渲染闪烁）
     backDots: [
       'left:14%;top:13%', 'left:82%;top:10%', 'left:22%;top:37%', 'left:77%;top:35%',
@@ -33,8 +33,7 @@ Component({
       const SUIT_CHAR = { WANDS: '权', CUPS: '杯', SWORDS: '剑', PENTACLES: '币' }
       this.setData({
         isMajor,
-        sealText: isMajor ? this.toRoman(card.cardNumber) : (SUIT_CHAR[card.arcanaGroup] || '✦'),
-        imgSrc: CARD_IMAGES[`${card.arcanaGroup}-${card.cardNumber}`] || ''
+        sealText: isMajor ? this.toRoman(card.cardNumber) : (SUIT_CHAR[card.arcanaGroup] || '✦')
       })
     }
   },

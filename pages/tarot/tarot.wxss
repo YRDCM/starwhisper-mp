@@ -475,6 +475,21 @@
   flex: none;
   width: 200rpx;
 }
+/* 有牌图时加宽到 260rpx，与 440rpx 高保持 RWS 牌比(约 1:1.7) */
+.modal-face.has-img {
+  width: 260rpx;
+}
+.m-card-img {
+  width: 100%;
+  height: 440rpx;
+  border-radius: 12rpx;
+  border: 1px solid rgba(232, 196, 124, 0.4);
+  box-sizing: border-box;
+  filter: brightness(0.92); /* 微暗融入夜色 */
+}
+.m-card-img.reversed {
+  transform: rotate(180deg); /* 逆位：牌图倒置 */
+}
 .modal-info {
   flex: 1;
   min-width: 0;
