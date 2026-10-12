@@ -9,17 +9,22 @@
 
   <block wx:else>
     <view class="face-inner {{orientation === 'reversed' ? 'reversed' : ''}}">
-      <!-- 顶部角标：组名 + 编号两行竖排（仿真实塔罗角标），任何字号下不折行不溢出 -->
-      <view class="face-top mono">
-        <text class="ft-group">{{card.arcanaGroup}}</text>
-        <text class="ft-num">{{card.cardNumber}}</text>
-      </view>
-      <view class="face-center">
-        <view class="suit-seal {{isMajor ? 'major' : ''}}">{{sealText}}</view>
-        <view class="face-name">{{card.name}}</view>
-        <view class="face-en">{{card.nameEn}}</view>
-      </view>
-      <view class="face-bottom"></view>
+      <!-- 有 RWS 牌图：图片充满牌面（aspectFill + 圆角 + 微暗融入夜色） -->
+      <image wx:if="{{imgSrc}}" class="face-img" src="{{imgSrc}}" mode="aspectFill" />
+      <!-- 无牌图的 75 张：保持现有纯样式牌面 -->
+      <block wx:else>
+        <!-- 顶部角标：组名 + 编号两行竖排（仿真实塔罗角标），任何字号下不折行不溢出 -->
+        <view class="face-top mono">
+          <text class="ft-group">{{card.arcanaGroup}}</text>
+          <text class="ft-num">{{card.cardNumber}}</text>
+        </view>
+        <view class="face-center">
+          <view class="suit-seal {{isMajor ? 'major' : ''}}">{{sealText}}</view>
+          <view class="face-name">{{card.name}}</view>
+          <view class="face-en">{{card.nameEn}}</view>
+        </view>
+        <view class="face-bottom"></view>
+      </block>
     </view>
     <!-- 正/逆位角签：不随牌面旋转 -->
     <view wx:if="{{orientation}}" class="ori-tag mono {{orientation}}">
