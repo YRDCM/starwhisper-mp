@@ -115,7 +115,7 @@
 }
 .mode-btn {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
   gap: 8rpx;
   height: 88rpx; /* 固定高度，全组同高 */
