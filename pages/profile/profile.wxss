@@ -304,6 +304,14 @@
   font-size: 20rpx;
   color: rgba(232, 196, 124, 0.55);
 }
+/* 版本号：低调收尾，比页脚正文更小更淡 */
+.f-version {
+  margin-top: 16rpx;
+  font-size: 20rpx;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim2);
+  opacity: 0.6;
+}
 
 /* ===== 连续打卡横幅 + 勋章墙 ===== */
 .streak-card {

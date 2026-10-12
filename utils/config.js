@@ -7,4 +7,7 @@
 //   域名备案完成后把 BASE_URL 换成 https://api.<域名> 并在小程序后台配置 request 合法域名。
 const BASE_URL = 'http://60.205.228.96'
 
-module.exports = { BASE_URL }
+// 小程序版本号：每次发版递增，「我的」页页脚展示，便于区分当前是否最新版
+const APP_VERSION = '1.5.0'
+
+module.exports = { BASE_URL, APP_VERSION }

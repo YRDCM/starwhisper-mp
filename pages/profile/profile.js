@@ -1,8 +1,10 @@
 // 我的页：登录（微信 / 游客体验）+ 打卡 + 历史记录（塔罗 / 八卦各最近 5 条）
 const { wechatLogin, devLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus, fetchCheckinSummary } = require('../../utils/request')
+const { APP_VERSION } = require('../../utils/config')
 
 Page({
   data: {
+    version: APP_VERSION, // 页脚版本号展示
     token: '',
     userInfo: null,
     logging: false,
