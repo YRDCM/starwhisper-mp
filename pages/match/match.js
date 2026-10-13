@@ -21,6 +21,7 @@ Page({
     loading: false,
     error: '',
     result: null,      // 原始 data
+    resultStale: false,
     ringStyle: '',     // 金环 conic-gradient 内联样式
     subScores: [],     // 六维细分 [{zh, score, width}]
     sections: []       // 文案分块 [{zh, text}]
@@ -62,14 +63,27 @@ Page({
   onPickSign(e) {
     const { side, id } = e.currentTarget.dataset
     this.setData({ [`sel${side}.signId`]: id })
+    this.updateResultStale()
   },
   onPickGender(e) {
     const { side, gender } = e.currentTarget.dataset
     this.setData({ [`sel${side}.gender`]: Number(gender) })
+    this.updateResultStale()
+  },
+
+  selectionKey() {
+    const { sel1, sel2 } = this.data
+    return JSON.stringify([sel1.signId, sel2.signId, sel1.gender, sel2.gender])
+  },
+
+  updateResultStale() {
+    this.setData({ resultStale: !!this.data.result && this._resultKey !== this.selectionKey() })
   },
 
   /* ===== 配对请求与结果派生 ===== */
   async doMatch() {
+    if (this.data.loading) return
+    const requestedKey = this.selectionKey()
     const { signs, sel1, sel2 } = this.data
     const s1 = signs.find((s) => s.id === sel1.signId)
     const s2 = signs.find((s) => s.id === sel2.signId)
@@ -78,6 +92,7 @@ Page({
     try {
       const data = await fetchMatch(s1.nameEn, s2.nameEn, sel1.gender, sel2.gender)
       const overall = data.scores ? data.scores.overall : 0
+      this._resultKey = requestedKey
       this.setData({
         result: data,
         loading: false,
@@ -100,6 +115,7 @@ Page({
         sourceTag: data.source === 'SHOWAPI' ? 'DATA · 万维易源 SHOWAPI' : 'DATA · 本地星算 LOCAL',
         isShowapi: data.source === 'SHOWAPI'
       })
+      this.updateResultStale()
     } catch (e) {
       this.setData({ error: e.message || '配对失败，请稍后重试', loading: false })
     }

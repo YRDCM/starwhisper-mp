@@ -79,6 +79,7 @@
       </view>
     </view>
 
+    <view class="spread-hint">{{spreadHints[mode]}}</view>
     <view wx:if="{{drawError}}" class="error-line">{{drawError}}</view>
 
     <!-- 抽牌前：牌背排 + 开始抽牌（进入选牌界面） -->
@@ -102,6 +103,7 @@
           <view class="pick-title">以心选牌 <text class="pick-title-en mono">CHOOSE YOUR CARDS</text></view>
           <view class="pick-progress mono">已选 {{pickedCount}} / {{needCount}}</view>
         </view>
+        <view class="spread-hint">{{pickFull ? '已选满，可以确认开牌' : '还需选 ' + (needCount - pickedCount) + ' 张'}} · 再次点击可取消</view>
         <scroll-view scroll-y class="pick-scroll" enhanced show-scrollbar="{{false}}">
           <view class="pick-grid">
             <view

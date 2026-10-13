@@ -41,10 +41,11 @@
 
     <view class="match-action">
       <button class="btn-gold {{loading ? 'disabled' : ''}}" bindtap="doMatch" disabled="{{loading}}">
-        {{loading ? '星象推演中…' : '开始配对'}}
+        {{loading ? '星象推演中…' : resultStale ? '重新配对' : '开始配对'}}
       </button>
     </view>
     <view wx:if="{{error}}" class="error-line">{{error}}</view>
+    <view wx:if="{{resultStale}}" class="selection-hint">选择已更新，点击重新配对查看新结果。下方为上次结果。</view>
   </view>
 
   <!-- ===== 结果区 ===== -->

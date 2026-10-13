@@ -274,3 +274,4 @@
   font-size: 20rpx;
   color: rgba(232, 196, 124, 0.55);
 }
+.selection-hint { color: var(--gold); font-size: 26rpx; line-height: 1.7; margin-top: 24rpx; }

@@ -45,8 +45,8 @@ function request({ url, method = 'GET', data, auth = true }) {
           reject(new Error((body && body.message) || '星语服务器返回异常'))
         }
       },
-      fail: () => {
-        reject(new Error('无法连接星语服务器。开发者工具请勾选「不校验合法域名」；真机体验版请打开「开发调试」模式'))
+      fail: (err) => {
+        reject(new Error(/timeout/i.test(err.errMsg || '') ? '请求超时，请稍后重试' : '无法连接星语服务器，请检查网络后重试'))
       }
     })
   })
@@ -64,7 +64,10 @@ module.exports = {
   fetchTarotDaily: () => request({ url: '/tarot/daily' }),
   // 抽牌仪式：spread = single（单牌指引）/ three（时间之流）/ choice（二选一）/ love（爱情十字）
   // 新契约返回 { spread, spreadName, cards:[{card, orientation, position, keywords, meaning}] }
-  drawTarot: (spread) => request({ url: '/tarot/draw', method: 'POST', data: { spread } }),
+  drawTarot: (spread, cardNos) => request({
+    url: `/tarot/draw?spread=${encodeURIComponent(spread)}${cardNos ? '&cardNos=' + encodeURIComponent(cardNos.join(',')) : ''}`,
+    method: 'POST'
+  }),
   fetchTarotCards: () => request({ url: '/tarot/cards' }),
 
   /* ===== 八卦 ===== */

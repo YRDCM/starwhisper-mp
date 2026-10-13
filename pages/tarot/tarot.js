@@ -1,5 +1,5 @@
 // 塔罗页：每日塔罗 + 抽牌仪式（3D 翻牌）+ 牌库（懒加载）
-const { fetchTarotDaily, fetchTarotCards, request } = require('../../utils/request')
+const { fetchTarotDaily, fetchTarotCards, drawTarot } = require('../../utils/request')
 const { BASE_URL } = require('../../utils/config')
 
 // 牌组元信息（牌库分组展示顺序）
@@ -57,6 +57,14 @@ Page({
     dailyError: '',
     // 抽牌仪式
     mode: 'single',     // 当前牌阵 key（见 spreadGroups）
+    spreadHints: {
+      single: '单牌指引 · 整理当下思绪，获得一个思考方向。',
+      three: '时间之流 · 从过去、现在与未来三个角度梳理问题。',
+      choice: '二选一 · 比较两个方向，探索各自的可能性。',
+      love: '爱情十字 · 从双方状态、关系与阻碍理解相处。',
+      celtic: '凯尔特十字 · 从十个角度深入梳理复杂问题。',
+      hexagram: '六芒星 · 综合回顾经历、阻碍与可借助的力量。'
+    },
     spreadGroups: [     // 牌阵选择器：日常 / 进阶两组，count 用于按钮标注与牌背数量
       {
         label: '日常牌阵',
@@ -100,8 +108,14 @@ Page({
   },
 
   onLoad() {
-    this.setData({ todayStr: new Date().toISOString().slice(0, 10) })
+    const today = new Date()
+    this.setData({ todayStr: [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-') })
     this.loadDaily() // 进入页面即自动加载每日塔罗
+  },
+
+  onUnload() {
+    this._disposed = true
+    clearTimeout(this._flipTimer)
   },
 
   /* ===== 每日塔罗 ===== */
@@ -137,6 +151,7 @@ Page({
   },
 
   cancelPick() {
+    if (this.data.drawing) return
     this.setData({ picking: false, deck: [], pickedCount: 0, pickFull: false })
   },
 
@@ -191,22 +206,14 @@ Page({
   // cardNos：自选牌序号数组（契约：数量=牌阵张数、序号 1-78、正逆位后端定）；
   // 直接点按钮/事件回调进来时首参是 event，统一归一化为 null
   async doDraw(cardNos) {
+    if (this.data.drawing) return
+    clearTimeout(this._flipTimer)
     const nos = Array.isArray(cardNos) && cardNos.length ? cardNos : null
     this.setData({ drawing: true, drawError: '' })
     try {
-      // 后端 v3：spread 是 @RequestParam——wx.request 默认发 JSON body，服务端读不到，
-      // 必须拼进 query，否则任何牌阵都会回退成 single（utils/request.js 的封装不支持 query，这里直调）
-      let result
-      if (nos) {
-        try {
-          result = await request({ url: `/tarot/draw?spread=${this.data.mode}&cardNos=${nos.join(',')}`, method: 'POST' })
-        } catch (err) {
-          // 后端 cardNos 可选参数尚未上线：回退老接口随机抽（mock 期保证流程可跑），上线后自动生效
-          result = await request({ url: `/tarot/draw?spread=${this.data.mode}`, method: 'POST' })
-        }
-      } else {
-        result = await request({ url: `/tarot/draw?spread=${this.data.mode}`, method: 'POST' })
-      }
+      // 自选失败保留已选牌，避免静默改成随机抽牌。
+      const result = await drawTarot(this.data.mode, nos)
+      if (this._disposed) return
       const drawn = (result.cards || []).map((d, i) => ({
         ...d,
         keywordsArr: splitKw(d.keywords),
@@ -239,15 +246,16 @@ Page({
       }
       this.setData(patch)
       // 等 DOM 渲染出背面后再触发翻转，形成逐张 stagger
-      setTimeout(() => this.setData({ flipped: true }), 80)
+      this._flipTimer = setTimeout(() => this.setData({ flipped: true }), 80)
     } catch (e) {
-      this.setData({ drawError: e.message || '无法连接星语服务器', drawn: [] })
+      if (!this._disposed) this.setData({ drawError: e.message || '无法连接星语服务器', drawn: [] })
     } finally {
-      this.setData({ drawing: false })
+      if (!this._disposed) this.setData({ drawing: false })
     }
   },
 
   resetDraw() {
+    clearTimeout(this._flipTimer)
     this.setData({ drawn: [], flipped: false, drawError: '', picking: false, deck: [], pickedCount: 0, pickFull: false })
   },
 

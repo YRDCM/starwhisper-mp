@@ -696,3 +696,4 @@
   font-size: 20rpx;
   color: rgba(232, 196, 124, 0.55);
 }
+.spread-hint { color: var(--ink-dim); font-size: 26rpx; line-height: 1.7; margin: 20rpx 0; }
