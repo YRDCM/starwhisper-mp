@@ -10,6 +10,7 @@ const GROUP_META = [
   { key: 'SWORDS', zh: '宝剑' },
   { key: 'PENTACLES', zh: '星币' }
 ]
+const SNAPSHOT_KEY = 'starwhisper:tarot-session:v1'
 const STUDY_KEY = 'starwhisper:learned-tarot'
 
 // 关键词字符串 → 数组（顿号/逗号/斜杠分隔均兼容）
@@ -50,6 +51,7 @@ function cardImgUrl(card) {
 
 Page({
   data: {
+    drawCreatedAt: 0, restoreNotice: '', snapshotError: '',
     compact: true, detailIndex: 0, detailCards: [], meaningOpen: false,
     drawId: '', aiQuestion: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false,
     todayStr: '',
@@ -123,10 +125,14 @@ Page({
     } catch { this.setData({ studyError: '暂时无法读取学习进度' }) }
     const today = new Date()
     this.setData({ todayStr: [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-') })
+    this.restoreSnapshot()
     this.loadDaily() // 进入页面即自动加载每日塔罗
   },
 
+  onHide() { this.saveSnapshot() },
+
   onUnload() {
+    this.saveSnapshot()
     this._disposed = true
   },
 
@@ -146,6 +152,7 @@ Page({
   /* ===== 抽牌仪式 ===== */
   setMode(e) {
     if (this.data.drawing) return
+    this.removeSnapshot()
     this.clearReading()
     const mode = e.currentTarget.dataset.mode
     // 牌背数量跟随牌阵牌数
@@ -236,7 +243,7 @@ Page({
         orderIndex: i
       }))
       const patch = {
-        drawId: result.drawId || '',
+        drawId: result.drawId || '', drawCreatedAt: Date.now(), restoreNotice: '',
         drawn,
         spread: result.spread || this.data.mode,
         spreadName: result.spreadName || '',
@@ -262,6 +269,7 @@ Page({
         }
       }
       this.setData(patch)
+      this.saveSnapshot()
     } catch (e) {
       if (!this._disposed) this.setData({ drawError: e.message || '无法连接星语服务器', drawn: [] })
     } finally {
@@ -270,6 +278,7 @@ Page({
   },
 
   resetDraw() {
+    this.removeSnapshot()
     this.clearReading()
     this.setData({ drawn: [], revealedCount: 0, revealedCards: [], nextCard: null, drawError: '', picking: false, deck: [], pickedCount: 0, pickFull: false })
   },
@@ -280,23 +289,26 @@ Page({
   },
   revealAll() { this.updateRevealed(this.data.drawn.length); this.selectDetailIndex(0) },
   onRevealCard(e) {
-    if (Number(e.currentTarget.dataset.index) === this.data.revealedCount) this.revealNext()
+    const index = Number(e.currentTarget.dataset.index)
+    if (index < this.data.revealedCount) this.selectDetailIndex(index)
+    else if (index === this.data.revealedCount) this.revealNext()
   },
   updateRevealed(count) {
     this.setData({ revealedCount: count, revealedCards: this.data.drawn.slice(0, count), nextCard: this.data.drawn[count] || null })
     this.selectDetailIndex(count - 1)
   },
   selectDetailIndex(index) {
-    if (index < 0 || index >= this.data.revealedCount) return
+    if (!Number.isInteger(index) || index < 0 || index >= this.data.revealedCount) return
     this.setData({ detailIndex: index, detailCards: [this.data.drawn[index]], meaningOpen: this.data.drawn.length === 1 })
+    this.saveSnapshot()
   },
   selectDetail(e) { this.selectDetailIndex(Number(e.currentTarget.dataset.index)) },
   toggleMeaning() { this.setData({ meaningOpen: !this.data.meaningOpen }) },
   toggleCompact() { this.setData({ compact: !this.data.compact }) },
   toggleAiDetail() { this.setData({ aiExpanded: !this.data.aiExpanded }) },
-  onAiQuestion(e) { if (!this.data.aiLoading && !this.data.aiResult) this.setData({ aiQuestion: e.detail.value.slice(0, 300) }) },
+  onAiQuestion(e) { if (!this.data.aiLoading && !this.data.aiResult) { this.setData({ aiQuestion: e.detail.value.slice(0, 300) }); this.saveSnapshot() } },
   clearReading() {
-    this.setData({ drawId: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false, detailIndex: 0, detailCards: [], meaningOpen: false })
+    this.setData({ restoreNotice: '', drawId: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false, detailIndex: 0, detailCards: [], meaningOpen: false })
   },
   async readWithAi() {
     if (!this.data.drawId || this.data.nextCard || this.data.aiLoading || this.data.aiResult) return
@@ -307,12 +319,56 @@ Page({
       if (this._disposed || id !== this.data.drawId) return
       if (!result || !result.summary || !result.detail) throw new Error('未收到完整解读，请稍后重试')
       this.setData({ aiResult: result })
+      this.saveSnapshot()
     } catch (e) {
       if (!this._disposed && id === this.data.drawId) this.setData({ aiError: e.message || '解读失败，请稍后重试' })
     } finally {
       if (!this._disposed && id === this.data.drawId) this.setData({ aiLoading: false })
     }
   },
+
+  removeSnapshot() {
+    try { wx.removeStorageSync(SNAPSHOT_KEY); this.setData({ snapshotError: '' }) }
+    catch { this.setData({ snapshotError: '无法清除本地牌阵，请检查设备存储设置' }) }
+  },
+  saveSnapshot() {
+    const d = this.data
+    if (!d.drawn.length) return
+    try {
+      wx.setStorageSync(SNAPSHOT_KEY, { version: 1, createdAt: d.drawCreatedAt, spread: d.spread,
+        spreadName: d.spreadName, cards: d.drawn, drawId: d.drawId, revealedCount: d.revealedCount,
+        detailIndex: d.detailIndex, question: d.aiQuestion, reading: d.aiResult })
+      this.setData({ snapshotError: '' })
+    } catch { this.setData({ snapshotError: '本次牌阵未能保存，离开后可能丢失；仍可继续阅读' }) }
+  },
+  restoreSnapshot() {
+    try {
+      const s = wx.getStorageSync(SNAPSHOT_KEY)
+      if (!s) return
+      const count = { single: 1, three: 3, choice: 3, love: 5, celtic: 10, hexagram: 7 }[s.spread]
+      if (s.version !== 1 || !count || !Array.isArray(s.cards) || s.cards.length !== count ||
+          !s.cards.every(d => d && d.card && typeof d.card.name === 'string' && ['upright','reversed'].includes(d.orientation)) ||
+          !Number.isFinite(s.createdAt) || s.createdAt > Date.now() || Date.now() - s.createdAt > 7 * 86400000 ||
+          !Number.isInteger(s.revealedCount) || s.revealedCount < 0 || s.revealedCount > count) {
+        this.removeSnapshot(); return
+      }
+      const drawn = s.cards.map((d,i) => ({ ...d, orderIndex: i, keywordsArr: splitKw(d.keywords) }))
+      const expired = Date.now() - s.createdAt >= 2 * 3600000
+      const byPos = {}; drawn.forEach(d => { byPos[d.position] = d })
+      const detailIndex = Number.isInteger(s.detailIndex) && s.detailIndex >= 0 && s.detailIndex < s.revealedCount ? s.detailIndex : 0
+      this.setData({ drawn, mode: s.spread, spread: s.spread, spreadName: typeof s.spreadName === 'string' ? s.spreadName : '',
+        needCount: count, backCount: Array.from({length: count}, (_,i) => i), drawCreatedAt: s.createdAt,
+        revealedCount: s.revealedCount, revealedCards: drawn.slice(0,s.revealedCount), nextCard: drawn[s.revealedCount] || null,
+        detailIndex, detailCards: s.revealedCount ? [drawn[detailIndex]] : [], meaningOpen: count === 1,
+        choiceTop: drawn[0], choiceWings: drawn.slice(1),
+        loveCells: { top: byPos['现实阻碍'] || null, left: byPos['你的状态'] || null, center: byPos['关系现状'] || null, right: byPos['对方的状态'] || null, bottom: byPos['结果与建议'] || null },
+        aiQuestion: typeof s.question === 'string' ? s.question.slice(0,300) : '',
+        aiResult: s.reading && typeof s.reading.summary === 'string' && typeof s.reading.detail === 'string' ? s.reading : null,
+        drawId: !expired && typeof s.drawId === 'string' ? s.drawId : '',
+        restoreNotice: expired ? '已恢复本地牌阵，仅供回看；如需新的 AI 解读，请重新抽牌。' : '已恢复上次牌阵与翻牌进度 · 仅保存在当前设备' })
+    } catch { this.removeSnapshot(); this.setData({ snapshotError: '本地牌阵无法恢复，请重新抽牌' }) }
+  },
+
   toggleLesson() { this.setData({ lessonOpen: !this.data.lessonOpen }) },
   studyCardNo(card) {
     return card ? (card.no != null ? card.no : card.cardNumber + (GROUP_OFFSET[card.arcanaGroup] || 0)) : null

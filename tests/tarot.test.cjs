@@ -9,9 +9,9 @@ function makePage(api = {}, storage = {}) {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../pages/tarot/tarot.js'), 'utf8'), {
     Page: (value) => { page = value },
     require: (name) => name.endsWith('/config') ? {} : api,
-    wx: { getStorageSync: () => storage.value, setStorageSync: (_, value) => {
+    wx: { getStorageSync: key => key.includes('tarot-session') ? storage.session : storage.value, removeStorageSync: () => { delete storage.session }, setStorageSync: (key, value) => {
       if (storage.fail) throw new Error('storage full')
-      storage.value = value
+      if (key.includes('tarot-session')) storage.session = JSON.parse(JSON.stringify(value)); else storage.value = value
     } }
   })
   page.setData = (patch) => Object.assign(page.data, patch)
@@ -146,4 +146,30 @@ test('自选失败不会追加随机请求，保留选择且阻止重复提交',
   assert.equal(page.data.deck[0].no, 22)
   assert.equal(page.data.drawing, false)
   assert.match(page.data.drawError, /超时/)
+})
+
+for (const [spread,count] of Object.entries({single:1,three:3,choice:3,love:5,celtic:10,hexagram:7})) {
+  test(`${spread} 恢复本地牌阵并点击已翻牌切换详情`, async () => {
+    const storage = {}
+    const cards = Array.from({length:count}, (_,i)=>({card:{id:i+1,name:'牌'+i},orientation:'upright',position:'位置'+i}))
+    const first = makePage({drawTarot:async()=>({spread,cards,drawId:'draw'})},storage)
+    await first.doDraw(); first.revealAll()
+    first.data.aiQuestion='规划'; first.saveSnapshot()
+    const restored=makePage({},storage); restored.restoreSnapshot()
+    assert.equal(restored.data.drawn.length,count)
+    assert.equal(restored.data.revealedCount,count)
+    assert.equal(restored.data.aiQuestion,'规划')
+    restored.onRevealCard({currentTarget:{dataset:{index:count-1}}})
+    assert.equal(restored.data.detailIndex,count-1)
+    assert.equal(restored.data.revealedCount,count)
+    restored.resetDraw(); assert.equal(storage.session,undefined)
+  })
+}
+test('过期本地牌阵保留 AI 解读，损坏缓存不会阻止使用',()=>{
+  const storage={session:{version:1,spread:'single',createdAt:Date.now()-3*3600000,cards:[{card:{name:'愚人'},orientation:'upright'}],revealedCount:1,drawId:'expired',reading:{summary:'总览',detail:'详情'}}}
+  const page=makePage({},storage); page.restoreSnapshot()
+  assert.equal(page.data.drawId,''); assert.equal(page.data.aiResult.detail,'详情')
+  storage.session={version:1,cards:[]}
+  const broken=makePage({},storage); broken.restoreSnapshot()
+  assert.equal(broken.data.drawn.length,0); assert.equal(storage.session,undefined)
 })
