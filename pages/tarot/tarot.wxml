@@ -299,8 +299,9 @@
     <view class="modal glass-card" catchtap="noop">
       <view class="modal-close mono" catchtap="closeModal">✕</view>
       <view class="modal-face {{activeCard.imgSrc ? 'has-img' : ''}}">
-        <!-- 有 RWS 牌图：标题旁展示牌面（aspectFit + 圆角 + 微暗 + 淡金描边），逆位旋转 180° -->
-        <image wx:if="{{activeCard.imgSrc}}" class="m-card-img {{activeCard.orientation === 'reversed' ? 'reversed' : ''}}" src="{{activeCard.imgSrc}}" mode="aspectFit" />
+        <!-- 有牌图（服务器托管 tarot-{no}.webp）：标题旁展示牌面
+             （懒加载 + aspectFit + 圆角 + 微暗 + 淡金描边），逆位旋转 180°；加载失败回落纯样式牌面 -->
+        <image wx:if="{{activeCard.imgSrc}}" class="m-card-img {{activeCard.orientation === 'reversed' ? 'reversed' : ''}}" src="{{activeCard.imgSrc}}" mode="aspectFit" lazy-load binderror="onCardImgError" />
         <!-- 无牌图的牌：保持纯样式牌面 -->
         <tarot-card wx:else card="{{activeCard}}" size="md" />
       </view>

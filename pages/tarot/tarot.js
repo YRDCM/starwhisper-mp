@@ -1,5 +1,6 @@
 // 塔罗页：每日塔罗 + 抽牌仪式（3D 翻牌）+ 牌库（懒加载）
 const { fetchTarotDaily, fetchTarotCards, request } = require('../../utils/request')
+const { BASE_URL } = require('../../utils/config')
 
 // 牌组元信息（牌库分组展示顺序）
 const GROUP_META = [
@@ -33,13 +34,17 @@ function shuffled78() {
   return a
 }
 
-// 已有 RWS 牌图（公有领域, 1909 原版扫描, WebP 500x850）登记表：
-// key = `${arcanaGroup}-${cardNumber}`（宫廷牌 Page=11 Knight=12 Queen=13 King=14）
-// 仅用于牌详情弹层展示；未登记的牌弹层保持纯样式牌面，不显示图片占位
-const CARD_IMAGES = {
-  'MAJOR-0': '/images/tarot/fool-0.webp',            // 愚者 The Fool
-  'WANDS-10': '/images/tarot/ten-of-wands.webp',     // 权杖十 Ten of Wands
-  'PENTACLES-13': '/images/tarot/queen-of-pentacles.webp' // 星币皇后 Queen of Pentacles
+// 牌图：服务器托管全部 78 张（{BASE_URL}/tarot/tarot-{no}.webp，no=1-78），仅用于详情弹层；
+// 本地不再打包 webp（减主包体积）。
+// no 由后端 TarotCardVO 直接输出（牌库列表与抽牌结果均有）；缺失时按 arcanaGroup+cardNumber
+// 换算兜底：1-22 大牌（愚人=1…世界=22）、23-36 权杖、37-50 圣杯、51-64 宝剑、65-78 星币。
+// 正式发布：需把该域名加入小程序后台 downloadFile 合法域名白名单，并随备案切 HTTPS。
+const GROUP_OFFSET = { MAJOR: 1, WANDS: 22, CUPS: 36, SWORDS: 50, PENTACLES: 64 }
+function cardImgUrl(card) {
+  if (!card) return ''
+  const no = card.no != null ? card.no : (card.cardNumber + (GROUP_OFFSET[card.arcanaGroup] || 0))
+  if (!no || no < 1 || no > 78) return ''
+  return `${BASE_URL}/tarot/tarot-${no}.webp`
 }
 
 Page({
@@ -264,7 +269,7 @@ Page({
     }
   },
 
-  // 点开牌详情弹层（预拆正逆位关键词, 查表附牌图路径——无图牌 imgSrc 为空串）
+  // 点开牌详情弹层（预拆正逆位关键词, 按 no 拼服务器牌图 URL——加载失败时清空回落纯样式牌面）
   onCardTap(e) {
     const card = e.currentTarget.dataset.card
     this.setData({
@@ -272,9 +277,13 @@ Page({
         ...card,
         uprightArr: splitKw(card.uprightKeywords),
         reversedArr: splitKw(card.reversedKeywords),
-        imgSrc: CARD_IMAGES[`${card.arcanaGroup}-${card.cardNumber}`] || ''
+        imgSrc: cardImgUrl(card)
       }
     })
+  },
+  // 牌图加载失败（断网/图片缺失）：清空 imgSrc，弹层回落原纯样式牌面，不报错
+  onCardImgError() {
+    if (this.data.activeCard) this.setData({ 'activeCard.imgSrc': '' })
   },
   closeModal() {
     this.setData({ activeCard: null })

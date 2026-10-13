@@ -1,13 +1,7 @@
 // 塔罗牌面组件
-// 【备用】RWS 牌图登记表（公有领域, 1909 原版扫描, WebP 500x850）：
-// key = `${arcanaGroup}-${cardNumber}`（宫廷牌 Page=11 Knight=12 Queen=13 King=14）
-// 当前外层牌面不渲染图片（用户反馈），牌图仅用于塔罗页详情弹层（pages/tarot/tarot.js 内有同款表）
-// 若日后外层需要图片牌面，在 observers 里查表 setData 即可
-const CARD_IMAGES = {
-  'MAJOR-0': '/images/tarot/fool-0.webp',            // 愚者 The Fool
-  'WANDS-10': '/images/tarot/ten-of-wands.webp',     // 权杖十 Ten of Wands
-  'PENTACLES-13': '/images/tarot/queen-of-pentacles.webp' // 星币皇后 Queen of Pentacles
-}
+// 牌图已全部改为服务器托管（{BASE_URL}/tarot/tarot-{no}.webp，no=1-78），
+// 由塔罗页详情弹层按 no 拼 URL（pages/tarot/tarot.js cardImgUrl）；
+// 本组件只渲染纯样式牌面/牌背，不再持有任何本地牌图表
 
 Component({
   properties: {
