@@ -35,8 +35,13 @@
           style="{{nodeStyles[index]}}"
           data-id="{{item.id}}"
           bindtap="onSignTap"
+          hover-class="node-pressed"
+          hover-stay-time="80"
+          aria-role="button"
+          aria-label="{{item.name + (item.id === currentSignId ? '，当前选中' : '，查看今日运势')}}"
         >
           <view class="node-inner" style="transform:rotate({{-ringAngle}}deg)">
+            <text wx:if="{{item.id === currentSignId}}" class="selected-mark" aria-hidden="true">✓</text>
             <view class="node-const"><constellation-view sign="{{item.nameEn}}" /></view>
             <view class="node-name">{{item.name}}</view>
           </view>
@@ -44,11 +49,14 @@
       </view>
       <!-- 中心信息：衬线中文名 + 英文斜体 + 日期范围，不随环转 -->
       <view class="wheel-center">
+        <view class="center-label">当前星座</view>
+        <view wx:if="{{currentSign}}" class="center-const"><constellation-view sign="{{currentSign.nameEn}}" /></view>
         <view class="center-name">{{currentSign ? currentSign.name : ''}}</view>
         <view class="center-en">{{currentSign ? currentSign.nameEn : ''}}</view>
         <view class="center-range mono">{{currentSign ? currentSign.dateRange : ''}}</view>
       </view>
     </view>
+    <view class="wheel-hint">点击星座，查看今日运势</view>
 
     <!-- 首次加载态 -->
     <view wx:if="{{loading && !fortune}}" class="glass-card state-box">

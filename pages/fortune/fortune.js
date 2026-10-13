@@ -18,8 +18,8 @@ const COLOR_MAP = {
   灰色: '#8B87B0', 珊瑚橙: '#E08A63', 玫瑰红: '#C25E7A', 天蓝色: '#6EA8D8', 米色: '#D8CBA8'
 }
 
-// 星盘几何（rpx）：轮盘直径 750（满屏出血），节点圆 Ø138 排在半径 305 的轨道上，
-// 相邻圆心弦距 2·305·sin15° ≈ 158，圆间净隙 ≈ 20rpx；节点外缘 374 ≤ 375 不出屏
+// 星盘几何（rpx）：轮盘直径 750，节点圆 Ø120 排在半径 305 的轨道上，
+// 相邻圆心弦距约 158，圆间净隙约 38rpx；节点外缘 365 < 375。
 const WHEEL_RADIUS = 305
 
 Page({
@@ -79,7 +79,7 @@ Page({
       this.rotateRingTo(todaySign.id, true)
       await this.loadFortune(todaySign)
       // 设备本地日期可能不准：以运势接口返回的服务器日期 fortuneDate 为准校正默认选中
-      this.correctSignByServerDate()
+      if (!this._manualSelection) this.correctSignByServerDate()
     } catch (e) {
       this.setData({ error: e.message || '无法连接星语服务器', loading: false })
     } finally {
@@ -418,16 +418,19 @@ Page({
 
   // 并行拉今日运势 + 近 7 天（切换星座时保留旧数据，仅置 refreshing 态）
   async loadFortune(sign) {
+    const requestId = this._fortuneRequestId = (this._fortuneRequestId || 0) + 1
     this.setData({ loading: true, error: '' })
     try {
       const [today, week] = await Promise.all([
         fetchTodayFortune(sign.nameEn),
         fetchWeekFortune(sign.nameEn)
       ])
+      if (requestId !== this._fortuneRequestId) return
       this.setData({ fortune: today, week, loading: false })
       this.buildView()
       this.updateCharts()
     } catch (e) {
+      if (requestId !== this._fortuneRequestId) return
       this.setData({
         error: e.message || '无法连接星语服务器，请稍后再试',
         fortune: null,
@@ -441,6 +444,8 @@ Page({
     const id = e.currentTarget.dataset.id
     if (id === this.data.currentSignId) return
     const sign = this.data.signs.find((s) => s.id === id)
+    if (!sign) return
+    this._manualSelection = true
     this.setData({ currentSignId: id, currentSign: sign || null })
     this.rotateRingTo(id, false)
     if (sign) this.loadFortune(sign)
