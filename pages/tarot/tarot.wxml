@@ -2,16 +2,16 @@
 
 <!-- 大牌阵通用小牌格（sm）：牌位标签 + 3D 翻牌；spreadCard 无标签版供中心叠放格复用 -->
 <template name="spreadCard">
-  <view class="flip sm {{flipped ? 'flipped' : ''}}">
-    <view class="flip-inner" style="transition-delay:{{flipped ? cell.delay : 0}}ms">
+  <view class="flip sm {{revealedCount > cell.orderIndex ? 'flipped' : ''}} {{revealedCount === cell.orderIndex ? 'can-reveal' : ''}}" data-index="{{cell.orderIndex}}" bindtap="onRevealCard">
+      <view class="flip-inner">
       <view class="flip-back"><tarot-card faceDown size="sm" /></view>
-      <view class="flip-front"><tarot-card card="{{cell.card}}" orientation="{{cell.orientation}}" size="sm" /></view>
+      <view class="flip-front"><tarot-card wx:if="{{revealedCount > cell.orderIndex}}" card="{{cell.card}}" orientation="{{cell.orientation}}" size="sm" /></view>
     </view>
   </view>
 </template>
 <template name="spreadCell">
   <view class="pos mono">{{cell.position}}</view>
-  <template is="spreadCard" data="{{cell, flipped}}" />
+  <template is="spreadCard" data="{{cell, revealedCount}}" />
 </template>
 
 <view class="page">
@@ -55,6 +55,23 @@
         <view class="meaning">{{daily.meaning}}</view>
       </view>
     </block>
+  </view>
+
+  <view wx:if="{{daily.card}}" class="glass-card lesson">
+    <view class="eyebrow">DAILY STUDY · 今日识牌</view>
+    <view class="sec-title">认识 {{daily.card.name}}</view>
+    <view class="spread-hint">从今天的牌开始，先观察画面，再对照正逆位含义。</view>
+    <button class="btn-gold" bindtap="toggleLesson">{{lessonOpen ? '收起知识' : '学习这张牌'}}</button>
+    <view wx:if="{{lessonOpen}}" class="lesson-body">
+      <view class="m-label">正位 · {{daily.card.uprightKeywords}}</view>
+      <view class="m-text">{{daily.card.uprightMeaning}}</view>
+      <view class="m-label">逆位 · {{daily.card.reversedKeywords}}</view>
+      <view class="m-text">{{daily.card.reversedMeaning}}</view>
+      <view class="spread-hint">想一想：这张牌的哪个关键词，让你联想到最近的一件小事？</view>
+      <button class="btn-gold" disabled="{{todayLearned}}" bindtap="markLearned">{{todayLearned ? '这张牌已学习 ✓' : '标记已学习'}}</button>
+    </view>
+    <view class="spread-hint">已学习 {{learnedCards.length}} / 78 张 · 仅保存在当前设备</view>
+    <view wx:if="{{studyError}}" class="error-line">{{studyError}}</view>
   </view>
 
   <!-- ===== 抽牌仪式 ===== -->
@@ -142,14 +159,25 @@
 
     <!-- 抽牌后：3D 翻牌（逐张延迟 150ms） -->
     <block wx:else>
+      <view class="reveal-guide">
+        <view class="m-label">已揭晓 {{revealedCount}} / {{drawn.length}} 张</view>
+        <view wx:if="{{nextCard}}" class="m-text">下一张 · {{nextCard.position || '单牌指引'}}
+          <view>{{nextCard.positionDesc || '看看这张牌带来的思考方向。'}}</view>
+        </view>
+        <view wx:else class="m-text">全部牌面已揭晓，可以回看各牌解读。</view>
+        <view wx:if="{{nextCard}}" class="reveal-actions">
+          <button class="btn-gold" bindtap="revealNext">揭晓第 {{revealedCount + 1}} 张</button>
+          <button class="btn-gold" bindtap="revealAll">一键全部揭晓</button>
+        </view>
+      </view>
       <!-- single / three：横排 -->
       <view wx:if="{{spread === 'single' || spread === 'three'}}" class="drawn-row">
         <view wx:for="{{drawn}}" wx:key="index" class="drawn-item">
           <view wx:if="{{item.position}}" class="pos mono">{{item.position}}</view>
-          <view class="flip {{flipped ? 'flipped' : ''}}">
-            <view class="flip-inner" style="transition-delay:{{flipped ? item.delay : 0}}ms">
+          <view class="flip {{revealedCount > item.orderIndex ? 'flipped' : ''}} {{revealedCount === item.orderIndex ? 'can-reveal' : ''}}" data-index="{{item.orderIndex}}" bindtap="onRevealCard">
+      <view class="flip-inner">
               <view class="flip-back"><tarot-card faceDown size="md" /></view>
-              <view class="flip-front"><tarot-card card="{{item.card}}" orientation="{{item.orientation}}" size="md" /></view>
+              <view class="flip-front"><tarot-card wx:if="{{revealedCount > item.orderIndex}}" card="{{item.card}}" orientation="{{item.orientation}}" size="md" /></view>
             </view>
           </view>
         </view>
@@ -159,10 +187,10 @@
       <view wx:elif="{{spread === 'choice'}}" class="choice-layout">
         <view class="choice-top">
           <view class="pos mono">{{choiceTop.position}}</view>
-          <view class="flip sm {{flipped ? 'flipped' : ''}}">
-            <view class="flip-inner" style="transition-delay:{{flipped ? choiceTop.delay : 0}}ms">
+          <view class="flip sm {{revealedCount > choiceTop.orderIndex ? 'flipped' : ''}} {{revealedCount === choiceTop.orderIndex ? 'can-reveal' : ''}}" data-index="{{choiceTop.orderIndex}}" bindtap="onRevealCard">
+      <view class="flip-inner">
               <view class="flip-back"><tarot-card faceDown size="sm" /></view>
-              <view class="flip-front"><tarot-card card="{{choiceTop.card}}" orientation="{{choiceTop.orientation}}" size="sm" /></view>
+              <view class="flip-front"><tarot-card wx:if="{{revealedCount > choiceTop.orderIndex}}" card="{{choiceTop.card}}" orientation="{{choiceTop.orientation}}" size="sm" /></view>
             </view>
           </view>
         </view>
@@ -173,10 +201,10 @@
         <view class="choice-wings">
           <view wx:for="{{choiceWings}}" wx:key="index" class="drawn-item">
             <view class="pos mono">{{item.position}}</view>
-            <view class="flip {{flipped ? 'flipped' : ''}}">
-              <view class="flip-inner" style="transition-delay:{{flipped ? item.delay : 0}}ms">
+            <view class="flip {{revealedCount > item.orderIndex ? 'flipped' : ''}} {{revealedCount === item.orderIndex ? 'can-reveal' : ''}}" data-index="{{item.orderIndex}}" bindtap="onRevealCard">
+      <view class="flip-inner">
                 <view class="flip-back"><tarot-card faceDown size="md" /></view>
-                <view class="flip-front"><tarot-card card="{{item.card}}" orientation="{{item.orientation}}" size="md" /></view>
+                <view class="flip-front"><tarot-card wx:if="{{revealedCount > item.orderIndex}}" card="{{item.card}}" orientation="{{item.orientation}}" size="md" /></view>
               </view>
             </view>
           </view>
@@ -190,10 +218,10 @@
               class="love-cell c{{index}}">
           <block wx:if="{{item}}">
             <view class="pos mono">{{item.position}}</view>
-            <view class="flip {{flipped ? 'flipped' : ''}}">
-              <view class="flip-inner" style="transition-delay:{{flipped ? item.delay : 0}}ms">
+            <view class="flip {{revealedCount > item.orderIndex ? 'flipped' : ''}} {{revealedCount === item.orderIndex ? 'can-reveal' : ''}}" data-index="{{item.orderIndex}}" bindtap="onRevealCard">
+      <view class="flip-inner">
                 <view class="flip-back"><tarot-card faceDown size="sm" /></view>
-                <view class="flip-front"><tarot-card card="{{item.card}}" orientation="{{item.orientation}}" size="sm" /></view>
+                <view class="flip-front"><tarot-card wx:if="{{revealedCount > item.orderIndex}}" card="{{item.card}}" orientation="{{item.orientation}}" size="sm" /></view>
               </view>
             </view>
           </block>
@@ -208,26 +236,26 @@
       <view wx:elif="{{spread === 'celtic'}}" class="celtic-layout">
         <view class="celtic-cross">
           <view></view>
-          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[4], flipped}}" /></view>
+          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[4], revealedCount}}" /></view>
           <view></view>
-          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[3], flipped}}" /></view>
+          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[3], revealedCount}}" /></view>
           <view class="cc-cell cc-center">
             <view class="pos mono">{{drawn[0].position}}</view>
             <view class="cc-stack">
-              <template is="spreadCard" data="{{cell: drawn[0], flipped}}" />
+              <template is="spreadCard" data="{{cell: drawn[0], revealedCount}}" />
               <!-- 2 号牌横压：容器整体旋转 90°，视觉探向左右邻格（经典摆法） -->
-              <view class="cc-cross-over"><template is="spreadCard" data="{{cell: drawn[1], flipped}}" /></view>
+              <view class="cc-cross-over"><template is="spreadCard" data="{{cell: drawn[1], revealedCount}}" /></view>
             </view>
             <view class="pos mono cc-pos2">{{drawn[1].position}}</view>
           </view>
-          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[5], flipped}}" /></view>
+          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[5], revealedCount}}" /></view>
           <view></view>
-          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[2], flipped}}" /></view>
+          <view class="cc-cell"><template is="spreadCell" data="{{cell: drawn[2], revealedCount}}" /></view>
           <view></view>
         </view>
         <view class="celtic-staff">
           <view class="cc-cell" wx:for="{{[9, 8, 7, 6]}}" wx:key="index">
-            <template is="spreadCell" data="{{cell: drawn[item], flipped}}" />
+            <template is="spreadCell" data="{{cell: drawn[item], revealedCount}}" />
           </view>
         </view>
       </view>
@@ -235,18 +263,18 @@
       <!-- 六芒星（7 牌）：▽ 时间三角（过去/现在/未来）+ △ 境遇三角（阻碍/助力/建议）+ 中心结果
            网格定位：过去 r1c1 / 未来 r1c3 / 现在 r2c2 / 结果 r3c2（中心金辉）/ 建议 r4c2 / 阻碍 r5c1 / 助力 r5c3 -->
       <view wx:elif="{{spread === 'hexagram'}}" class="hex-layout">
-        <view class="hex-cell hx0"><template is="spreadCell" data="{{cell: drawn[0], flipped}}" /></view>
-        <view class="hex-cell hx2"><template is="spreadCell" data="{{cell: drawn[2], flipped}}" /></view>
-        <view class="hex-cell hx1"><template is="spreadCell" data="{{cell: drawn[1], flipped}}"/></view>
-        <view class="hex-cell hx6"><template is="spreadCell" data="{{cell: drawn[6], flipped}}" /></view>
-        <view class="hex-cell hx5"><template is="spreadCell" data="{{cell: drawn[5], flipped}}" /></view>
-        <view class="hex-cell hx3"><template is="spreadCell" data="{{cell: drawn[3], flipped}}" /></view>
-        <view class="hex-cell hx4"><template is="spreadCell" data="{{cell: drawn[4], flipped}}" /></view>
+        <view class="hex-cell hx0"><template is="spreadCell" data="{{cell: drawn[0], revealedCount}}" /></view>
+        <view class="hex-cell hx2"><template is="spreadCell" data="{{cell: drawn[2], revealedCount}}" /></view>
+        <view class="hex-cell hx1"><template is="spreadCell" data="{{cell: drawn[1], revealedCount}}"/></view>
+        <view class="hex-cell hx6"><template is="spreadCell" data="{{cell: drawn[6], revealedCount}}" /></view>
+        <view class="hex-cell hx5"><template is="spreadCell" data="{{cell: drawn[5], revealedCount}}" /></view>
+        <view class="hex-cell hx3"><template is="spreadCell" data="{{cell: drawn[3], revealedCount}}" /></view>
+        <view class="hex-cell hx4"><template is="spreadCell" data="{{cell: drawn[4], revealedCount}}" /></view>
       </view>
 
       <!-- 逐牌解读 -->
       <view class="meaning-panels">
-        <view wx:for="{{drawn}}" wx:key="index" class="m-panel">
+        <view wx:for="{{revealedCards}}" wx:key="index" class="m-panel">
           <view class="m-head">
             <text wx:if="{{item.position}}" class="m-pos mono">{{item.position}}</text>
             <text class="m-name">{{item.card.name}}</text>

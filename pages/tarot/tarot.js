@@ -10,6 +10,7 @@ const GROUP_META = [
   { key: 'SWORDS', zh: '宝剑' },
   { key: 'PENTACLES', zh: '星币' }
 ]
+const STUDY_KEY = 'starwhisper:learned-tarot'
 
 // 关键词字符串 → 数组（顿号/逗号/斜杠分隔均兼容）
 function splitKw(s) {
@@ -89,7 +90,13 @@ Page({
     choiceTop: null,    // 二选一：现状（顶）
     choiceWings: [],    // 二选一：选择 A/B（两翼）
     loveCells: null,    // 爱情十字：{top,left,center,right,bottom}
-    flipped: false,     // 是否已翻开（驱动 3D 翻转）
+    revealedCount: 0,
+    nextCard: null,
+    revealedCards: [],
+    lessonOpen: false,
+    learnedCards: [],
+    todayLearned: false,
+    studyError: '',
     drawing: false,
     drawError: '',
     backCount: [0],     // 牌背展示数量（跟随所选牌阵的牌数，初始 single=1）
@@ -108,6 +115,10 @@ Page({
   },
 
   onLoad() {
+    try {
+      const saved = wx.getStorageSync(STUDY_KEY)
+      this.setData({ learnedCards: Array.isArray(saved) ? [...new Set(saved.filter((n) => Number.isInteger(n) && n >= 1 && n <= 78))] : [] })
+    } catch { this.setData({ studyError: '暂时无法读取学习进度' }) }
     const today = new Date()
     this.setData({ todayStr: [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-') })
     this.loadDaily() // 进入页面即自动加载每日塔罗
@@ -115,7 +126,6 @@ Page({
 
   onUnload() {
     this._disposed = true
-    clearTimeout(this._flipTimer)
   },
 
   /* ===== 每日塔罗 ===== */
@@ -123,9 +133,11 @@ Page({
     this.setData({ dailyLoading: true, dailyError: '' })
     try {
       const daily = await fetchTarotDaily()
-      this.setData({ daily, dailyKeywords: splitKw(daily.keywords), dailyLoading: false })
+      if (this._disposed) return
+      this.setData({ daily, dailyKeywords: splitKw(daily.keywords), dailyLoading: false,
+        todayLearned: this.data.learnedCards.includes(this.studyCardNo(daily.card)) })
     } catch (e) {
-      this.setData({ dailyError: e.message || '无法连接星语服务器', dailyLoading: false })
+      if (!this._disposed) this.setData({ dailyError: e.message || '无法连接星语服务器', dailyLoading: false })
     }
   },
 
@@ -136,7 +148,7 @@ Page({
     // 牌背数量跟随牌阵牌数
     const count = countOf(this.data.spreadGroups, mode)
     const patch = { mode, needCount: count, backCount: Array.from({ length: count }, (_, i) => i) }
-    if (this.data.drawn.length) Object.assign(patch, { drawn: [], flipped: false, drawError: '' })
+    if (this.data.drawn.length) Object.assign(patch, { drawn: [], revealedCount: 0, revealedCards: [], nextCard: null, drawError: '' })
     // 切换牌阵时退出选牌（牌数变了，已选作废）
     if (this.data.picking) Object.assign(patch, { picking: false, deck: [], pickedCount: 0, pickFull: false })
     this.setData(patch)
@@ -207,23 +219,23 @@ Page({
   // 直接点按钮/事件回调进来时首参是 event，统一归一化为 null
   async doDraw(cardNos) {
     if (this.data.drawing) return
-    clearTimeout(this._flipTimer)
     const nos = Array.isArray(cardNos) && cardNos.length ? cardNos : null
     this.setData({ drawing: true, drawError: '' })
     try {
       // 自选失败保留已选牌，避免静默改成随机抽牌。
       const result = await drawTarot(this.data.mode, nos)
       if (this._disposed) return
+      if (!result || !Array.isArray(result.cards) || !result.cards.length) throw new Error('未收到完整牌面，请重新尝试')
       const drawn = (result.cards || []).map((d, i) => ({
         ...d,
         keywordsArr: splitKw(d.keywords),
-        delay: i * 150 // 翻牌 stagger（各阵型共用同一序号）
+        orderIndex: i
       }))
       const patch = {
         drawn,
         spread: result.spread || this.data.mode,
         spreadName: result.spreadName || '',
-        flipped: false,
+        revealedCount: 0, revealedCards: [], nextCard: drawn[0],
         // 抽牌成功即退出选牌态
         picking: false, deck: [], pickedCount: 0, pickFull: false
       }
@@ -245,8 +257,6 @@ Page({
         }
       }
       this.setData(patch)
-      // 等 DOM 渲染出背面后再触发翻转，形成逐张 stagger
-      this._flipTimer = setTimeout(() => this.setData({ flipped: true }), 80)
     } catch (e) {
       if (!this._disposed) this.setData({ drawError: e.message || '无法连接星语服务器', drawn: [] })
     } finally {
@@ -255,8 +265,34 @@ Page({
   },
 
   resetDraw() {
-    clearTimeout(this._flipTimer)
-    this.setData({ drawn: [], flipped: false, drawError: '', picking: false, deck: [], pickedCount: 0, pickFull: false })
+    this.setData({ drawn: [], revealedCount: 0, revealedCards: [], nextCard: null, drawError: '', picking: false, deck: [], pickedCount: 0, pickFull: false })
+  },
+
+  revealNext() {
+    if (this.data.revealedCount >= this.data.drawn.length) return
+    this.updateRevealed(this.data.revealedCount + 1)
+  },
+  revealAll() { this.updateRevealed(this.data.drawn.length) },
+  onRevealCard(e) {
+    if (Number(e.currentTarget.dataset.index) === this.data.revealedCount) this.revealNext()
+  },
+  updateRevealed(count) {
+    this.setData({ revealedCount: count, revealedCards: this.data.drawn.slice(0, count), nextCard: this.data.drawn[count] || null })
+  },
+  toggleLesson() { this.setData({ lessonOpen: !this.data.lessonOpen }) },
+  studyCardNo(card) {
+    return card ? (card.no != null ? card.no : card.cardNumber + (GROUP_OFFSET[card.arcanaGroup] || 0)) : null
+  },
+  markLearned() {
+    const no = this.studyCardNo(this.data.daily && this.data.daily.card)
+    if (!this.data.lessonOpen || this.data.todayLearned || !Number.isInteger(no) || no < 1 || no > 78) return
+    try {
+      const saved = wx.getStorageSync(STUDY_KEY)
+      const valid = Array.isArray(saved) ? saved.filter((n) => Number.isInteger(n) && n >= 1 && n <= 78) : []
+      const learnedCards = [...new Set([...valid, ...this.data.learnedCards, no])]
+      wx.setStorageSync(STUDY_KEY, learnedCards)
+      this.setData({ learnedCards, todayLearned: true, studyError: '' })
+    } catch { this.setData({ studyError: '学习进度未能保存，请稍后重试' }) }
   },
 
   /* ===== 牌库（首次展开懒加载） ===== */
