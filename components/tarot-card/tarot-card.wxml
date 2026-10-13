@@ -1,5 +1,6 @@
 <!-- 塔罗牌面/牌背组件：7:12 牌比，细金边，星云紫底。
-     逆位时仅牌面内部 rotateZ(180°)，正/逆位角签在旋转层之外保持可读 -->
+     逆位时仅中央符号（花押圆章）rotateZ(180°)，中英文牌名/花色角标全部保持正向可读；
+     正/逆位角签在旋转层之外保持可读 -->
 <view class="tarot-card sz-{{size}}">
   <!-- 牌背：同心圆环（repeating-radial-gradient）+ 中心 ✦ + 星点 -->
   <view wx:if="{{faceDown}}" class="card-back">
@@ -10,7 +11,7 @@
   <block wx:else>
     <view class="face-inner {{orientation === 'reversed' ? 'reversed' : ''}}">
       <view class="face-center">
-        <view class="suit-seal {{isMajor ? 'major' : ''}}">{{sealText}}</view>
+        <view class="suit-seal {{isMajor ? 'major' : ''}} {{orientation === 'reversed' ? 'reversed' : ''}}">{{sealText}}</view>
         <view class="face-name">{{card.name}}</view>
         <view class="face-en">{{card.nameEn}}</view>
       </view>

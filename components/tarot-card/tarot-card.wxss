@@ -49,7 +49,9 @@
   overflow: hidden; /* 长组名/长英文名极端情况裁进圆角内，不撑破牌面 */
 }
 .face-inner.reversed {
-  transform: rotateZ(180deg); /* 逆位：牌名倒置 */
+  /* 逆位不再整牌旋转：牌面改淡朱砂发线，
+     sm 小卡（ori-tag 隐藏）也能从牌缘读出「这张牌倒了」 */
+  border-color: rgba(194, 94, 94, 0.3);
 }
 /* 中央区：占满剩余高度并垂直居中，顶部留白给 ori-tag，牌面不拥挤 */
 .face-center {
@@ -102,6 +104,13 @@
 }
 .suit-seal.major {
   letter-spacing: 0.04em;
+}
+/* 逆位：仅中央花押圆章倒置表达「牌倒了」，文字区全部正向；
+   朱砂描边 + 微降亮度，与正位金调克制区分 */
+.suit-seal.reversed {
+  transform: rotateZ(180deg);
+  border-color: rgba(194, 94, 94, 0.6); /* --cinnabar 系 */
+  filter: brightness(0.82);
 }
 .face-name {
   font-family: var(--font-display);
