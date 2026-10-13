@@ -81,18 +81,61 @@
 
     <view wx:if="{{drawError}}" class="error-line">{{drawError}}</view>
 
-    <!-- 抽牌前：一排牌背 -->
+    <!-- 抽牌前：牌背排 + 开始抽牌（进入选牌界面） -->
     <block wx:if="{{!drawn.length}}">
-      <view class="backs-row">
-        <view wx:for="{{backCount}}" wx:key="index" class="back-item">
-          <tarot-card faceDown size="md" />
+      <block wx:if="{{!picking}}">
+        <view class="backs-row">
+          <view wx:for="{{backCount}}" wx:key="index" class="back-item">
+            <tarot-card faceDown size="md" />
+          </view>
         </view>
-      </view>
-      <view class="stage-actions">
-        <button class="btn-gold {{drawing ? 'disabled' : ''}}" bindtap="doDraw" disabled="{{drawing}}">
-          {{drawing ? '洗牌抽牌中…' : '开始抽牌'}}
-        </button>
-      </view>
+        <view class="stage-actions">
+          <button class="btn-gold {{drawing ? 'disabled' : ''}}" bindtap="startPick" disabled="{{drawing}}">
+            {{drawing ? '洗牌抽牌中…' : '开始抽牌'}}
+          </button>
+        </view>
+      </block>
+
+      <!-- 选牌界面：78 张洗牌后的牌背铺满 6 列网格，点位置选牌（对应洗好的牌序号） -->
+      <block wx:else>
+        <view class="pick-head">
+          <view class="pick-title">以心选牌 <text class="pick-title-en mono">CHOOSE YOUR CARDS</text></view>
+          <view class="pick-progress mono">已选 {{pickedCount}} / {{needCount}}</view>
+        </view>
+        <scroll-view scroll-y class="pick-scroll" enhanced show-scrollbar="{{false}}">
+          <view class="pick-grid">
+            <view
+              wx:for="{{deck}}"
+              wx:key="no"
+              class="pick-item {{item.selected ? 'selected' : ''}}"
+              data-index="{{index}}"
+              bindtap="onPickCard"
+            >
+              <!-- 统一牌背：纯 CSS（内框几何线 + 弯月 + ✦ + 菱形 + 星点），无外部图片 -->
+              <view class="pick-back">
+                <view class="pb-frame"></view>
+                <view class="pb-moon"></view>
+                <text class="pb-star">✦</text>
+                <view class="pb-diamond"></view>
+              </view>
+              <view wx:if="{{item.selected}}" class="pick-order mono">{{item.order}}</view>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="pick-actions">
+          <button
+            class="btn-gold {{pickFull && !drawing ? '' : 'disabled'}}"
+            bindtap="confirmPick"
+            disabled="{{!pickFull || drawing}}"
+          >
+            {{drawing ? '洗牌开牌中…' : '确认开牌'}}
+          </button>
+          <view class="pick-links">
+            <text class="pick-link" bindtap="randomPick">随机为我抽</text>
+            <text class="pick-link dim" bindtap="cancelPick">返回</text>
+          </view>
+        </view>
+      </block>
     </block>
 
     <!-- 抽牌后：3D 翻牌（逐张延迟 150ms） -->

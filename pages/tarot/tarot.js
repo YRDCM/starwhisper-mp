@@ -16,6 +16,23 @@ function splitKw(s) {
   return String(s).split(/[、,，\/|]/).map((x) => x.trim()).filter(Boolean)
 }
 
+// 牌阵 key → 牌数（与 data.spreadGroups 同步的唯一口径）
+function countOf(spreadGroups, mode) {
+  let count = 1
+  spreadGroups.forEach((g) => g.items.forEach((s) => { if (s.key === mode) count = s.count }))
+  return count
+}
+
+// Fisher-Yates 洗牌：78 张牌序号 1-78 随机打乱，用户点的是网格位置，对应洗好的牌序号
+function shuffled78() {
+  const a = Array.from({ length: 78 }, (_, i) => i + 1)
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const t = a[i]; a[i] = a[j]; a[j] = t
+  }
+  return a
+}
+
 // 已有 RWS 牌图（公有领域, 1909 原版扫描, WebP 500x850）登记表：
 // key = `${arcanaGroup}-${cardNumber}`（宫廷牌 Page=11 Knight=12 Queen=13 King=14）
 // 仅用于牌详情弹层展示；未登记的牌弹层保持纯样式牌面，不显示图片占位
@@ -63,6 +80,12 @@ Page({
     drawing: false,
     drawError: '',
     backCount: [0],     // 牌背展示数量（跟随所选牌阵的牌数，初始 single=1）
+    // 自行选牌：开始抽牌 → 78 张洗牌牌背网格，逐张点选，选满确认开牌
+    picking: false,     // 选牌界面显隐
+    deck: [],           // 洗牌后的 78 格 [{no(1-78), selected, order(点选顺序, 0=未选)}]
+    needCount: 1,       // 当前牌阵需要选的张数
+    pickedCount: 0,     // 已选张数
+    pickFull: false,    // 已选满（确认开牌按钮亮起）
     // 牌库
     archiveOpen: false,
     groups: [],
@@ -92,19 +115,93 @@ Page({
     if (this.data.drawing) return
     const mode = e.currentTarget.dataset.mode
     // 牌背数量跟随牌阵牌数
-    let count = 1
-    this.data.spreadGroups.forEach((g) => g.items.forEach((s) => { if (s.key === mode) count = s.count }))
-    const patch = { mode, backCount: Array.from({ length: count }, (_, i) => i) }
+    const count = countOf(this.data.spreadGroups, mode)
+    const patch = { mode, needCount: count, backCount: Array.from({ length: count }, (_, i) => i) }
     if (this.data.drawn.length) Object.assign(patch, { drawn: [], flipped: false, drawError: '' })
+    // 切换牌阵时退出选牌（牌数变了，已选作废）
+    if (this.data.picking) Object.assign(patch, { picking: false, deck: [], pickedCount: 0, pickFull: false })
     this.setData(patch)
   },
 
-  async doDraw() {
+  /* ===== 自行选牌：78 张洗牌牌背网格 ===== */
+  // 「开始抽牌」→ 进入选牌界面
+  startPick() {
+    if (this.data.drawing) return
+    const deck = shuffled78().map((no) => ({ no, selected: false, order: 0 }))
+    this.setData({ picking: true, deck, pickedCount: 0, pickFull: false, drawError: '' })
+  },
+
+  cancelPick() {
+    this.setData({ picking: false, deck: [], pickedCount: 0, pickFull: false })
+  },
+
+  // 点选/取消：选满后需先取消才能换牌；order 记录点选顺序（牌位按此映射）
+  onPickCard(e) {
+    if (this.data.drawing) return
+    const i = e.currentTarget.dataset.index
+    const deck = this.data.deck
+    const item = deck[i]
+    if (!item) return
+    const patch = {}
+    if (item.selected) {
+      const removed = item.order
+      patch[`deck[${i}].selected`] = false
+      patch[`deck[${i}].order`] = 0
+      deck.forEach((d, j) => {
+        if (d.selected && d.order > removed) patch[`deck[${j}].order`] = d.order - 1
+      })
+      patch.pickedCount = this.data.pickedCount - 1
+      patch.pickFull = false
+    } else {
+      if (this.data.pickedCount >= this.data.needCount) {
+        wx.showToast({ title: `已选满 ${this.data.needCount} 张，点已选中的牌可取消重选`, icon: 'none' })
+        return
+      }
+      const count = this.data.pickedCount + 1
+      patch[`deck[${i}].selected`] = true
+      patch[`deck[${i}].order`] = count
+      patch.pickedCount = count
+      patch.pickFull = count === this.data.needCount
+    }
+    this.setData(patch)
+  },
+
+  // 选满确认：按点选顺序取牌序号，走 cardNos 契约抽牌
+  confirmPick() {
+    if (!this.data.pickFull || this.data.drawing) return
+    const nos = this.data.deck
+      .filter((d) => d.selected)
+      .sort((a, b) => a.order - b.order)
+      .map((d) => d.no)
+    this.doDraw(nos)
+  },
+
+  // 「随机为我抽」：不想自己选，退出选牌走原有随机流程
+  randomPick() {
+    if (this.data.drawing) return
+    this.cancelPick()
+    this.doDraw()
+  },
+
+  // cardNos：自选牌序号数组（契约：数量=牌阵张数、序号 1-78、正逆位后端定）；
+  // 直接点按钮/事件回调进来时首参是 event，统一归一化为 null
+  async doDraw(cardNos) {
+    const nos = Array.isArray(cardNos) && cardNos.length ? cardNos : null
     this.setData({ drawing: true, drawError: '' })
     try {
       // 后端 v3：spread 是 @RequestParam——wx.request 默认发 JSON body，服务端读不到，
       // 必须拼进 query，否则任何牌阵都会回退成 single（utils/request.js 的封装不支持 query，这里直调）
-      const result = await request({ url: `/tarot/draw?spread=${this.data.mode}`, method: 'POST' })
+      let result
+      if (nos) {
+        try {
+          result = await request({ url: `/tarot/draw?spread=${this.data.mode}&cardNos=${nos.join(',')}`, method: 'POST' })
+        } catch (err) {
+          // 后端 cardNos 可选参数尚未上线：回退老接口随机抽（mock 期保证流程可跑），上线后自动生效
+          result = await request({ url: `/tarot/draw?spread=${this.data.mode}`, method: 'POST' })
+        }
+      } else {
+        result = await request({ url: `/tarot/draw?spread=${this.data.mode}`, method: 'POST' })
+      }
       const drawn = (result.cards || []).map((d, i) => ({
         ...d,
         keywordsArr: splitKw(d.keywords),
@@ -114,7 +211,9 @@ Page({
         drawn,
         spread: result.spread || this.data.mode,
         spreadName: result.spreadName || '',
-        flipped: false
+        flipped: false,
+        // 抽牌成功即退出选牌态
+        picking: false, deck: [], pickedCount: 0, pickFull: false
       }
       // 二选一布局：现状居中略小（顶）+ 选择 A/B 两翼
       if (patch.spread === 'choice') {
@@ -144,7 +243,7 @@ Page({
   },
 
   resetDraw() {
-    this.setData({ drawn: [], flipped: false, drawError: '' })
+    this.setData({ drawn: [], flipped: false, drawError: '', picking: false, deck: [], pickedCount: 0, pickFull: false })
   },
 
   /* ===== 牌库（首次展开懒加载） ===== */

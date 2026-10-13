@@ -165,6 +165,155 @@
   margin-top: 16rpx;
 }
 
+/* ===== 选牌界面：78 张洗牌牌背 · 6 列网格 ===== */
+.pick-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12rpx 4rpx 22rpx;
+}
+.pick-title {
+  font-family: var(--font-display);
+  font-size: 32rpx;
+  letter-spacing: 0.22em;
+  color: var(--ink);
+}
+.pick-title-en {
+  font-size: 20rpx;
+  letter-spacing: 0.16em;
+  color: var(--ink-dim2);
+  margin-left: 14rpx;
+  white-space: nowrap;
+}
+.pick-progress {
+  flex: none;
+  font-size: 26rpx;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.pick-scroll {
+  height: 680rpx; /* 约 4 行牌背高度，上下滚动浏览全部 78 张 */
+}
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16rpx 12rpx;
+  padding: 14rpx 6rpx 24rpx; /* 顶部留白给选中序号角标 */
+}
+.pick-item {
+  position: relative;
+  aspect-ratio: 7 / 12;
+}
+/* 统一牌背：深靛渐变底 + 星点 + 几何内框 + 弯月 + ✦ + 菱形（纯 CSS，无外部图片） */
+.pick-back {
+  position: absolute;
+  left: 0; top: 0; right: 0; bottom: 0;
+  border-radius: 8rpx;
+  border: 1px solid rgba(232, 196, 124, 0.18);
+  background:
+    radial-gradient(circle at 24% 16%, rgba(232, 230, 240, 0.75) 0, rgba(232, 230, 240, 0.75) 1.6rpx, transparent 2.6rpx),
+    radial-gradient(circle at 76% 26%, rgba(232, 230, 240, 0.55) 0, rgba(232, 230, 240, 0.55) 1.4rpx, transparent 2.4rpx),
+    radial-gradient(circle at 30% 78%, rgba(232, 230, 240, 0.5) 0, rgba(232, 230, 240, 0.5) 1.3rpx, transparent 2.3rpx),
+    radial-gradient(circle at 72% 84%, rgba(232, 230, 240, 0.65) 0, rgba(232, 230, 240, 0.65) 1.5rpx, transparent 2.5rpx),
+    linear-gradient(160deg, #0B1030 0%, #141B42 55%, #1B1B46 100%);
+  overflow: hidden;
+  transition: transform 0.35s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+/* 几何内框：细金双线感（外框 + 内框偏移） */
+.pb-frame {
+  position: absolute;
+  left: 8rpx; top: 8rpx; right: 8rpx; bottom: 8rpx;
+  border: 1px solid rgba(232, 196, 124, 0.22);
+  border-radius: 5rpx;
+}
+/* 弯月：金圆 + 夜色圆错位叠出月牙 */
+.pb-moon {
+  position: absolute;
+  top: 14%;
+  left: 50%;
+  width: 20rpx;
+  height: 20rpx;
+  margin-left: -10rpx;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.pb-moon::after {
+  content: '';
+  position: absolute;
+  top: -3rpx;
+  left: 6rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  background: #12183C; /* 与牌背渐变中段同色，叠出月牙缺口 */
+}
+/* 中心 ✦ 星 */
+.pb-star {
+  position: absolute;
+  top: 44%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 22rpx;
+  color: rgba(232, 196, 124, 0.85);
+}
+/* 底部菱形几何纹 */
+.pb-diamond {
+  position: absolute;
+  bottom: 13%;
+  left: 50%;
+  width: 14rpx;
+  height: 14rpx;
+  margin-left: -8rpx;
+  border: 1px solid rgba(232, 196, 124, 0.45);
+  transform: rotate(45deg);
+}
+/* 选中：翻面微动效（rotateY 一圈）+ 金边亮起 + 微放大 */
+.pick-item.selected .pick-back {
+  border-color: var(--gold);
+  box-shadow: 0 0 22rpx rgba(232, 196, 124, 0.5);
+  transform: rotateY(360deg) scale(1.07);
+}
+/* 选中序号角标：点选顺序（第几张牌位） */
+.pick-order {
+  position: absolute;
+  z-index: 2;
+  top: -10rpx;
+  right: -6rpx;
+  min-width: 34rpx;
+  height: 34rpx;
+  padding: 0 6rpx;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #070B1E;
+  font-size: 20rpx;
+  line-height: 34rpx;
+  text-align: center;
+}
+.pick-actions {
+  margin-top: 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22rpx;
+}
+.pick-links {
+  display: flex;
+  gap: 56rpx;
+}
+.pick-link {
+  font-size: 26rpx;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  padding: 8rpx 12rpx;
+  white-space: nowrap;
+}
+.pick-link.dim {
+  color: var(--ink-dim2);
+}
+
 /* 3D 翻牌 */
 .drawn-row {
   display: flex;
@@ -178,11 +327,14 @@
   flex: none;
 }
 .pos {
+  display: block;
+  width: 100%;
+  line-height: 1.5;
   text-align: center;
   font-size: 22rpx; /* 原 25rpx：给 5 字牌位（对方的状态/结果与建议）在窄卡片上留余量 */
   letter-spacing: 0.16em;
   color: var(--ink-dim2);
-  margin-bottom: 12rpx;
+  margin-bottom: 22rpx; /* 原 12rpx：位置标签独立成行，与卡牌上缘拉开，不再视觉压边 */
   white-space: nowrap; /* 牌位名一行放下，不在空格/字间断折 */
   overflow: hidden;
   text-overflow: ellipsis; /* 极端情况（系统大字体）省略号兜底，不折行 */
@@ -301,7 +453,7 @@
   transform: rotate(90deg); /* 横压经典摆法：视觉旋转后探出左右各约 50rpx */
 }
 .cc-pos2 {
-  margin-top: 6rpx;
+  margin-top: 10rpx;
   margin-bottom: 0;
   color: rgba(232, 196, 124, 0.75); /* 横压牌标签用淡金，与正置牌区分 */
 }

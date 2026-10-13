@@ -9,19 +9,19 @@
 
   <block wx:else>
     <view class="face-inner {{orientation === 'reversed' ? 'reversed' : ''}}">
-      <!-- 顶部角标：组名 + 编号两行竖排（仿真实塔罗角标），任何字号下不折行不溢出 -->
-      <view class="face-top mono">
-        <text class="ft-group">{{card.arcanaGroup}}</text>
-        <text class="ft-num">{{card.cardNumber}}</text>
-      </view>
       <view class="face-center">
         <view class="suit-seal {{isMajor ? 'major' : ''}}">{{sealText}}</view>
         <view class="face-name">{{card.name}}</view>
         <view class="face-en">{{card.nameEn}}</view>
       </view>
-      <view class="face-bottom"></view>
+      <!-- 组名 + 编号（仿真实塔罗角标）移到底部两行竖排：
+           顶部整块让给正/逆位角签，长组名（PENTACLES）不再被印章遮挡裁断 -->
+      <view class="face-bottom mono">
+        <text class="ft-group">{{card.arcanaGroup}}</text>
+        <text class="ft-num">{{card.cardNumber}}</text>
+      </view>
     </view>
-    <!-- 正/逆位角签：不随牌面旋转 -->
+    <!-- 正/逆位角签：固定右上角，不随牌面旋转 -->
     <view wx:if="{{orientation}}" class="ori-tag mono {{orientation}}">
       {{orientation === 'reversed' ? '逆位' : '正位'}}
     </view>
