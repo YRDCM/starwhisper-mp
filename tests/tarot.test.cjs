@@ -18,6 +18,43 @@ function makePage(api = {}, storage = {}) {
   return page
 }
 
+test('AI 阻止未揭晓和重复请求，切换牌阵后忽略旧响应', async () => {
+  let resolveReading, calls = 0
+  const page = makePage({
+    drawTarot: async () => ({ drawId: 'a', cards: [{ card: { id: 1 } }, { card: { id: 2 } }] }),
+    fetchTarotReading: () => { calls++; return new Promise(resolve => { resolveReading = resolve }) }
+  })
+  await page.doDraw(); await page.readWithAi()
+  assert.equal(calls, 0)
+  page.revealAll(); page.selectDetailIndex(1)
+  assert.equal(page.data.detailCards.length, 1)
+  assert.equal(page.data.detailCards[0].card.id, 2)
+  page.selectDetailIndex(99)
+  assert.equal(page.data.detailIndex, 1)
+  const pending = page.readWithAi()
+  await page.readWithAi()
+  assert.equal(calls, 1)
+  page.setMode({ currentTarget: { dataset: { mode: 'three' } } })
+  resolveReading({ summary: '旧总览', detail: '旧详情' })
+  await pending
+  assert.equal(page.data.aiResult, null)
+  assert.equal(page.data.aiLoading, false)
+})
+
+test('AI 失败保留牌面并可重试，成功后不重复请求', async () => {
+  let calls = 0
+  const page = makePage({
+    drawTarot: async () => ({ drawId: 'a', cards: [{ card: { id: 1 } }] }),
+    fetchTarotReading: async () => { if (++calls === 1) throw new Error('暂不可用'); return { summary: '总览', detail: '详情' } }
+  })
+  await page.doDraw(); page.revealAll(); await page.readWithAi()
+  assert.equal(page.data.drawn.length, 1)
+  assert.equal(page.data.aiError, '暂不可用')
+  await page.readWithAi(); await page.readWithAi()
+  assert.equal(calls, 2)
+  assert.equal(page.data.aiResult.summary, '总览')
+})
+
 for (const [spread, count] of Object.entries({ single: 1, three: 3, choice: 3, love: 5, celtic: 10, hexagram: 7 })) {
   test(`${spread}：按序揭晓、全部揭晓和重新抽牌`, async () => {
     const cards = Array.from({ length: count }, (_, i) => ({ card: { id: i + 1 }, position: `位置${i + 1}`, keywords: '思考' }))

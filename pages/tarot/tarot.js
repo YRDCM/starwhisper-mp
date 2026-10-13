@@ -1,5 +1,5 @@
 // 塔罗页：每日塔罗 + 抽牌仪式（3D 翻牌）+ 牌库（懒加载）
-const { fetchTarotDaily, fetchTarotCards, drawTarot } = require('../../utils/request')
+const { fetchTarotDaily, fetchTarotCards, drawTarot, fetchTarotReading } = require('../../utils/request')
 const { BASE_URL } = require('../../utils/config')
 
 // 牌组元信息（牌库分组展示顺序）
@@ -50,6 +50,8 @@ function cardImgUrl(card) {
 
 Page({
   data: {
+    compact: true, detailIndex: 0, detailCards: [], meaningOpen: false,
+    drawId: '', aiQuestion: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false,
     todayStr: '',
     // 每日塔罗
     daily: null,
@@ -144,6 +146,7 @@ Page({
   /* ===== 抽牌仪式 ===== */
   setMode(e) {
     if (this.data.drawing) return
+    this.clearReading()
     const mode = e.currentTarget.dataset.mode
     // 牌背数量跟随牌阵牌数
     const count = countOf(this.data.spreadGroups, mode)
@@ -219,6 +222,7 @@ Page({
   // 直接点按钮/事件回调进来时首参是 event，统一归一化为 null
   async doDraw(cardNos) {
     if (this.data.drawing) return
+    this.clearReading()
     const nos = Array.isArray(cardNos) && cardNos.length ? cardNos : null
     this.setData({ drawing: true, drawError: '' })
     try {
@@ -232,6 +236,7 @@ Page({
         orderIndex: i
       }))
       const patch = {
+        drawId: result.drawId || '',
         drawn,
         spread: result.spread || this.data.mode,
         spreadName: result.spreadName || '',
@@ -265,6 +270,7 @@ Page({
   },
 
   resetDraw() {
+    this.clearReading()
     this.setData({ drawn: [], revealedCount: 0, revealedCards: [], nextCard: null, drawError: '', picking: false, deck: [], pickedCount: 0, pickFull: false })
   },
 
@@ -272,12 +278,40 @@ Page({
     if (this.data.revealedCount >= this.data.drawn.length) return
     this.updateRevealed(this.data.revealedCount + 1)
   },
-  revealAll() { this.updateRevealed(this.data.drawn.length) },
+  revealAll() { this.updateRevealed(this.data.drawn.length); this.selectDetailIndex(0) },
   onRevealCard(e) {
     if (Number(e.currentTarget.dataset.index) === this.data.revealedCount) this.revealNext()
   },
   updateRevealed(count) {
     this.setData({ revealedCount: count, revealedCards: this.data.drawn.slice(0, count), nextCard: this.data.drawn[count] || null })
+    this.selectDetailIndex(count - 1)
+  },
+  selectDetailIndex(index) {
+    if (index < 0 || index >= this.data.revealedCount) return
+    this.setData({ detailIndex: index, detailCards: [this.data.drawn[index]], meaningOpen: this.data.drawn.length === 1 })
+  },
+  selectDetail(e) { this.selectDetailIndex(Number(e.currentTarget.dataset.index)) },
+  toggleMeaning() { this.setData({ meaningOpen: !this.data.meaningOpen }) },
+  toggleCompact() { this.setData({ compact: !this.data.compact }) },
+  toggleAiDetail() { this.setData({ aiExpanded: !this.data.aiExpanded }) },
+  onAiQuestion(e) { if (!this.data.aiLoading && !this.data.aiResult) this.setData({ aiQuestion: e.detail.value.slice(0, 300) }) },
+  clearReading() {
+    this.setData({ drawId: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false, detailIndex: 0, detailCards: [], meaningOpen: false })
+  },
+  async readWithAi() {
+    if (!this.data.drawId || this.data.nextCard || this.data.aiLoading || this.data.aiResult) return
+    const id = this.data.drawId
+    this.setData({ aiLoading: true, aiError: '' })
+    try {
+      const result = await fetchTarotReading(id, this.data.aiQuestion.trim())
+      if (this._disposed || id !== this.data.drawId) return
+      if (!result || !result.summary || !result.detail) throw new Error('未收到完整解读，请稍后重试')
+      this.setData({ aiResult: result })
+    } catch (e) {
+      if (!this._disposed && id === this.data.drawId) this.setData({ aiError: e.message || '解读失败，请稍后重试' })
+    } finally {
+      if (!this._disposed && id === this.data.drawId) this.setData({ aiLoading: false })
+    }
   },
   toggleLesson() { this.setData({ lessonOpen: !this.data.lessonOpen }) },
   studyCardNo(card) {

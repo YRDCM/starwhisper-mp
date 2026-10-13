@@ -10,7 +10,7 @@ const TIMEOUT = 8000
  * 统一请求：成功 resolve(body.data)，失败 reject(Error(友好中文提示))
  * @param {object} opts { url, method, data, auth }
  */
-function request({ url, method = 'GET', data, auth = true }) {
+function request({ url, method = 'GET', data, auth = true, timeout = TIMEOUT }) {
   return new Promise((resolve, reject) => {
     const header = {}
     if (auth) {
@@ -23,7 +23,7 @@ function request({ url, method = 'GET', data, auth = true }) {
       method,
       data,
       header,
-      timeout: TIMEOUT,
+      timeout,
       success: (res) => {
         const body = res.data
         // 未登录 / token 失效：清本地登录态并提示
@@ -69,6 +69,7 @@ module.exports = {
     method: 'POST'
   }),
   fetchTarotCards: () => request({ url: '/tarot/cards' }),
+  fetchTarotReading: (drawId, question) => request({ url: '/tarot/ai-reading', method: 'POST', data: { drawId, question }, timeout: 60000 }),
 
   /* ===== 八卦 ===== */
   fetchBaguaDaily: () => request({ url: '/bagua/daily' }),
