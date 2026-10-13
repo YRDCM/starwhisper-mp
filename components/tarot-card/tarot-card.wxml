@@ -1,6 +1,6 @@
 <!-- 塔罗牌面/牌背组件：7:12 牌比，细金边，星云紫底。
-     逆位时仅中央符号（花押圆章）rotateZ(180°)，中英文牌名/花色角标全部保持正向可读；
-     正/逆位角签在旋转层之外保持可读 -->
+     逆位 = 整牌完全 180° 倒转，与正位严格镜像：牌名/花色角标/中央圆章随牌倒转，
+     正/逆位角签在旋转层内保持牌的右上角，逆位时镜像到左下 -->
 <view class="tarot-card sz-{{size}}">
   <!-- 牌背：同心圆环（repeating-radial-gradient）+ 中心 ✦ + 星点 -->
   <view wx:if="{{faceDown}}" class="card-back">
@@ -15,16 +15,16 @@
         <view class="face-name">{{card.name}}</view>
         <view class="face-en">{{card.nameEn}}</view>
       </view>
-      <!-- 组名 + 编号（仿真实塔罗角标）移到底部两行竖排：
+      <!-- 组名 + 编号（仿真实塔罗角标）底部两行竖排：
            顶部整块让给正/逆位角签，长组名（PENTACLES）不再被印章遮挡裁断 -->
       <view class="face-bottom mono">
         <text class="ft-group">{{card.arcanaGroup}}</text>
         <text class="ft-num">{{card.cardNumber}}</text>
       </view>
-    </view>
-    <!-- 正/逆位角签：固定右上角，不随牌面旋转 -->
-    <view wx:if="{{orientation}}" class="ori-tag mono {{orientation}}">
-      {{orientation === 'reversed' ? '逆位' : '正位'}}
+      <!-- 正/逆位角签：旋转层内固定牌的右上角，逆位随整牌倒转、镜像到左下 -->
+      <view wx:if="{{orientation}}" class="ori-tag mono {{orientation}}">
+        {{orientation === 'reversed' ? '逆位' : '正位'}}
+      </view>
     </view>
   </block>
 </view>
