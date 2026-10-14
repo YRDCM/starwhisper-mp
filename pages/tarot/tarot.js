@@ -12,6 +12,22 @@ const GROUP_META = [
 ]
 const SNAPSHOT_KEY = 'starwhisper:tarot-session:v1'
 const STUDY_KEY = 'starwhisper:learned-tarot'
+const MOOD_KEY = 'starwhisper:daily-moods:v1'
+const MOODS = ['平静', '开心', '期待', '纠结', '疲惫', '低落']
+function localDay() {
+  const date = new Date()
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
+}
+function readMoods() {
+  const saved = wx.getStorageSync(MOOD_KEY)
+  if (!Array.isArray(saved)) return []
+  const seen = new Set()
+  return saved.filter(item => {
+    if (!item || !/^\d{4}-\d{2}-\d{2}$/.test(item.date) || !MOODS.includes(item.mood) || seen.has(item.date)) return false
+    seen.add(item.date)
+    return true
+  }).map(({ date, mood }) => ({ date, mood })).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30)
+}
 
 // 关键词字符串 → 数组（顿号/逗号/斜杠分隔均兼容）
 function splitKw(s) {
@@ -55,6 +71,7 @@ Page({
     compact: true, detailIndex: 0, detailCards: [], meaningOpen: false,
     drawId: '', aiQuestion: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false,
     todayStr: '',
+    moodOptions: MOODS, todayMood: '', moodRecords: [], moodHistoryOpen: false, moodError: '',
     // 每日塔罗
     daily: null,
     dailyKeywords: [],
@@ -123,10 +140,47 @@ Page({
       const saved = wx.getStorageSync(STUDY_KEY)
       this.setData({ learnedCards: Array.isArray(saved) ? [...new Set(saved.filter((n) => Number.isInteger(n) && n >= 1 && n <= 78))] : [] })
     } catch { this.setData({ studyError: '暂时无法读取学习进度' }) }
-    const today = new Date()
-    this.setData({ todayStr: [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-') })
+    this.refreshMood()
     this.restoreSnapshot()
     this.loadDaily() // 进入页面即自动加载每日塔罗
+  },
+
+  onShow() {
+    const changedDay = this.data.todayStr && this.data.todayStr !== localDay()
+    this.refreshMood()
+    if (changedDay) this.loadDaily()
+  },
+
+  refreshMood() {
+    const todayStr = localDay()
+    try {
+      const moodRecords = readMoods()
+      const today = moodRecords.find(item => item.date === todayStr)
+      this.setData({ todayStr, moodRecords, todayMood: today ? today.mood : '', moodError: '' })
+    } catch {
+      this.setData({ todayStr, todayMood: '', moodRecords: [], moodError: '暂时无法读取心情记录，请重新进入页面重试' })
+    }
+  },
+
+  selectMood(e) {
+    const mood = e.currentTarget.dataset.mood
+    if (!MOODS.includes(mood)) return
+    const todayStr = localDay()
+    const changedDay = todayStr !== this.data.todayStr
+    try {
+      const records = readMoods().filter(item => item.date !== todayStr)
+      const moodRecords = [{ date: todayStr, mood }, ...records].slice(0, 30)
+      wx.setStorageSync(MOOD_KEY, moodRecords)
+      this.setData({ todayStr, todayMood: mood, moodRecords, moodError: '' })
+      if (changedDay) this.loadDaily()
+    } catch {
+      this.setData({ moodError: '心情未保存，请稍后再试' })
+    }
+  },
+
+  toggleMoodHistory() {
+    this.refreshMood()
+    this.setData({ moodHistoryOpen: !this.data.moodHistoryOpen })
   },
 
   onHide() { this.saveSnapshot() },

@@ -9,9 +9,9 @@ function makePage(api = {}, storage = {}) {
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../pages/tarot/tarot.js'), 'utf8'), {
     Page: (value) => { page = value },
     require: (name) => name.endsWith('/config') ? {} : api,
-    wx: { getStorageSync: key => key.includes('tarot-session') ? storage.session : storage.value, removeStorageSync: () => { delete storage.session }, setStorageSync: (key, value) => {
+    wx: { getStorageSync: key => key.includes('daily-moods') ? storage.moods : key.includes('tarot-session') ? storage.session : storage.value, removeStorageSync: () => { delete storage.session }, setStorageSync: (key, value) => {
       if (storage.fail) throw new Error('storage full')
-      if (key.includes('tarot-session')) storage.session = JSON.parse(JSON.stringify(value)); else storage.value = value
+      if (key.includes('daily-moods')) storage.moods = JSON.parse(JSON.stringify(value)); else if (key.includes('tarot-session')) storage.session = JSON.parse(JSON.stringify(value)); else storage.value = value
     } }
   })
   page.setData = (patch) => Object.assign(page.data, patch)
@@ -172,4 +172,50 @@ test('过期本地牌阵保留 AI 解读，损坏缓存不会阻止使用',()=>{
   storage.session={version:1,cards:[]}
   const broken=makePage({},storage); broken.restoreSnapshot()
   assert.equal(broken.data.drawn.length,0); assert.equal(storage.session,undefined)
+})
+
+test('每日心情：当天修改不重复，重新进入恢复，独立于牌阵和学习记录', () => {
+  const storage = { value: [1, 2] }
+  const page = makePage({}, storage)
+  page.refreshMood()
+  const select = mood => page.selectMood({ currentTarget: { dataset: { mood } } })
+  select('平静'); select('期待')
+  assert.equal(storage.moods.length, 1)
+  assert.equal(page.data.todayMood, '期待')
+  assert.deepEqual(storage.value, [1, 2])
+  const reopened = makePage({}, storage)
+  reopened.refreshMood()
+  assert.equal(reopened.data.todayMood, '期待')
+  select('无效心情')
+  assert.equal(storage.moods.length, 1)
+})
+
+test('每日心情：写入失败不显示保存成功，重试可更新', () => {
+  const storage = {}
+  const page = makePage({}, storage)
+  page.refreshMood()
+  page.selectMood({ currentTarget: { dataset: { mood: '平静' } } })
+  storage.fail = true
+  page.selectMood({ currentTarget: { dataset: { mood: '疲惫' } } })
+  assert.equal(page.data.todayMood, '平静')
+  assert.match(page.data.moodError, /未保存/)
+  storage.fail = false
+  page.selectMood({ currentTarget: { dataset: { mood: '疲惫' } } })
+  assert.equal(page.data.todayMood, '疲惫')
+  assert.equal(page.data.moodError, '')
+})
+
+test('每日心情：跨天返回清除昨日选中态并刷新每日牌，保留历史', () => {
+  const storage = { moods: [{ date: '2020-01-01', mood: '开心' }, { date: 'bad', mood: '开心' }] }
+  const page = makePage({}, storage)
+  let loads = 0
+  page.loadDaily = () => { loads++ }
+  page.data.todayStr = '2020-01-01'
+  page.data.todayMood = '开心'
+  page.onShow()
+  assert.equal(page.data.todayMood, '')
+  assert.equal(page.data.moodRecords.length, 1)
+  assert.equal(loads, 1)
+  page.onShow()
+  assert.equal(loads, 1)
 })

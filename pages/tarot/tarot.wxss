@@ -38,6 +38,17 @@
 .daily.refreshing {
   opacity: 0.55;
 }
+.daily-mood { flex: 0 0 100%; min-width: 0; padding-bottom: 24rpx; border-bottom: 1px solid var(--gold-hairline); }
+.mood-heading { display: flex; flex-wrap: wrap; gap: 12rpx; align-items: baseline; font-size: 28rpx; line-height: 1.6; }
+.mood-optional, .mood-hint { font-size: 23rpx; color: var(--ink-dim2); line-height: 1.7; }
+.mood-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12rpx; margin: 18rpx 0 12rpx; }
+.page .mood-option { box-sizing: border-box; width: 100%; min-width: 0; margin: 0; padding: 14rpx 8rpx; font-size: 25rpx; font-weight: normal; line-height: 1.6; color: var(--ink); background: rgba(7, 11, 30, .25); border: 1px solid var(--gold-hairline); border-radius: 8rpx; white-space: normal; }
+.page .mood-option.is-active { color: var(--gold); border-color: var(--gold); background: rgba(232, 196, 124, .1); }
+.page .mood-option::after, .page .mood-history-toggle::after { border: 0; }
+.page .mood-history-toggle { width: 100%; margin: 8rpx 0 0; padding: 10rpx 0; font-size: 23rpx; font-weight: normal; line-height: 1.7; text-align: left; color: var(--gold); background: transparent; border: 0; white-space: normal; }
+.mood-history { max-height: 360rpx; overflow-y: auto; margin-top: 8rpx; }
+.mood-record { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; height: 64rpx; box-sizing: border-box; font-size: 24rpx; line-height: 1.6; border-bottom: 1px solid var(--gold-hairline); }
+.mood-storage { margin-top: 8rpx; font-size: 22rpx; line-height: 1.7; color: var(--ink-dim2); }
 .daily-face {
   flex: none;
   width: 220rpx;
