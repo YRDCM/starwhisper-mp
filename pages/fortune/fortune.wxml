@@ -17,7 +17,7 @@
   <view wx:if="{{error}}" class="glass-card state-box">
     <view class="state-icon">✧</view>
     <view class="state-text">{{error}}</view>
-    <button class="btn-gold" bindtap="retry">重新连接</button>
+    <button size="mini" class="btn-gold" bindtap="retry">重新连接</button>
   </view>
 
   <block wx:else>
@@ -207,7 +207,7 @@
     <view class="poster-modal" catchtap="noop">
       <image class="poster-img" src="{{posterImage}}" mode="widthFix" show-menu-by-longpress />
       <view class="poster-actions">
-        <button class="btn-gold" bindtap="savePoster">保存到相册</button>
+        <button size="mini" class="btn-gold" bindtap="savePoster">保存到相册</button>
         <view class="poster-close mono" bindtap="closePoster">关闭</view>
       </view>
     </view>

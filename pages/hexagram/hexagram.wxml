@@ -13,7 +13,7 @@
   <view wx:if="{{error}}" class="glass-card state-box">
     <view class="state-icon">✧</view>
     <view class="state-text">{{error}}</view>
-    <button class="btn-gold" bindtap="retry">重新连接</button>
+    <button size="mini" class="btn-gold" bindtap="retry">重新连接</button>
   </view>
 
   <!-- 加载态 -->

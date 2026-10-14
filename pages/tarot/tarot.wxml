@@ -28,7 +28,7 @@
   <view class="glass-card daily {{dailyLoading && daily ? 'refreshing' : ''}}">
     <view wx:if="{{dailyError}}" class="state-box">
       <view class="state-text">{{dailyError}}</view>
-      <button class="btn-gold" bindtap="loadDaily">重新连接</button>
+      <button size="mini" class="btn-gold" bindtap="loadDaily">重新连接</button>
     </view>
     <view wx:elif="{{dailyLoading && !daily}}" class="state-box">
       <view class="spinner"></view>
@@ -52,16 +52,18 @@
         <view class="kw-chips">
           <text wx:for="{{dailyKeywords}}" wx:key="index" class="kw-chip">{{item}}</text>
         </view>
+      </view>
+      <view class="daily-reading">
         <view class="meaning">{{daily.meaning}}</view>
         <view class="lesson-inline">
-          <button class="btn-gold" bindtap="toggleLesson">{{lessonOpen ? '收起知识' : '今日识牌 · 学习这张牌'}}</button>
+          <button size="mini" class="btn-gold" bindtap="toggleLesson">{{lessonOpen ? '收起知识' : '今日识牌 · 学习这张牌'}}</button>
           <view wx:if="{{lessonOpen}}" class="lesson-body">
             <view class="m-label">正位 · {{daily.card.uprightKeywords}}</view>
             <view class="m-text">{{daily.card.uprightMeaning}}</view>
             <view class="m-label">逆位 · {{daily.card.reversedKeywords}}</view>
             <view class="m-text">{{daily.card.reversedMeaning}}</view>
             <view class="spread-hint">想一想：这张牌的哪个关键词，让你联想到最近的一件小事？</view>
-            <button class="btn-gold" disabled="{{todayLearned}}" bindtap="markLearned">{{todayLearned ? '这张牌已学习 ✓' : '标记已学习'}}</button>
+            <button size="mini" class="btn-gold" disabled="{{todayLearned}}" bindtap="markLearned">{{todayLearned ? '这张牌已学习 ✓' : '标记已学习'}}</button>
           </view>
           <view class="spread-hint">已学习 {{learnedCards.length}} / 78 张 · 仅保存在当前设备</view>
           <view wx:if="{{studyError}}" class="error-line">{{studyError}}</view>
@@ -106,7 +108,7 @@
           </view>
         </view>
         <view class="stage-actions">
-          <button class="btn-gold {{drawing ? 'disabled' : ''}}" bindtap="startPick" disabled="{{drawing}}">
+          <button size="mini" class="btn-gold {{drawing ? 'disabled' : ''}}" bindtap="startPick" disabled="{{drawing}}">
             {{drawing ? '洗牌抽牌中…' : '开始抽牌'}}
           </button>
         </view>
@@ -140,7 +142,7 @@
           </view>
         </scroll-view>
         <view class="pick-actions">
-          <button
+          <button size="mini"
             class="btn-gold {{pickFull && !drawing ? '' : 'disabled'}}"
             bindtap="confirmPick"
             disabled="{{!pickFull || drawing}}"
@@ -164,13 +166,13 @@
         </view>
         <view wx:else class="m-text">全部牌面已揭晓，可以回看各牌解读。</view>
         <view wx:if="{{nextCard}}" class="reveal-actions">
-          <button class="btn-gold" bindtap="revealNext">揭晓第 {{revealedCount + 1}} 张</button>
-          <button class="btn-gold" bindtap="revealAll">一键全部揭晓</button>
+          <button size="mini" class="btn-gold" bindtap="revealNext">揭晓第 {{revealedCount + 1}} 张</button>
+          <button size="mini" class="btn-gold" bindtap="revealAll">一键全部揭晓</button>
         </view>
       </view>
       <!-- single / three：横排 -->
       <view wx:if="{{drawn.length > 3}}" class="reading-nav">
-        <button class="layout-toggle" bindtap="toggleCompact">{{compact ? '紧凑展示 · 切换经典牌阵' : '经典牌阵 · 切换紧凑展示'}}</button>
+        <button size="mini" class="layout-toggle" bindtap="toggleCompact">{{compact ? '紧凑展示 · 切换经典牌阵' : '经典牌阵 · 切换紧凑展示'}}</button>
       </view>
       <view wx:if="{{drawn.length > 3 && compact}}" class="compact-cards">
         <view wx:for="{{drawn}}" wx:key="orderIndex" class="compact-cell">
@@ -280,7 +282,7 @@
 
       <!-- 逐牌解读 -->
       <view wx:if="{{revealedCount}}" class="reading-nav">
-        <button wx:for="{{revealedCards}}" wx:key="orderIndex" class="reading-chip {{detailIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="selectDetail">{{index + 1}} · {{item.position || '指引'}}</button>
+        <button size="mini" wx:for="{{revealedCards}}" wx:key="orderIndex" class="reading-chip {{detailIndex === index ? 'active' : ''}}" data-index="{{index}}" bindtap="selectDetail">{{index + 1}} · {{item.position || '指引'}}</button>
       </view>
       <view class="meaning-panels focused-reading">
         <view wx:for="{{detailCards}}" wx:key="orderIndex" class="m-panel">
@@ -294,7 +296,7 @@
           <view class="kw-chips">
             <text wx:for="{{item.keywordsArr}}" wx:for-item="k" wx:key="index" class="kw-chip">{{k}}</text>
           </view>
-          <button class="detail-toggle" bindtap="toggleMeaning">{{meaningOpen ? '收起完整牌义 −' : '展开完整牌义 +'}}</button>
+          <button size="mini" class="detail-toggle" bindtap="toggleMeaning">{{meaningOpen ? '收起完整牌义 −' : '展开完整牌义 +'}}</button>
           <view wx:if="{{meaningOpen}}" class="m-text">{{item.meaning}}</view>
         </view>
       </view>
@@ -306,18 +308,18 @@
           <view class="spread-hint">你想梳理什么？（选填，最多 300 字）</view>
           <textarea class="ai-question" value="{{aiQuestion}}" maxlength="300" bindinput="onAiQuestion" disabled="{{aiLoading || !!aiResult}}" placeholder="例如：面对新的工作机会，我可以从哪些方面思考？" />
           <view class="ai-note">点击后会将问题与牌面发送给 Kimi，仅供娱乐与自我探索。每组牌生成一次，同一网络有每日限额。</view>
-          <button wx:if="{{!aiResult}}" class="btn-gold" disabled="{{aiLoading || !!nextCard}}" bindtap="readWithAi">{{aiLoading ? '正在结合牌阵解读…' : nextCard ? '全部揭晓后可 AI 解牌' : '用 Kimi 解读这组牌'}}</button>
+          <button size="mini" wx:if="{{!aiResult}}" class="btn-gold" disabled="{{aiLoading || !!nextCard}}" bindtap="readWithAi">{{aiLoading ? '正在结合牌阵解读…' : nextCard ? '全部揭晓后可 AI 解牌' : '用 Kimi 解读这组牌'}}</button>
           <view wx:if="{{aiError}}" class="error-line">{{aiError}}</view>
           <view wx:if="{{aiResult}}" class="ai-result">
             <view class="m-text">{{aiResult.summary}}</view>
-            <button class="detail-toggle" bindtap="toggleAiDetail">{{aiExpanded ? '收起详细解读 −' : '牌阵联系与行动建议 +'}}</button>
+            <button size="mini" class="detail-toggle" bindtap="toggleAiDetail">{{aiExpanded ? '收起详细解读 −' : '牌阵联系与行动建议 +'}}</button>
             <view wx:if="{{aiExpanded}}" class="m-text ai-detail">{{aiResult.detail}}</view>
           </view>
         </block>
       </view>
 
       <view class="stage-actions">
-        <button class="btn-gold" bindtap="resetDraw">重新抽牌</button>
+        <button size="mini" class="btn-gold" bindtap="resetDraw">重新抽牌</button>
       </view>
     </block>
   </view>

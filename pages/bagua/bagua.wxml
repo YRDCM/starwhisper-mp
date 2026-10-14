@@ -13,7 +13,7 @@
   <view class="glass-card daily {{dailyLoading && daily ? 'refreshing' : ''}}">
     <view wx:if="{{dailyError}}" class="state-box">
       <view class="state-text">{{dailyError}}</view>
-      <button class="btn-gold" bindtap="loadDaily">重新连接</button>
+      <button size="mini" class="btn-gold" bindtap="loadDaily">重新连接</button>
     </view>
     <view wx:elif="{{dailyLoading && !daily}}" class="state-box">
       <view class="spinner"></view>
@@ -42,7 +42,7 @@
     <!-- 未起卦：仪式入口 -->
     <view wx:if="{{!castResult}}" class="cast-entry">
       <view class="cast-hint">静心默念所求之事，而后起卦</view>
-      <button class="btn-gold {{casting ? 'disabled' : ''}}" bindtap="doCast" disabled="{{casting}}">
+      <button size="mini" class="btn-gold {{casting ? 'disabled' : ''}}" bindtap="doCast" disabled="{{casting}}">
         {{casting ? '摇卦中…' : '起卦'}}
       </button>
     </view>
@@ -95,7 +95,7 @@
       </view>
 
       <view wx:if="{{showResult}}" class="cast-again">
-        <button class="btn-gold" bindtap="resetCast">重新起卦</button>
+        <button size="mini" class="btn-gold" bindtap="resetCast">重新起卦</button>
       </view>
     </block>
   </view>

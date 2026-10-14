@@ -99,6 +99,9 @@
   gap: 20rpx;
 }
 .pair-names {
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
   display: flex;
   align-items: baseline;
   gap: 20rpx;

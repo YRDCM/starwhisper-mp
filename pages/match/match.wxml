@@ -40,7 +40,7 @@
     </view>
 
     <view class="match-action">
-      <button class="btn-gold {{loading ? 'disabled' : ''}}" bindtap="doMatch" disabled="{{loading}}">
+      <button size="mini" class="btn-gold {{loading ? 'disabled' : ''}}" bindtap="doMatch" disabled="{{loading}}">
         {{loading ? '星象推演中…' : resultStale ? '重新配对' : '开始配对'}}
       </button>
     </view>

@@ -86,6 +86,9 @@ page {
 
 /* 关键词签 */
 .kw-chip {
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-family: var(--font-mono);
   font-size: 25rpx;
   letter-spacing: 0.1em;
@@ -96,17 +99,31 @@ page {
 }
 
 /* 主按钮（金色描边） */
-.btn-gold {
-  padding: 16rpx 64rpx;
+.page .btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 80rpx;
+  height: auto;
+  padding: 16rpx 32rpx;
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1.6;
+  text-align: center;
   border-radius: 8rpx;
   border: 1px solid var(--gold);
   background: rgba(232, 196, 124, 0.08);
   color: var(--gold);
   font-size: 28rpx;
   letter-spacing: 0.22em;
-  white-space: nowrap; /* 按钮文案永不折行 */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
-.btn-gold.disabled {
+.page .btn-gold::after { border: 0; }
+.page .btn-gold[disabled], .page .btn-gold.disabled {
   opacity: 0.55;
 }
 

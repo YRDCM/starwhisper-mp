@@ -140,9 +140,10 @@
   line-height: 1.8;
 }
 .login-btn {
-  width: 60%;
+  width: 100%;
+  max-width: 480rpx;
 }
-.btn-ghost {
+.page .btn-ghost {
   background: none;
   border: 1px solid rgba(139, 135, 176, 0.25);
   color: var(--ink-dim2);
@@ -150,7 +151,13 @@
   letter-spacing: 0.18em;
   padding: 12rpx 40rpx;
   border-radius: 8rpx;
-  white-space: nowrap; /* 按钮文案永不折行 */
+  max-width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .btn-ghost::after, .btn-gold::after {
   border: none; /* 去掉 button 默认边框 */

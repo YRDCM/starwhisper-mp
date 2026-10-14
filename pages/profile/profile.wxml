@@ -34,7 +34,7 @@
           class="ci-dot {{item.done ? 'done' : ''}}"
         ></view>
       </view>
-      <button
+      <button size="mini"
         class="btn-gold ci-btn {{checkinStatus.todayDone || checking ? 'disabled done' : ''}}"
         bindtap="doCheckin"
         disabled="{{checkinStatus.todayDone || checking}}"
@@ -43,7 +43,7 @@
     <!-- 加载失败：错误文案 + 重试（不再无限 spinner） -->
     <view wx:elif="{{checkinError}}" class="ci-anon">
       <view class="ci-anon-text">{{checkinError}}</view>
-      <button class="btn-ghost ci-retry" bindtap="loadCheckinStatus">重新加载</button>
+      <button size="mini" class="btn-ghost ci-retry" bindtap="loadCheckinStatus">重新加载</button>
     </view>
     <view wx:else class="ci-anon"><view class="spinner"></view></view>
   </view>
@@ -79,11 +79,11 @@
   <view wx:if="{{!token}}" class="glass-card login-card">
     <view class="avatar-placeholder">✦</view>
     <view class="login-tip">登录后可同步保存塔罗抽牌与起卦记录</view>
-    <button class="btn-gold login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
+    <button size="mini" class="btn-gold login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
       {{logging ? '登录中…' : '微信登录'}}
     </button>
     <view wx:if="{{loginError}}" class="error-line">{{loginError}}</view>
-    <button class="btn-ghost" bindtap="onDevLogin">游客体验登录</button>
+    <button size="mini" class="btn-ghost" bindtap="onDevLogin">游客体验登录</button>
   </view>
 
   <!-- ===== 已登录 ===== -->

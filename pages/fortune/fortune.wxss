@@ -390,6 +390,8 @@ page {
 
 /* 来源签 */
 .fc-footer {
+  flex-wrap: wrap;
+  gap: 16rpx;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -407,7 +409,9 @@ page {
 }
 .source-tag {
   flex: none;
-  white-space: nowrap; /* 「DATA · 万维易源 SHOWAPI」不折断 */
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 25rpx;
   letter-spacing: 0.16em;
   color: var(--ink-dim2);

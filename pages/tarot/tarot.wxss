@@ -30,8 +30,9 @@
 /* ===== 每日塔罗 ===== */
 .daily {
   display: flex;
-  gap: 40rpx;
-  padding: 40rpx 36rpx;
+  flex-wrap: wrap;
+  gap: 28rpx;
+  padding: 32rpx 28rpx;
   transition: opacity 0.25s ease;
 }
 .daily.refreshing {
@@ -39,7 +40,7 @@
 }
 .daily-face {
   flex: none;
-  width: 260rpx;
+  width: 220rpx;
 }
 .daily-panel {
   flex: 1;
@@ -53,19 +54,23 @@
   flex-direction: column;
   gap: 6rpx; /* 中文一行、英文一行，不混排 */
 }
+.daily-reading { flex: 0 0 100%; min-width: 0; }
+.daily-panel .eyebrow { font-size: 22rpx; line-height: 1.6; letter-spacing: .1em; }
 .daily-name .zh {
   font-family: var(--font-display);
-  font-size: 52rpx;
+  font-size: 44rpx;
   color: var(--gold);
   letter-spacing: 0.14em;
-  white-space: nowrap; /* 牌名不折断 */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .daily-name .en {
   font-family: var(--font-display);
   font-style: italic;
   font-size: 30rpx;
   color: var(--ink-dim2);
-  white-space: nowrap; /* 英文牌名任何长度都不折断单词 */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .meaning {
   font-size: 30rpx;
@@ -90,7 +95,10 @@
   letter-spacing: 0.2em;
   color: var(--ink-dim2);
   margin-left: 16rpx;
-  white-space: nowrap; /* 英文短语不在空格/连字符处断成两截 */
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* ===== 抽牌仪式 ===== */
@@ -167,6 +175,8 @@
 
 /* ===== 选牌界面：78 张洗牌牌背 · 6 列网格 ===== */
 .pick-head {
+  flex-wrap: wrap;
+  gap: 16rpx;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -183,7 +193,8 @@
   letter-spacing: 0.16em;
   color: var(--ink-dim2);
   margin-left: 14rpx;
-  white-space: nowrap;
+  display: inline-block;
+  white-space: normal;
 }
 .pick-progress {
   flex: none;
@@ -335,9 +346,8 @@
   letter-spacing: 0.16em;
   color: var(--ink-dim2);
   margin-bottom: 22rpx; /* 原 12rpx：位置标签独立成行，与卡牌上缘拉开，不再视觉压边 */
-  white-space: nowrap; /* 牌位名一行放下，不在空格/字间断折 */
-  overflow: hidden;
-  text-overflow: ellipsis; /* 极端情况（系统大字体）省略号兜底，不折行 */
+  white-space: normal;
+  overflow-wrap: anywhere;
   max-width: 100%;
 }
 .flip {
@@ -397,7 +407,8 @@
 .choice-wings {
   display: flex;
   justify-content: space-between;
-  width: 560rpx;
+  width: 100%;
+  max-width: 560rpx;
 }
 .choice-wings .drawn-item {
   width: 180rpx;
@@ -407,13 +418,14 @@
 /* ===== 爱情十字：五宫格 ===== */
 .love-grid {
   display: grid;
-  grid-template-columns: repeat(3, 196rpx);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   justify-content: center;
   gap: 18rpx;
   padding: 12rpx 0 32rpx;
 }
 .love-cell {
-  width: 196rpx;
+  min-width: 0;
+  width: 100%;
 }
 /* 五宫格定位：c0=上（现实阻碍） c1=左（你的状态） c2=中（关系现状） c3=右（对方的状态） c4=下（结果与建议） */
 .love-cell.c0 { grid-row: 1; grid-column: 2; }
@@ -431,12 +443,15 @@
   padding: 12rpx 0 32rpx;
 }
 .celtic-cross {
+  flex: 1;
+  min-width: 0;
   display: grid;
-  grid-template-columns: repeat(3, 140rpx); /* 3 列：左/中/右 */
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 列：随可用空间收缩 */
   gap: 14rpx 10rpx;
 }
 .cc-cell {
-  width: 140rpx;
+  width: 100%;
+  min-width: 0;
 }
 /* 中心格：1 号牌正置 + 2 号牌横压其上，叠放层压过左右邻格 */
 .cc-center {
@@ -459,6 +474,8 @@
 }
 /* 杖列：自上而下 10/9/8/7 */
 .celtic-staff {
+  flex: 0 0 24%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 14rpx;
@@ -520,6 +537,7 @@
   gap: 16rpx;
 }
 .m-head {
+  flex-wrap: wrap;
   display: flex;
   align-items: baseline;
   gap: 16rpx;
@@ -529,14 +547,16 @@
   font-size: 24rpx;
   letter-spacing: 0.2em;
   color: var(--ink-dim2);
-  white-space: nowrap; /* 与牌面标签同款防折行 */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .m-name {
   font-family: var(--font-display);
   font-size: 34rpx;
   letter-spacing: 0.12em;
   color: var(--ink);
-  white-space: nowrap; /* 牌名不折断 */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .m-ori {
   flex: none;
@@ -548,6 +568,9 @@
 .m-ori.upright { color: var(--jade); }
 .m-ori.reversed { color: var(--cinnabar); }
 .m-text {
+  min-width: 0;
+  font-weight: 400;
+  overflow-wrap: anywhere;
   font-size: 28rpx;
   line-height: 1.9;
   color: rgba(232, 230, 240, 0.9);
@@ -558,6 +581,8 @@
   margin-top: 36rpx;
 }
 .archive-head {
+  flex-wrap: wrap;
+  gap: 16rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -586,7 +611,7 @@
 }
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20rpx;
 }
 
@@ -603,6 +628,8 @@
   box-sizing: border-box;
 }
 .modal {
+  flex-direction: column;
+  align-items: stretch;
   position: relative;
   display: flex;
   gap: 32rpx;
@@ -626,6 +653,7 @@
 .modal-face {
   flex: none;
   width: 200rpx;
+  align-self: center;
 }
 /* 有牌图时加宽到 260rpx，与 440rpx 高保持 RWS 牌比(约 1:1.7) */
 .modal-face.has-img {
@@ -643,7 +671,8 @@
   transform: rotate(180deg); /* 逆位：牌图倒置 */
 }
 .modal-info {
-  flex: 1;
+  flex: none;
+  width: 100%;
   min-width: 0;
 }
 .m-title {
@@ -662,7 +691,8 @@
   font-style: italic;
   font-size: 28rpx;
   color: var(--ink-dim2);
-  white-space: nowrap; /* 英文牌名任何长度都不折断单词 */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .m-block {
   margin-top: 28rpx;
@@ -699,13 +729,17 @@
 .spread-hint { color: var(--ink-dim); font-size: 26rpx; line-height: 1.7; margin: 20rpx 0; }
 .lesson { padding: 32rpx; margin-bottom: 28rpx; }
 .lesson-body { margin-top: 28rpx; }
-.lesson-body .m-text { margin-bottom: 24rpx; }
+.lesson-body .m-text {
+  min-width: 0;
+  font-weight: 400;
+  overflow-wrap: anywhere; margin-bottom: 24rpx; }
 .reveal-guide { border: 1rpx solid var(--gold-hairline); border-radius: 16rpx; padding: 28rpx; margin: 28rpx 0; }
 .reveal-actions { display: flex; flex-wrap: wrap; gap: 20rpx; margin-top: 24rpx; }
 .reveal-actions .btn-gold { flex: 1; min-width: 220rpx; margin: 0; }
 .can-reveal { outline: 2rpx solid var(--gold); outline-offset: 6rpx; border-radius: 12rpx; }
 .reading-nav { display: flex; flex-wrap: wrap; gap: 14rpx; margin: 28rpx 0; }
-.reading-chip, .layout-toggle { margin: 0; padding: 12rpx 18rpx; background: transparent; color: var(--ink-dim); border: 1rpx solid var(--gold-hairline); border-radius: 12rpx; font-size: 24rpx; line-height: 1.5; }
+.page .reading-chip, .page .layout-toggle {
+  display: block; width: auto; max-width: 100%; min-width: 0; height: auto; box-sizing: border-box; font-family: inherit; font-weight: 400; white-space: normal; overflow-wrap: anywhere; margin: 0; padding: 12rpx 18rpx; background: transparent; color: var(--ink-dim); border: 1rpx solid var(--gold-hairline); border-radius: 12rpx; font-size: 24rpx; line-height: 1.5; }
 .reading-chip::after, .layout-toggle::after, .detail-toggle::after { border: 0; }
 .reading-chip.active { color: var(--gold); border-color: var(--gold); background: rgba(232,196,124,.07); }
 .compact-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24rpx 18rpx; margin: 32rpx 0; }
@@ -715,16 +749,25 @@
 .focused-reading { display: block; margin-top: 16rpx; }
 .focused-reading .m-panel { padding: 26rpx; gap: 14rpx; }
 .focused-reading .m-name { font-size: 32rpx; }
-.focused-reading .m-text, .ai-reading .m-text { font-size: 28rpx; line-height: 1.85; }
-.detail-toggle { width: auto; margin: 12rpx 0 0; padding: 8rpx 0; background: transparent; color: var(--gold); text-align: left; font-size: 26rpx; line-height: 1.8; }
-.ai-reading { margin-top: 32rpx; padding: 28rpx; border: 1rpx solid var(--gold-hairline); border-radius: 16rpx; }
+.focused-reading .m-text, .ai-reading .m-text {
+  min-width: 0;
+  font-weight: 400;
+  overflow-wrap: anywhere; font-size: 28rpx; line-height: 1.85; }
+.page .detail-toggle { display: block; width: 100%; max-width: 100%; min-width: 0; height: auto; box-sizing: border-box; margin: 8rpx 0 0; padding: 12rpx 0; border: 0; border-radius: 0; background: transparent; color: var(--gold); text-align: left; font-family: inherit; font-weight: 400; font-size: 26rpx; line-height: 1.8; white-space: normal; overflow-wrap: anywhere; }
+.ai-reading { min-width: 0; box-sizing: border-box; margin-top: 32rpx; padding: 28rpx; border: 1rpx solid var(--gold-hairline); border-radius: 16rpx; }
 .ai-badge { font-size: 22rpx; letter-spacing: 0; color: var(--ink-dim); }
 .ai-question { box-sizing: border-box; width: 100%; height: 168rpx; padding: 20rpx; border: 1rpx solid var(--gold-hairline); border-radius: 12rpx; background: rgba(0,0,0,.15); color: var(--ink); font-size: 28rpx; line-height: 1.6; }
 .ai-note { font-size: 24rpx; line-height: 1.7; color: var(--ink-dim); margin: 18rpx 0 26rpx; }
-.ai-reading .btn-gold { font-size: 26rpx; padding-left: 12rpx; padding-right: 12rpx; }
+.ai-reading .btn-gold { width: 100%; font-size: 26rpx; padding-left: 12rpx; padding-right: 12rpx; }
 .ai-result { margin-top: 24rpx; }
 .ai-detail { white-space: pre-wrap; word-break: break-word; }
 
 .is-selected { outline: 3rpx solid var(--gold); outline-offset: 6rpx; border-radius: 12rpx; }
 .lesson-inline { margin-top: 24rpx; padding-top: 20rpx; border-top: 1rpx solid var(--gold-hairline); }
 .lesson-inline > .spread-hint { font-size: 24rpx; margin: 14rpx 0 0; }
+
+.daily .state-box { width: 100%; }
+.daily-reading .lesson-inline .btn-gold { width: 100%; letter-spacing: .08em; }
+.ai-result .m-text { white-space: pre-wrap; }
+.ai-reading .m-label { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12rpx; letter-spacing: .08em; }
+.focused-reading .m-name { min-width: 0; }
