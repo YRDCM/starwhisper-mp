@@ -173,6 +173,10 @@
   margin-top: 16rpx;
 }
 
+.stage-actions.reset-actions {
+  margin-top: 36rpx;
+}
+
 /* ===== 选牌界面：78 张洗牌牌背 · 6 列网格 ===== */
 .pick-head {
   flex-wrap: wrap;

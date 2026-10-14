@@ -318,7 +318,7 @@
         </block>
       </view>
 
-      <view class="stage-actions">
+      <view class="stage-actions reset-actions">
         <button size="mini" class="btn-gold" bindtap="resetDraw">重新抽牌</button>
       </view>
     </block>
