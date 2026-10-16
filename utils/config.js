@@ -14,7 +14,7 @@ const APP_VERSION = '1.5.0'
 // 到微信公众平台 mp.weixin.qq.com → 功能 → 订阅消息 申请模板后回填。
 // 留空 = 功能未上线：「我的」页条目显示「即将上线」且不可点（不会拿空 ID 调 wx.requestSubscribeMessage）
 const SUBSCRIBE_TEMPLATES = {
-  dailyFortune: '' // 每日运势推送模板 ID（回填后前后端同时生效）
+  dailyFortune: '7MKQhnJvNlWoHAEdkQ7VnBrv51Z5c4U8PxPCNMWjW7c' // 每日运势提醒（一次性订阅模板）
 }
 
 module.exports = { BASE_URL, APP_VERSION, SUBSCRIBE_TEMPLATES }
