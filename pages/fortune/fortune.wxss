@@ -155,6 +155,38 @@ page {
 .center-label { font-size: 24rpx; color: var(--ink-dim2); letter-spacing: 0.12em; }
 .center-const { width: 80rpx; height: 80rpx; margin: 6rpx auto 10rpx; }
 .wheel-hint { text-align: center; font-size: 26rpx; color: var(--ink-dim2); margin: -16rpx 0 32rpx; letter-spacing: 0.08em; }
+
+/* 今日/本周切换：与塔罗牌阵选择同款 mode-btn 风格 */
+.scope-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+  margin: 0 0 32rpx;
+}
+.mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+  box-sizing: border-box;
+  font-size: 26rpx;
+  letter-spacing: 0.16em;
+  padding: 0 16rpx;
+  border-radius: 8rpx;
+  border: 1px solid rgba(139, 135, 176, 0.25);
+  color: var(--ink-dim2);
+  white-space: nowrap;
+}
+.mode-btn.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(232, 196, 124, 0.08);
+}
+
+/* 本周视图：评分条与幸运行在周运卡里的间距微调 */
+.weekly-readout { margin-bottom: 8rpx; }
+.weekly-lucky { margin-top: 24rpx; }
+.weekly-footer { justify-content: flex-end; }
 .selected-mark { position: absolute; top: 0; right: 0; width: 28rpx; height: 28rpx; border-radius: 50%; background: var(--gold); color: var(--bg); font-size: 22rpx; line-height: 28rpx; text-align: center; }
 .node-pressed .node-inner { border-color: var(--gold); background: rgba(232, 196, 124, 0.16); }
 .node-const {

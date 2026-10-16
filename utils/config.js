@@ -10,4 +10,11 @@ const BASE_URL = 'http://60.205.228.96'
 // 小程序版本号：每次发版递增，「我的」页页脚展示，便于区分当前是否最新版
 const APP_VERSION = '1.5.0'
 
-module.exports = { BASE_URL, APP_VERSION }
+// ===== 订阅消息模板 ID =====
+// 到微信公众平台 mp.weixin.qq.com → 功能 → 订阅消息 申请模板后回填。
+// 留空 = 功能未上线：「我的」页条目显示「即将上线」且不可点（不会拿空 ID 调 wx.requestSubscribeMessage）
+const SUBSCRIBE_TEMPLATES = {
+  dailyFortune: '' // 每日运势推送模板 ID（回填后前后端同时生效）
+}
+
+module.exports = { BASE_URL, APP_VERSION, SUBSCRIBE_TEMPLATES }

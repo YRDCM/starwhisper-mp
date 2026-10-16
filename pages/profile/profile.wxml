@@ -48,6 +48,19 @@
     <view wx:else class="ci-anon"><view class="spinner"></view></view>
   </view>
 
+  <!-- ===== 每日运势订阅提醒 ===== -->
+  <view class="glass-card notify-card">
+    <view class="ci-head">
+      <text class="ci-title">每日运势提醒</text>
+      <text class="ci-title-en mono">DAILY FORTUNE</text>
+    </view>
+    <view class="nt-row {{notifyEntry.clickable && !notifyBusy ? '' : 'nt-disabled'}}" bindtap="onNotifyTap">
+      <text class="nt-status {{notifySubscribed ? 'nt-on' : ''}}">{{notifyEntry.text}}</text>
+      <text wx:if="{{notifyEntry.clickable}}" class="nt-arrow">{{notifySubscribed ? '点击取消' : '›'}}</text>
+    </view>
+    <view class="nt-tip">{{notifyTip}}</view>
+  </view>
+
   <!-- ===== 连续打卡 + 勋章墙（汇总接口失败时整块隐藏） ===== -->
   <view wx:if="{{token && checkinSummary}}" class="glass-card streak-card">
     <!-- 连续打卡横幅 -->

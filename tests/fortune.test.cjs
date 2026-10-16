@@ -11,7 +11,9 @@ function setup() {
     Page: (value) => { page = value },
     require: (name) => name.endsWith('/request') ? {
       fetchTodayFortune: (sign) => new Promise((resolve, reject) => { pending[sign] = { resolve, reject } }),
-      fetchWeekFortune: async (sign) => [sign]
+      fetchWeekFortune: async (sign) => [sign],
+      // 周运默认直接成功（周运用例见 weekly.test.cjs）
+      fetchWeeklyFortune: async (sign) => ({ signNameEn: sign, source: 'SHOWAPI' })
     } : {}
   })
   page.setData = (patch) => Object.assign(page.data, patch)

@@ -59,6 +59,8 @@ module.exports = {
   fetchSigns: () => request({ url: '/signs/list' }),
   fetchTodayFortune: (sign) => request({ url: '/fortune/today', data: { sign } }),
   fetchWeekFortune: (sign) => request({ url: '/fortune/week', data: { sign } }),
+  // 本周运势（ShowAPI week 节点；无本地兜底，失败会 reject，前端显示错误态）
+  fetchWeeklyFortune: (sign) => request({ url: '/fortune/weekly', data: { sign } }),
 
   /* ===== 塔罗 ===== */
   fetchTarotDaily: () => request({ url: '/tarot/daily' }),
@@ -98,6 +100,14 @@ module.exports = {
   // 打卡汇总：连续/最长/总天数 + 勋章墙（openid 可选，后端也可从 token 取）
   fetchCheckinSummary: (openid) =>
     request({ url: '/checkin/summary', data: openid ? { openid } : {} }),
+
+  /* ===== 订阅消息（需登录，401 由 request 统一处理） ===== */
+  // scene = DAILY_FORTUNE；sign 可选（用户星座英文名，订阅时顺手登记，推送按它取运势）
+  subscribeNotify: (scene, sign) =>
+    request({ url: '/notify/subscribe', method: 'POST', data: sign ? { scene, sign } : { scene } }),
+  unsubscribeNotify: (scene) => request({ url: '/notify/unsubscribe', method: 'POST', data: { scene } }),
+  // 返回 { scenes: ['DAILY_FORTUNE', ...] }（仅 ACTIVE 状态）
+  fetchNotifyStatus: () => request({ url: '/notify/status' }),
 
   /* ===== 每日一卦 ===== */
   fetchHexagramToday: (openid) =>

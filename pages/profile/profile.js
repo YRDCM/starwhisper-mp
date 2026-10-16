@@ -1,6 +1,8 @@
-// 我的页：登录（微信 / 游客体验）+ 打卡 + 历史记录（塔罗 / 八卦各最近 5 条）
-const { wechatLogin, devLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus, fetchCheckinSummary } = require('../../utils/request')
-const { APP_VERSION } = require('../../utils/config')
+// 我的页：登录（微信 / 游客体验）+ 打卡 + 历史记录（塔罗 / 八卦各最近 5 条）+ 每日运势订阅提醒
+const { wechatLogin, devLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus, fetchCheckinSummary,
+  subscribeNotify, unsubscribeNotify, fetchNotifyStatus } = require('../../utils/request')
+const { APP_VERSION, SUBSCRIBE_TEMPLATES } = require('../../utils/config')
+const { SIGN_OPTIONS, notifyEntryState, isSubscribeAccepted, SUBSCRIBE_TIP } = require('../../utils/notify')
 
 Page({
   data: {
@@ -21,7 +23,14 @@ Page({
     checkinError: '',    // 打卡状态加载失败文案（空串=正常/加载中）
     // 打卡汇总（连续/最长/总天数 + 勋章墙），接口失败时保持 null 静默隐藏
     checkinSummary: null, // {currentStreak, maxStreak, totalDays, todayChecked}
-    badges: []           // [{code, name, desc, threshold, unlocked, progressText}]
+    badges: [],           // [{code, name, desc, threshold, unlocked, progressText}]
+    // ===== 每日运势订阅提醒 =====
+    notifyTemplateId: SUBSCRIBE_TEMPLATES.dailyFortune || '', // 空 = 未配置，条目显示「即将上线」
+    notifySubscribed: false,   // 后端 ACTIVE 订阅状态
+    notifyBusy: false,         // 订阅/退订进行中（防连点）
+    notifyTip: SUBSCRIBE_TIP,  // 微信平台规则说明文案
+    // 条目展示状态 {text, clickable}，由 refreshNotifyEntry 维护（WXML 不能调方法）
+    notifyEntry: notifyEntryState({ templateId: SUBSCRIBE_TEMPLATES.dailyFortune || '', loggedIn: false, subscribed: false })
   },
 
   onShow() {
@@ -29,11 +38,123 @@ Page({
     const token = wx.getStorageSync('token') || ''
     const userInfo = wx.getStorageSync('userInfo') || null
     this.setData({ token, userInfo })
+    this.refreshNotifyEntry()
     if (token) {
       this.loadHistory()
       this.loadCheckinStatus() // onShow 刷新打卡状态
       this.loadCheckinSummary() // 连续打卡 + 勋章墙（失败静默）
+      this.loadNotifyStatus() // 订阅状态（失败静默）
     }
+  },
+
+  /* ===== 每日运势订阅提醒 ===== */
+
+  // 条目展示状态（纯函数计算后落 data，WXML 直接渲染；模板 ID 未配置 → 即将上线且不可点）
+  refreshNotifyEntry() {
+    this.setData({
+      notifyEntry: notifyEntryState({
+        templateId: this.data.notifyTemplateId,
+        loggedIn: !!this.data.token,
+        subscribed: this.data.notifySubscribed
+      })
+    })
+  },
+
+  async loadNotifyStatus() {
+    if (!this.data.notifyTemplateId) return // 模板未配置不打扰后端
+    try {
+      const res = await fetchNotifyStatus()
+      this.setData({ notifySubscribed: (res.scenes || []).includes('DAILY_FORTUNE') })
+      this.refreshNotifyEntry()
+    } catch (e) {
+      // 失败静默：保持上次状态，不打断页面
+    }
+  },
+
+  // 点击条目：未订阅 → 选星座 → 微信授权弹窗 → 登记后端；已订阅 → 确认取消
+  async onNotifyTap() {
+    const state = this.data.notifyEntry
+    if (!state.clickable || this.data.notifyBusy) return
+    if (!this.data.token) {
+      wx.showToast({ title: '请先登录后再订阅', icon: 'none' })
+      return
+    }
+    if (this.data.notifySubscribed) {
+      this.confirmUnsubscribe()
+      return
+    }
+    await this.subscribeFlow()
+  },
+
+  // 订阅流程：先选星座（推送内容按它取），再弹微信授权
+  async subscribeFlow() {
+    const sign = await this.pickSign()
+    if (!sign) return // 用户取消选星座，不打扰
+
+    let res
+    try {
+      res = await new Promise((resolve, reject) => {
+        wx.requestSubscribeMessage({ tmplIds: [this.data.notifyTemplateId], success: resolve, fail: reject })
+      })
+    } catch (e) {
+      wx.showToast({ title: '授权弹窗调用失败，请稍后重试', icon: 'none' })
+      return
+    }
+    if (!isSubscribeAccepted(res, this.data.notifyTemplateId)) {
+      wx.showToast({ title: '已取消授权，可随时再来开启', icon: 'none' })
+      return
+    }
+
+    this.setData({ notifyBusy: true })
+    try {
+      await subscribeNotify('DAILY_FORTUNE', sign.nameEn)
+      this.setData({ notifySubscribed: true })
+      this.refreshNotifyEntry()
+      // 如实告知微信规则：一次授权只推一天，想每天收需在推送后再次授权
+      wx.showModal({
+        title: '订阅成功',
+        content: `明早 8:00 给你推${sign.name}运势。${SUBSCRIBE_TIP}。`,
+        showCancel: false,
+        confirmText: '知道了'
+      })
+    } catch (e) {
+      wx.showToast({ title: e.message || '订阅失败，请稍后重试', icon: 'none' })
+    } finally {
+      this.setData({ notifyBusy: false })
+    }
+  },
+
+  // 星座选择：ActionSheet 列 12 星座，取消返回 null
+  pickSign() {
+    return new Promise((resolve) => {
+      wx.showActionSheet({
+        itemList: SIGN_OPTIONS.map((s) => s.name),
+        success: (res) => resolve(SIGN_OPTIONS[res.tapIndex] || null),
+        fail: () => resolve(null)
+      })
+    })
+  },
+
+  confirmUnsubscribe() {
+    wx.showModal({
+      title: '取消订阅',
+      content: '取消后将不再收到每日运势推送，确定吗？',
+      confirmText: '取消订阅',
+      success: async (res) => {
+        if (!res.confirm) return
+        this.setData({ notifyBusy: true })
+        try {
+          await unsubscribeNotify('DAILY_FORTUNE')
+          this.setData({ notifySubscribed: false })
+          this.refreshNotifyEntry()
+          wx.showToast({ title: '已取消订阅', icon: 'none' })
+        } catch (e) {
+          wx.showToast({ title: e.message || '操作失败，请稍后重试', icon: 'none' })
+        } finally {
+          this.setData({ notifyBusy: false })
+        }
+      }
+    })
   },
 
   /* ===== 微信登录：wx.login → /api/auth/wechat；失败给游客通道 ===== */
@@ -87,8 +208,10 @@ Page({
     this.setData({
       token: '', userInfo: null,
       historyTarot: [], historyBagua: [], historyMatch: [], historyLoaded: false, expandedId: null,
-      checkinStatus: null, checkinDots: [], checkinSummary: null, badges: [], checkinError: ''
+      checkinStatus: null, checkinDots: [], checkinSummary: null, badges: [], checkinError: '',
+      notifySubscribed: false
     })
+    this.refreshNotifyEntry()
     wx.showToast({ title: '已退出登录', icon: 'none' })
   },
 

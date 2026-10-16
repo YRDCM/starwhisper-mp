@@ -105,6 +105,49 @@
   color: var(--ink-dim2);
 }
 
+/* ===== 每日运势订阅提醒 ===== */
+.notify-card {
+  margin-top: 24rpx;
+  padding: 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.nt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  border: 1rpx solid rgba(232, 196, 124, 0.25);
+  border-radius: 16rpx;
+  background: rgba(232, 196, 124, 0.05);
+}
+.nt-row:active {
+  opacity: 0.7;
+}
+.nt-disabled {
+  opacity: 0.5;
+}
+.nt-status {
+  font-size: 28rpx;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+.nt-status.nt-on {
+  color: var(--gold);
+}
+.nt-arrow {
+  font-size: 24rpx;
+  color: var(--ink-dim2);
+  letter-spacing: 0.06em;
+}
+.nt-tip {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: var(--ink-dim2);
+  letter-spacing: 0.04em;
+}
+
 /* ===== 登录卡片 ===== */
 .login-card {
   margin-top: 48rpx;

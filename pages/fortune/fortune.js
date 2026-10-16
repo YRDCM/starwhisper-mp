@@ -1,8 +1,9 @@
 // 星运页：星盘选择器 + 运势卡（FortuneVO v2 全字段）+ 雷达图 + 趋势图
 const {
-  fetchSigns, fetchTodayFortune, fetchWeekFortune
+  fetchSigns, fetchTodayFortune, fetchWeekFortune, fetchWeeklyFortune
 } = require('../../utils/request')
 const { profileOf } = require('../../utils/signProfiles')
+const { formatWeekRange } = require('../../utils/weekly')
 // echarts 官方 UMD 构建（小程序兼容），由 ec-canvas 组件通过属性注入使用
 const echarts = require('../../components/ec-canvas/echarts.js')
 
@@ -30,6 +31,12 @@ Page({
     currentSign: null,
     fortune: null,
     week: [],
+    // 今日/本周切换：mode = 'today' | 'week'
+    mode: 'today',
+    weekly: null,          // 本周运势（WeeklyFortuneVO）
+    weeklyLoading: false,
+    weeklyError: '',       // 周运无本地兜底，失败要显示专属错误态
+    weeklyView: {},        // 由 weekly 派生的展示数据
     loading: false,
     error: '',
     todayText: '',
@@ -67,6 +74,7 @@ Page({
   /* ===== 数据流 ===== */
   async init(fromPullDown) {
     this.setData({ error: '', loading: true })
+    if (fromPullDown) this._weeklyCache = {} // 下拉刷新：清掉周运缓存，强制重拉
     try {
       const signs = await fetchSigns()
       const todaySign = this.findTodaySign(signs)
@@ -420,6 +428,8 @@ Page({
   async loadFortune(sign) {
     const requestId = this._fortuneRequestId = (this._fortuneRequestId || 0) + 1
     this.setData({ loading: true, error: '' })
+    // 切换星座时本周数据也要刷新（独立数据流，失败不影响今日）
+    this.loadWeekly(sign)
     try {
       const [today, week] = await Promise.all([
         fetchTodayFortune(sign.nameEn),
@@ -438,6 +448,82 @@ Page({
         loading: false
       })
     }
+  },
+
+  /* ===== 本周运势：独立数据流（周运无本地兜底，失败走专属错误态） ===== */
+
+  // 今日/本周切换：切到本周且还没数据就加载当前星座的周运
+  onModeTap(e) {
+    const mode = e.currentTarget.dataset.mode
+    if (!mode || mode === this.data.mode) return
+    this.setData({ mode })
+    if (mode === 'week' && !this.data.weekly && !this.data.weeklyLoading && this.data.currentSign) {
+      this.loadWeekly(this.data.currentSign)
+    }
+  },
+
+  // 拉取本周运势；同星座结果缓存在 _weeklyCache，来回切换 tab/星座不重复请求
+  async loadWeekly(sign, force) {
+    if (!sign) return
+    this._weeklyCache = this._weeklyCache || {}
+    const cacheKey = sign.nameEn
+    if (!force && this._weeklyCache[cacheKey]) {
+      this.setData({ weekly: this._weeklyCache[cacheKey], weeklyError: '', weeklyLoading: false })
+      this.buildWeeklyView()
+      return
+    }
+    const requestId = this._weeklyRequestId = (this._weeklyRequestId || 0) + 1
+    this.setData({ weeklyLoading: true, weeklyError: '' })
+    try {
+      const weekly = await fetchWeeklyFortune(sign.nameEn)
+      if (requestId !== this._weeklyRequestId) return
+      this._weeklyCache[cacheKey] = weekly
+      this.setData({ weekly, weeklyLoading: false })
+      this.buildWeeklyView()
+    } catch (e) {
+      if (requestId !== this._weeklyRequestId) return
+      // 数据诚实：失败就显示错误态，绝不拿旧数据/编造内容冒充
+      this.setData({
+        weekly: null,
+        weeklyLoading: false,
+        weeklyError: '本周运势暂时连接不上，请稍后重试'
+      })
+    }
+  },
+
+  retryWeekly() {
+    if (this.data.currentSign) this.loadWeekly(this.data.currentSign, true)
+  },
+
+  /* ===== 本周视图派生（WeeklyFortuneVO）：字段为 null 的项模板里不渲染 ===== */
+  buildWeeklyView() {
+    const w = this.data.weekly
+    if (!w) return
+    this.setData({
+      weeklyView: {
+        dimensions: [
+          { zh: '综合运势', en: 'OVERALL', score: w.overallScore },
+          { zh: '爱情运势', en: 'LOVE', score: w.loveScore },
+          { zh: '事业学业', en: 'CAREER', score: w.careerScore },
+          { zh: '财富运势', en: 'WEALTH', score: w.wealthScore }
+        ].filter((d) => d.score != null),
+        rangeText: formatWeekRange(w.timeRange), // 20261011-20261018 → 10.11 – 10.18
+        luckyColorBg: COLOR_MAP[w.luckyColor] || '#8B87B0',
+        luckyItems: [
+          { key: 'color', label: 'LUCKY COLOR · 幸运色', value: w.luckyColor },
+          { key: 'number', label: 'NUMBER · 幸运数字', value: w.luckyNumber != null ? String(w.luckyNumber) : null },
+          { key: 'day', label: 'LUCKY DAY · 幸运日', value: w.luckyDay },
+          { key: 'pair', label: 'BENEFACTOR · 贵人', value: w.pairSignName },
+          { key: 'nemesis', label: 'NEMESIS · 小人', value: w.nemesisSignName }
+        ].filter((it) => it.value),
+        insights: [
+          { zh: '综合', en: 'GENERAL', txt: w.generalTxt },
+          { zh: '爱情', en: 'LOVE', txt: w.loveTxt },
+          { zh: '事业', en: 'CAREER', txt: w.workTxt },
+          { zh: '财运', en: 'WEALTH', txt: w.moneyTxt }
+        ].filter((i) => i.txt)
+      }
+    })
   },
 
   onSignTap(e) {
