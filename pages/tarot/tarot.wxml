@@ -34,6 +34,22 @@
       <view class="mood-hint">{{todayMood ? '已记录：' + todayMood + ' · 点击其他心情可修改' : '点选即可记录，也可以直接看牌'}}</view>
       <view wx:if="{{moodError}}" class="error-line">{{moodError}}</view>
       <button wx:if="{{moodRecords.length}}" size="mini" class="mood-history-toggle" bindtap="toggleMoodHistory">{{moodHistoryOpen ? '收起心情记录 −' : '查看心情记录 +'}}</button>
+      <block wx:if="{{moodHistoryOpen && moodRecords.length}}">
+        <!-- 心情曲线：≥2 天记录才绘制；不足时空态提示，绝不画假图 -->
+        <view wx:if="{{moodCurve.length >= 2}}" class="mood-chart-box">
+          <view class="mood-chart-title">心情曲线 <text class="mood-chart-title-en mono">MOOD CURVE</text></view>
+          <ec-canvas id="mood-canvas" class="mood-chart" canvas-id="mood" echarts="{{echarts}}" ec="{{moodEc}}"></ec-canvas>
+        </view>
+        <view wx:else class="mood-empty">记录几天后就能看到心情曲线 ✦</view>
+        <!-- 近 30 天心情分布（横向条形，按分数从高到低） -->
+        <view wx:if="{{moodDist.length}}" class="mood-dist">
+          <view wx:for="{{moodDist}}" wx:key="mood" class="mood-dist-row">
+            <text class="mood-dist-name">{{item.mood}}</text>
+            <view class="mood-dist-track"><view class="mood-dist-bar" style="width: {{item.pct}}%;"></view></view>
+            <text class="mood-dist-count mono">{{item.count}} 天</text>
+          </view>
+        </view>
+      </block>
       <scroll-view wx:if="{{moodHistoryOpen && moodRecords.length}}" scroll-y class="mood-history" style="height: {{moodRecords.length > 5 ? 320 : moodRecords.length * 64}}rpx;">
         <view wx:for="{{moodRecords}}" wx:key="date" class="mood-record"><text>{{item.date}}</text><text>{{item.mood}}</text></view>
       </scroll-view>

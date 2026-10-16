@@ -47,6 +47,18 @@
 .page .mood-option::after, .page .mood-history-toggle::after { border: 0; }
 .page .mood-history-toggle { width: 100%; margin: 8rpx 0 0; padding: 10rpx 0; font-size: 23rpx; font-weight: normal; line-height: 1.7; text-align: left; color: var(--gold); background: transparent; border: 0; white-space: normal; }
 .mood-history { max-height: 360rpx; overflow-y: auto; margin-top: 8rpx; }
+/* ===== 心情曲线与分布（配色对齐运势页趋势图：香槟金主线 + 深空底） ===== */
+.mood-chart-box { margin-top: 16rpx; }
+.mood-chart-title { font-size: 26rpx; letter-spacing: 0.18em; color: var(--ink); }
+.mood-chart-title-en { font-size: 20rpx; letter-spacing: 0.2em; color: var(--ink-dim2); margin-left: 12rpx; }
+.mood-chart { width: 100%; height: 380rpx; display: block; margin-top: 8rpx; }
+.mood-empty { margin-top: 16rpx; padding: 28rpx 0; font-size: 24rpx; line-height: 1.7; color: var(--ink-dim2); text-align: center; border: 1px dashed var(--gold-hairline); border-radius: 8rpx; }
+.mood-dist { margin-top: 16rpx; display: flex; flex-direction: column; gap: 10rpx; }
+.mood-dist-row { display: flex; align-items: center; gap: 14rpx; }
+.mood-dist-name { flex: none; width: 64rpx; font-size: 23rpx; color: var(--ink); }
+.mood-dist-track { flex: 1; height: 12rpx; border-radius: 6rpx; background: rgba(139, 135, 176, 0.15); overflow: hidden; }
+.mood-dist-bar { height: 100%; border-radius: 6rpx; background: linear-gradient(90deg, rgba(232, 196, 124, 0.35), #E8C47C); }
+.mood-dist-count { flex: none; width: 72rpx; font-size: 21rpx; color: var(--ink-dim2); text-align: right; }
 .mood-record { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; height: 64rpx; box-sizing: border-box; font-size: 24rpx; line-height: 1.6; border-bottom: 1px solid var(--gold-hairline); }
 .mood-storage { margin-top: 8rpx; font-size: 22rpx; line-height: 1.7; color: var(--ink-dim2); }
 .daily-face {

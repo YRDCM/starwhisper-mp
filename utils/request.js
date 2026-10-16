@@ -75,6 +75,8 @@ module.exports = {
   fetchBaguaDaily: () => request({ url: '/bagua/daily' }),
   castBagua: () => request({ url: '/bagua/cast', method: 'POST' }),
   fetchHexagrams: () => request({ url: '/bagua/hexagrams' }),
+  // Kimi AI 解卦：payload = { primarySeq, changedSeq, changingLines, question }，响应 { summary, detail } 同塔罗
+  fetchBaguaReading: (payload) => request({ url: '/bagua/ai-reading', method: 'POST', data: payload, timeout: 60000 }),
 
   /* ===== 用户系统 ===== */
   // 开发期通道：直接发昵称换 token

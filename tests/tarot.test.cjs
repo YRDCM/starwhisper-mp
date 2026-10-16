@@ -219,3 +219,74 @@ test('每日心情：跨天返回清除昨日选中态并刷新每日牌，保�
   page.onShow()
   assert.equal(loads, 1)
 })
+
+test('心情分数映射：6 档分值与未知心情', () => {
+  const page = makePage({})
+  assert.equal(page.moodScore('开心'), 5)
+  assert.equal(page.moodScore('期待'), 4)
+  assert.equal(page.moodScore('平静'), 3)
+  assert.equal(page.moodScore('纠结'), 2)
+  assert.equal(page.moodScore('疲惫'), 1.5) // 精力状态而非情绪谷底，不与低落并列
+  assert.equal(page.moodScore('低落'), 1)
+  assert.equal(page.moodScore('兴奋'), null)
+  assert.equal(page.moodScore(''), null)
+  assert.equal(page.moodScore(undefined), null)
+})
+
+test('心情曲线：非法项跳过、按日期升序、空/单条不产出曲线', () => {
+  const page = makePage({})
+  // 曲线/分布数组产自 vm 沙箱（Array 原型不同），统一 JSON 化后再比较
+  const j = (v) => JSON.parse(JSON.stringify(v))
+  assert.deepEqual(j(page.buildMoodCurve([])), [])
+  assert.deepEqual(j(page.buildMoodCurve(null)), [])
+  assert.deepEqual(j(page.buildMoodCurve([{ date: '2026-01-01', mood: '开心' }])).length, 1)
+  const curve = j(page.buildMoodCurve([
+    { date: '2026-01-03', mood: '低落' },
+    { date: '2026-01-01', mood: '开心' },
+    { date: 'bad', mood: '开心' },
+    { date: '2026-01-02', mood: '无效心情' }
+  ]))
+  assert.deepEqual(curve.map((p) => p.day), ['01-01', '01-03'])
+  assert.deepEqual(curve.map((p) => p.score), [5, 1])
+  assert.deepEqual(curve.map((p) => p.mood), ['开心', '低落'])
+})
+
+test('心情分布：按分数降序、计数正确、pct 相对最多项、未出现的心情不列出', () => {
+  const page = makePage({})
+  const j = (v) => JSON.parse(JSON.stringify(v))
+  assert.deepEqual(j(page.buildMoodDist(null)), [])
+  assert.deepEqual(j(page.buildMoodDist([])), [])
+  const dist = j(page.buildMoodDist([
+    { date: '2026-01-01', mood: '开心' },
+    { date: '2026-01-02', mood: '开心' },
+    { date: '2026-01-03', mood: '低落' },
+    { date: '2026-01-04', mood: '无效心情' }
+  ]))
+  assert.deepEqual(dist, [
+    { mood: '开心', score: 5, count: 2, pct: 100 },
+    { mood: '低落', score: 1, count: 1, pct: 50 }
+  ])
+})
+
+test('心情记录驱动曲线/分布数据，图表 option 用 richText tooltip 且数据真实', () => {
+  const storage = { moods: [
+    { date: '2026-01-02', mood: '期待' },
+    { date: '2026-01-01', mood: '平静' }
+  ] }
+  const page = makePage({}, storage)
+  page.refreshMood()
+  assert.equal(page.data.moodCurve.length, 2)
+  assert.deepEqual(page.data.moodCurve.map((p) => p.date), ['2026-01-01', '2026-01-02'])
+  assert.equal(page.data.moodDist.length, 2)
+  // 单条记录时曲线长度 < 2（模板据此显示空态而不是画假图）
+  const single = makePage({}, { moods: [{ date: '2026-01-01', mood: '开心' }] })
+  single.refreshMood()
+  assert.equal(single.data.moodCurve.length, 1)
+  // option：tooltip 必须画布内渲染（小程序无 DOM，否则触摸会崩）；系列数据=真实分数
+  const option = page.buildMoodOption()
+  assert.equal(option.tooltip.renderMode, 'richText')
+  assert.deepEqual(option.series[0].data, [3, 4])
+  assert.deepEqual(option.xAxis.data, ['01-01', '01-02'])
+  // tooltip formatter 展示日期 + 心情 + 分数
+  assert.equal(option.tooltip.formatter([{ dataIndex: 1 }]), '2026-01-02 · 期待（4 分）')
+})

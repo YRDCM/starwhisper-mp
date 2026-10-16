@@ -1,6 +1,11 @@
 // 塔罗页：每日塔罗 + 抽牌仪式（3D 翻牌）+ 牌库（懒加载）
 const { fetchTarotDaily, fetchTarotCards, drawTarot, fetchTarotReading } = require('../../utils/request')
 const { BASE_URL } = require('../../utils/config')
+// echarts 官方 UMD 构建（小程序兼容），由 ec-canvas 组件通过属性注入使用（同 fortune.js）
+const echarts = require('../../components/ec-canvas/echarts.js')
+
+// 图表等宽字体（小程序里用系统 monospace）
+const MONO = 'monospace'
 
 // 牌组元信息（牌库分组展示顺序）
 const GROUP_META = [
@@ -14,6 +19,37 @@ const SNAPSHOT_KEY = 'starwhisper:tarot-session:v1'
 const STUDY_KEY = 'starwhisper:learned-tarot'
 const MOOD_KEY = 'starwhisper:daily-moods:v1'
 const MOODS = ['平静', '开心', '期待', '纠结', '疲惫', '低落']
+// 心情分数映射（0-5 分制，与运势页评分同刻度，供心情曲线图使用）：
+// 开心 5 / 期待 4 / 平静 3 / 纠结 2 / 疲惫 1.5 / 低落 1。
+// 疲惫定为 1.5 而非 1：它是精力状态而非情绪谷底，避免与「低落」并列最低档。
+// 键序即分布统计的展示顺序（高分 → 低分）。
+const MOOD_SCORES = { 开心: 5, 期待: 4, 平静: 3, 纠结: 2, 疲惫: 1.5, 低落: 1 }
+// 心情 → 分数；未知心情返回 null（图表与统计自动跳过）
+function moodScore(mood) {
+  return MOOD_SCORES[mood] != null ? MOOD_SCORES[mood] : null
+}
+// 心情曲线数据：任意顺序的记录 → 日期升序 [{date, day:'MM-DD', mood, score}]，非法项跳过
+function buildMoodCurve(records) {
+  if (!Array.isArray(records)) return []
+  return records
+    .filter((r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.date) && moodScore(r.mood) != null)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((r) => ({ date: r.date, day: r.date.slice(5), mood: r.mood, score: moodScore(r.mood) }))
+}
+// 近 30 天心情分布：按分数从高到低 [{mood, score, count, pct}]，只列出现过的记录；
+// pct 为相对最多项的百分比（条形宽度用），全为 0 时返回 []
+function buildMoodDist(records) {
+  const counts = {}
+  ;(Array.isArray(records) ? records : []).forEach((r) => {
+    if (r && moodScore(r.mood) != null) counts[r.mood] = (counts[r.mood] || 0) + 1
+  })
+  const list = Object.keys(MOOD_SCORES)
+    .map((mood) => ({ mood, score: MOOD_SCORES[mood], count: counts[mood] || 0 }))
+    .filter((d) => d.count > 0)
+  const max = list.reduce((m, d) => Math.max(m, d.count), 0) || 1
+  list.forEach((d) => { d.pct = Math.round((d.count / max) * 100) })
+  return list
+}
 function localDay() {
   const date = new Date()
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-')
@@ -72,6 +108,9 @@ Page({
     drawId: '', aiQuestion: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false,
     todayStr: '',
     moodOptions: MOODS, todayMood: '', moodRecords: [], moodHistoryOpen: false, moodError: '',
+    moodCurve: [], moodDist: [],  // 心情曲线点（升序）与近 30 天分布（条形图）
+    echarts,                      // 注入给 ec-canvas 的 echarts 模块
+    moodEc: null,                 // 心情曲线图懒初始化容器（onLoad 里注入 onInit）
     // 每日塔罗
     daily: null,
     dailyKeywords: [],
@@ -140,6 +179,8 @@ Page({
       const saved = wx.getStorageSync(STUDY_KEY)
       this.setData({ learnedCards: Array.isArray(saved) ? [...new Set(saved.filter((n) => Number.isInteger(n) && n >= 1 && n <= 78))] : [] })
     } catch { this.setData({ studyError: '暂时无法读取学习进度' }) }
+    // 心情曲线图懒初始化：canvas 在展开心情记录且有 ≥2 天记录时才渲染
+    this.setData({ moodEc: { onInit: (canvas, w, h, dpr) => this.initMoodChart(canvas, w, h, dpr) } })
     this.refreshMood()
     this.restoreSnapshot()
     this.loadDaily() // 进入页面即自动加载每日塔罗
@@ -156,9 +197,11 @@ Page({
     try {
       const moodRecords = readMoods()
       const today = moodRecords.find(item => item.date === todayStr)
-      this.setData({ todayStr, moodRecords, todayMood: today ? today.mood : '', moodError: '' })
+      this.setData({ todayStr, moodRecords, todayMood: today ? today.mood : '', moodError: '',
+        moodCurve: buildMoodCurve(moodRecords), moodDist: buildMoodDist(moodRecords) })
+      this.updateMoodChart()
     } catch {
-      this.setData({ todayStr, todayMood: '', moodRecords: [], moodError: '暂时无法读取心情记录，请重新进入页面重试' })
+      this.setData({ todayStr, todayMood: '', moodRecords: [], moodCurve: [], moodDist: [], moodError: '暂时无法读取心情记录，请重新进入页面重试' })
     }
   },
 
@@ -171,7 +214,9 @@ Page({
       const records = readMoods().filter(item => item.date !== todayStr)
       const moodRecords = [{ date: todayStr, mood }, ...records].slice(0, 30)
       wx.setStorageSync(MOOD_KEY, moodRecords)
-      this.setData({ todayStr, todayMood: mood, moodRecords, moodError: '' })
+      this.setData({ todayStr, todayMood: mood, moodRecords, moodError: '',
+        moodCurve: buildMoodCurve(moodRecords), moodDist: buildMoodDist(moodRecords) })
+      this.updateMoodChart()
       if (changedDay) this.loadDaily()
     } catch {
       this.setData({ moodError: '心情未保存，请稍后再试' })
@@ -180,13 +225,92 @@ Page({
 
   toggleMoodHistory() {
     this.refreshMood()
-    this.setData({ moodHistoryOpen: !this.data.moodHistoryOpen })
+    const open = !this.data.moodHistoryOpen
+    this.setData({ moodHistoryOpen: open })
+    // 收起时销毁图表实例（canvas 随 wx:if 卸载），重新展开由 ec-canvas onInit 重建
+    if (!open && this._moodChart) {
+      try { this._moodChart.dispose() } catch (e) { /* canvas 已卸载时忽略 */ }
+      this._moodChart = null
+    }
   },
+
+  /* ===== 心情曲线图（ec-canvas 懒初始化，风格对齐运势页趋势图） ===== */
+  initMoodChart(canvas, w, h, dpr) {
+    if (this._moodChart) {
+      try { this._moodChart.dispose() } catch (e) { /* 忽略旧实例 */ }
+    }
+    const chart = echarts.init(canvas, null, { width: w, height: h, devicePixelRatio: dpr })
+    if (this.data.moodCurve.length >= 2) chart.setOption(this.buildMoodOption(), true)
+    this._moodChart = chart
+    return chart
+  },
+  updateMoodChart() {
+    // 仅在图表存活且面板展开时更新；canvas 未渲染时等 onInit 用最新数据画
+    if (this._moodChart && this.data.moodHistoryOpen && this.data.moodCurve.length >= 2) {
+      this._moodChart.setOption(this.buildMoodOption(), true)
+    }
+  },
+  // 心情曲线：香槟金主线 + 渐变底色；y 轴刻度直接显示心情名（疲惫 1.5 无整刻度，tooltip 展示精确分数）
+  buildMoodOption() {
+    const curve = this.data.moodCurve
+    const MOOD_AT = { 5: '开心', 4: '期待', 3: '平静', 2: '纠结', 1: '低落' }
+    return {
+      textStyle: { fontFamily: MONO },
+      tooltip: {
+        trigger: 'axis',
+        // 小程序无 DOM，tooltip 必须用画布内渲染，否则触摸时 document 调用会崩
+        renderMode: 'richText',
+        backgroundColor: 'rgba(35, 32, 72, 0.95)',
+        borderColor: 'rgba(232, 196, 124, 0.25)',
+        textStyle: { color: '#E8E6F0', fontFamily: MONO, fontSize: 12.5 },
+        formatter: (params) => {
+          const p = params && params[0]
+          const item = p && curve[p.dataIndex]
+          return item ? `${item.date} · ${item.mood}（${item.score} 分）` : ''
+        }
+      },
+      grid: { left: 52, right: 18, top: 24, bottom: 30 },
+      xAxis: {
+        type: 'category', data: curve.map((p) => p.day),
+        axisLine: { lineStyle: { color: 'rgba(139, 135, 176, 0.15)' } },
+        axisTick: { show: false },
+        axisLabel: { color: '#A9A4CC', fontFamily: MONO, fontSize: 12 }
+      },
+      yAxis: {
+        type: 'value', min: 0, max: 5, interval: 1,
+        splitLine: { lineStyle: { color: 'rgba(139, 135, 176, 0.15)' } },
+        axisLabel: { color: '#A9A4CC', fontFamily: MONO, fontSize: 12,
+          formatter: (v) => MOOD_AT[v] || '' }
+      },
+      series: [{
+        name: '心情', type: 'line', smooth: true, symbol: 'circle', symbolSize: 6,
+        data: curve.map((p) => p.score),
+        lineStyle: { color: '#E8C47C', width: 1.5 },
+        itemStyle: { color: '#E8C47C' },
+        areaStyle: {
+          color: {
+            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(232, 196, 124, 0.22)' },
+              { offset: 1, color: 'rgba(232, 196, 124, 0)' }
+            ]
+          }
+        }
+      }]
+    }
+  },
+
+  // 纯函数挂到 page 配置，便于 node 单测直接调用（与 web 端同名同逻辑）
+  moodScore, buildMoodCurve, buildMoodDist,
 
   onHide() { this.saveSnapshot() },
 
   onUnload() {
     this.saveSnapshot()
+    if (this._moodChart) {
+      try { this._moodChart.dispose() } catch (e) { /* 忽略 */ }
+      this._moodChart = null
+    }
     this._disposed = true
   },
 

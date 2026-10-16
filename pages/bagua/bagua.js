@@ -1,5 +1,5 @@
-// 八卦页：每日一卦 + 铜钱起卦（六爻逐条显现）+ 六十四卦档案
-const { fetchBaguaDaily, castBagua, fetchHexagrams } = require('../../utils/request')
+// 八卦页：每日一卦 + 铜钱起卦（六爻逐条显现）+ 六十四卦档案 + Kimi AI 解卦
+const { fetchBaguaDaily, castBagua, fetchHexagrams, fetchBaguaReading } = require('../../utils/request')
 
 // 八卦符号映射（后端返回中文卦名；☰☱☲☳☴☵☶☷ 为基本平面符号，字体覆盖好）
 const TRIGRAM_SYMBOLS = {
@@ -20,6 +20,13 @@ Page({
     revealedCount: 0,   // 已显现爻数（position ≤ revealedCount 即显现）
     showResult: false,
     castLines: [],      // 预处理的六爻视图数据（自上而下 6..1）
+    changingLines: [],  // 本次起卦的变爻位置（AI 解卦请求用）
+    // Kimi AI 解卦（状态字段与塔罗页对齐）
+    aiQuestion: '',
+    aiLoading: false,
+    aiResult: null,
+    aiError: '',
+    aiExpanded: false,
     // 六十四卦
     archiveOpen: false,
     hexagrams: [],
@@ -88,8 +95,10 @@ Page({
           changed: result.changed ? this.decorate(result.changed) : null
         },
         castLines,
+        changingLines: result.changingLines || [],
         revealedCount: 0,
-        showResult: false
+        showResult: false,
+        aiQuestion: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false
       })
       const timer = setInterval(() => {
         const n = this.data.revealedCount + 1
@@ -107,7 +116,36 @@ Page({
   },
 
   resetCast() {
-    this.setData({ castResult: null, castLines: [], revealedCount: 0, showResult: false, castError: '' })
+    this.setData({
+      castResult: null, castLines: [], changingLines: [], revealedCount: 0, showResult: false, castError: '',
+      aiQuestion: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false
+    })
+  },
+
+  /* ===== Kimi AI 解卦（交互与塔罗页 AI 解牌对齐） ===== */
+  onAiQuestion(e) { if (!this.data.aiLoading && !this.data.aiResult) { this.setData({ aiQuestion: e.detail.value.slice(0, 300) }) } },
+  toggleAiDetail() { this.setData({ aiExpanded: !this.data.aiExpanded }) },
+  onUnload() { this._disposed = true },
+
+  async readWithAi() {
+    const cast = this.data.castResult
+    if (!cast || !this.data.showResult || this.data.aiLoading || this.data.aiResult) return
+    this.setData({ aiLoading: true, aiError: '' })
+    try {
+      const result = await fetchBaguaReading({
+        primarySeq: cast.primary.seqNumber,
+        changedSeq: cast.changed ? cast.changed.seqNumber : null,
+        changingLines: this.data.changingLines,
+        question: this.data.aiQuestion.trim()
+      })
+      if (this._disposed || cast !== this.data.castResult) return
+      if (!result || !result.summary || !result.detail) throw new Error('未收到完整解读，请稍后重试')
+      this.setData({ aiResult: result })
+    } catch (e) {
+      if (!this._disposed && cast === this.data.castResult) this.setData({ aiError: e.message || '解读失败，请稍后重试' })
+    } finally {
+      if (!this._disposed && cast === this.data.castResult) this.setData({ aiLoading: false })
+    }
   },
 
   /* ===== 六十四卦（首次展开懒加载） ===== */
