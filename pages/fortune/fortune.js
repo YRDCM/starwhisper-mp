@@ -587,14 +587,18 @@ Page({
 
   // 趋势图：近 7 天，默认综合线，图例可切换
   buildTrendOption() {
-    const DIMS = [
+    const ALL_DIMS = [
       { key: 'overallScore', name: '综合', color: '#E8C47C' },
       { key: 'loveScore', name: '爱情', color: '#C25E5E' },
       { key: 'careerScore', name: '事业', color: '#7FBF9E' },
       { key: 'wealthScore', name: '财运', color: '#9C8FD0' },
       { key: 'healthScore', name: '健康', color: '#7FA8BF' }
     ]
+    // SHOWAPI 无健康分 → 整维隐藏，避免图例点了却画不出线
+    const DIMS = ALL_DIMS.filter((d) => this.data.week.some((w) => w[d.key] != null))
     const dates = this.data.week.map((d) => (d.fortuneDate || '').slice(5))
+    const legendSelected = {}
+    DIMS.forEach((d) => { legendSelected[d.name] = d.key === 'overallScore' })
     return {
       textStyle: { fontFamily: MONO },
       tooltip: {
@@ -607,7 +611,7 @@ Page({
       },
       legend: {
         data: DIMS.map((d) => d.name),
-        selected: { 综合: true, 爱情: false, 事业: false, 财运: false, 健康: false },
+        selected: legendSelected,
         textStyle: { color: '#A9A4CC', fontFamily: MONO, fontSize: 13 },
         inactiveColor: 'rgba(139, 135, 176, 0.3)',
         itemWidth: 16, itemHeight: 1, icon: 'rect', top: 0
