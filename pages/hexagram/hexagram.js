@@ -1,12 +1,18 @@
-// 每日一卦：今日卦象 + 卦辞 + 现代解读 + 今日建议
-const { fetchHexagramToday } = require('../../utils/request')
+// 每日一卦：今日卦象 + 卦辞 + 现代解读 + 今日建议 + Kimi AI 解卦
+const { fetchHexagramToday, fetchBaguaReading } = require('../../utils/request')
 
 Page({
   data: {
-    hex: null,   // {date, symbol, name, luckLevel, guaCi, reading, advice}
+    hex: null,   // {date, id, symbol, name, luckLevel, guaCi, interpretation, advice}
     stars: [],   // luckLevel(1-5) → ✦ 实/空布尔数组
     loading: false,
-    error: ''
+    error: '',
+    // ===== Kimi AI 解卦（与起卦页同一接口：每日一卦无变爻，只传本卦卦序） =====
+    aiQuestion: '',
+    aiLoading: false,
+    aiResult: null,
+    aiError: '',
+    aiExpanded: false
   },
 
   onLoad() {
@@ -25,7 +31,9 @@ Page({
       this.setData({
         hex,
         stars: [1, 2, 3, 4, 5].map((n) => n <= level),
-        loading: false
+        loading: false,
+        // 重新加载（跨天）时清掉上一卦的 AI 解读
+        aiQuestion: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false
       })
     } catch (e) {
       this.setData({
@@ -38,5 +46,31 @@ Page({
 
   retry() {
     this.load()
+  },
+
+  /* ===== Kimi AI 解卦 ===== */
+  onAiQuestion(e) { if (!this.data.aiLoading && !this.data.aiResult) { this.setData({ aiQuestion: e.detail.value.slice(0, 300) }) } },
+  toggleAiDetail() { this.setData({ aiExpanded: !this.data.aiExpanded }) },
+  onUnload() { this._disposed = true },
+
+  async readWithAi() {
+    const hex = this.data.hex
+    if (!hex || !hex.id || this.data.aiLoading || this.data.aiResult) return
+    this.setData({ aiLoading: true, aiError: '' })
+    try {
+      const result = await fetchBaguaReading({
+        primarySeq: hex.id,
+        changedSeq: null,
+        changingLines: [],
+        question: this.data.aiQuestion.trim()
+      })
+      if (this._disposed || hex !== this.data.hex) return
+      if (!result || !result.summary || !result.detail) throw new Error('未收到完整解读，请稍后重试')
+      this.setData({ aiResult: result })
+    } catch (e) {
+      if (!this._disposed && hex === this.data.hex) this.setData({ aiError: e.message || '解读失败，请稍后重试' })
+    } finally {
+      if (!this._disposed && hex === this.data.hex) this.setData({ aiLoading: false })
+    }
   }
 })
