@@ -18,7 +18,8 @@ Page({
     this.setData({ loading: true, error: '' })
     try {
       const userInfo = wx.getStorageSync('userInfo') || {}
-      const openid = userInfo.openid || userInfo.id || ''
+      // 只传真实 openid；没有就不传，后端从 token 解析身份（id 当 openid 传会拿不到个人卦）
+      const openid = userInfo.openid || ''
       const hex = await fetchHexagramToday(openid)
       const level = Math.max(0, Math.min(5, Number(hex.luckLevel) || 0))
       this.setData({

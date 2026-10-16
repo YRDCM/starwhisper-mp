@@ -243,7 +243,8 @@ Page({
   // 打卡汇总：连续/最长/总天数 + 勋章墙；失败静默兜底（置 null，不打扰用户）
   async loadCheckinSummary() {
     try {
-      const openid = (this.data.userInfo && (this.data.userInfo.openid || this.data.userInfo.id)) || ''
+      // 只传真实 openid；没有就不传，后端从 token 解析身份（id 当 openid 传会查不到用户）
+      const openid = (this.data.userInfo && this.data.userInfo.openid) || ''
       const sum = await fetchCheckinSummary(openid)
       const badges = (sum.badges || []).map((b) => ({
         ...b,
