@@ -29,7 +29,7 @@
 
 /* ===== 打卡卡 ===== */
 .checkin-card {
-  margin-top: 24rpx;
+  margin-top: 28rpx;
   padding: 32rpx;
   display: flex;
   flex-direction: column;
@@ -107,7 +107,7 @@
 
 /* ===== 每日运势订阅提醒 ===== */
 .notify-card {
-  margin-top: 24rpx;
+  margin-top: 28rpx;
   padding: 32rpx;
   display: flex;
   flex-direction: column;
@@ -150,7 +150,7 @@
 
 /* ===== 登录卡片 ===== */
 .login-card {
-  margin-top: 48rpx;
+  margin-top: 28rpx;
   padding: 64rpx 48rpx;
   display: flex;
   flex-direction: column;
@@ -208,6 +208,7 @@
 
 /* ===== 用户卡片 ===== */
 .user-card {
+  margin-top: 28rpx;
   padding: 32rpx;
   display: flex;
   align-items: center;
@@ -244,7 +245,7 @@
 
 /* ===== 历史记录 ===== */
 .history-card {
-  margin-top: 32rpx;
+  margin-top: 28rpx;
   padding: 32rpx;
 }
 .sec-title {
@@ -365,7 +366,7 @@
 
 /* ===== 连续打卡横幅 + 勋章墙 ===== */
 .streak-card {
-  margin-top: 24rpx;
+  margin-top: 28rpx;
   padding: 32rpx;
   display: flex;
   flex-direction: column;
