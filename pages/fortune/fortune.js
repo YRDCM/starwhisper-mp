@@ -456,6 +456,10 @@ Page({
   onModeTap(e) {
     const mode = e.currentTarget.dataset.mode
     if (!mode || mode === this.data.mode) return
+    // wx:if 切换会销毁 ec-canvas，旧图表实例绑在死画布上，
+    // 必须丢弃引用，让回切时 onInit 在新画布上重建（否则四象图/趋势图变空白）
+    if (this._radarChart) { try { this._radarChart.dispose() } catch (err) {} this._radarChart = null }
+    if (this._trendChart) { try { this._trendChart.dispose() } catch (err) {} this._trendChart = null }
     this.setData({ mode })
     if (mode === 'week' && !this.data.weekly && !this.data.weeklyLoading && this.data.currentSign) {
       this.loadWeekly(this.data.currentSign)
