@@ -78,8 +78,8 @@
       >本周 · WEEK</view>
     </view>
 
-    <!-- ===== 本周视图（用 hidden 而不是 wx:if：保住今日视图的 canvas 不被销毁） ===== -->
-    <block hidden="{{mode !== 'week'}}">
+    <!-- ===== 本周视图（view + hidden：保住今日视图的 canvas 不被销毁；block 不认 hidden） ===== -->
+    <view hidden="{{mode !== 'week'}}">
       <!-- 周运加载态 -->
       <view wx:if="{{weeklyLoading && !weekly}}" class="glass-card state-box">
         <view class="spinner"></view>
@@ -160,10 +160,10 @@
           </view>
         </view>
       </view>
-    </block>
+    </view>
 
-    <!-- ===== 今日视图（hidden：ec-canvas 常驻，来回切换 tab 图表不丢） ===== -->
-    <block hidden="{{mode !== 'today'}}">
+    <!-- ===== 今日视图（view + hidden：ec-canvas 常驻，来回切换 tab 图表不丢） ===== -->
+    <view hidden="{{mode !== 'today'}}">
     <!-- 首次加载态 -->
     <view wx:if="{{loading && !fortune}}" class="glass-card state-box">
       <view class="spinner"></view>
@@ -298,7 +298,7 @@
         <ec-canvas id="trend-canvas" class="chart-canvas tall" canvas-id="trend" echarts="{{echarts}}" ec="{{trendEc}}"></ec-canvas>
       </view>
     </view>
-    </block>
+    </view>
   </block>
 
   <view class="footer mono">
