@@ -30,7 +30,9 @@ Page({
     notifyBusy: false,         // 订阅/退订进行中（防连点）
     notifyTip: SUBSCRIBE_TIP,  // 微信平台规则说明文案
     // 条目展示状态 {text, clickable}，由 refreshNotifyEntry 维护（WXML 不能调方法）
-    notifyEntry: notifyEntryState({ templateId: SUBSCRIBE_TEMPLATES.dailyFortune || '', loggedIn: false, subscribed: false })
+    notifyEntry: notifyEntryState({ templateId: SUBSCRIBE_TEMPLATES.dailyFortune || '', loggedIn: false, subscribed: false }),
+    signPickerOpen: false,     // 星座选择弹层
+    signOptions: SIGN_OPTIONS  // 12 星座选项
   },
 
   onShow() {
@@ -124,16 +126,27 @@ Page({
     }
   },
 
-  // 星座选择：ActionSheet 列 12 星座，取消返回 null
+  // 星座选择：自定义底部弹层（wx.showActionSheet 最多 6 项，12 星座放不下会静默失败）
   pickSign() {
     return new Promise((resolve) => {
-      wx.showActionSheet({
-        itemList: SIGN_OPTIONS.map((s) => s.name),
-        success: (res) => resolve(SIGN_OPTIONS[res.tapIndex] || null),
-        fail: () => resolve(null)
-      })
+      this._signResolve = resolve
+      this.setData({ signPickerOpen: true })
     })
   },
+  onSignPick(e) {
+    const sign = SIGN_OPTIONS[e.currentTarget.dataset.index] || null
+    this.setData({ signPickerOpen: false })
+    const resolve = this._signResolve
+    this._signResolve = null
+    if (resolve) resolve(sign)
+  },
+  onSignPickerCancel() {
+    this.setData({ signPickerOpen: false })
+    const resolve = this._signResolve
+    this._signResolve = null
+    if (resolve) resolve(null)
+  },
+  noop() {}, // 弹层内容区阻止冒泡用
 
   confirmUnsubscribe() {
     wx.showModal({

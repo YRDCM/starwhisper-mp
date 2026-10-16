@@ -212,4 +212,15 @@
     <view class="f-wish"><text class="f-star">✦</text> 愿你被星辰温柔以待 <text class="f-star">✦</text></view>
     <view class="f-version">v{{version}}</view>
   </view>
+
+  <!-- 星座选择底部弹层（订阅时选择推送星座；ActionSheet 限 6 项放不下 12 星座） -->
+  <view wx:if="{{signPickerOpen}}" class="sign-mask" bindtap="onSignPickerCancel">
+    <view class="sign-sheet" catchtap="noop">
+      <view class="sign-title">选择你的星座</view>
+      <view class="sign-grid">
+        <button wx:for="{{signOptions}}" wx:key="nameEn" size="mini" class="sign-cell" data-index="{{index}}" bindtap="onSignPick">{{item.name}}</button>
+      </view>
+      <view class="sign-cancel" bindtap="onSignPickerCancel">取消</view>
+    </view>
+  </view>
 </view>
