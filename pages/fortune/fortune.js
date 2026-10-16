@@ -452,14 +452,10 @@ Page({
 
   /* ===== 本周运势：独立数据流（周运无本地兜底，失败走专属错误态） ===== */
 
-  // 今日/本周切换：切到本周且还没数据就加载当前星座的周运
+  // 今日/本周切换：两个视图用 hidden 显隐（不销毁 canvas），切到本周且还没数据就加载周运
   onModeTap(e) {
     const mode = e.currentTarget.dataset.mode
     if (!mode || mode === this.data.mode) return
-    // wx:if 切换会销毁 ec-canvas，旧图表实例绑在死画布上，
-    // 必须丢弃引用，让回切时 onInit 在新画布上重建（否则四象图/趋势图变空白）
-    if (this._radarChart) { try { this._radarChart.dispose() } catch (err) {} this._radarChart = null }
-    if (this._trendChart) { try { this._trendChart.dispose() } catch (err) {} this._trendChart = null }
     this.setData({ mode })
     if (mode === 'week' && !this.data.weekly && !this.data.weeklyLoading && this.data.currentSign) {
       this.loadWeekly(this.data.currentSign)
