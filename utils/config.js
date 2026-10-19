@@ -1,11 +1,9 @@
 // 全局配置：后端 API 基地址
 //
-// 当前：后端已部署到阿里云 60.205.228.96（HTTP）。
-//   开发/预览阶段仍需在【微信开发者工具 → 详情 → 本地设置】勾选
-//   「不校验合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书」。
-// 正式上线：微信小程序要求 request 域名必须是备案过的 https 域名，
-//   域名备案完成后把 BASE_URL 换成 https://api.<域名> 并在小程序后台配置 request 合法域名。
-const BASE_URL = 'http://60.205.228.96'
+// 2026-10-19：域名 mystarwhisper.cn 已完成 ICP 备案（粤ICP备2026152859号-2）+ HTTPS，
+// BASE_URL 已切到备案域名。小程序后台「request 合法域名」需配置 https://mystarwhisper.cn。
+// 开发者工具里如勾选了「不校验合法域名」则两边都能跑；真机/体验版必须走合法域名。
+const BASE_URL = 'https://mystarwhisper.cn'
 
 // 小程序版本号：每次发版递增，「我的」页页脚展示，便于区分当前是否最新版
 const APP_VERSION = '1.5.0'
