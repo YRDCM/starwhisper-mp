@@ -1,6 +1,6 @@
 // 我的页：登录（微信 / 游客体验）+ 打卡 + 历史记录（塔罗 / 八卦各最近 5 条）+ 每日/每周运势订阅提醒
 const { wechatLogin, devLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus, fetchCheckinSummary,
-  subscribeNotify, unsubscribeNotify, fetchNotifyStatus } = require('../../utils/request')
+  subscribeNotify, unsubscribeNotify, fetchNotifyStatus, updateProfile } = require('../../utils/request')
 const { APP_VERSION, SUBSCRIBE_TEMPLATES } = require('../../utils/config')
 const { SIGN_OPTIONS, notifyEntryState, isSubscribeAccepted, SUBSCRIBE_TIP,
   WEEKLY_SUBSCRIBED_TEXT, SUBSCRIBE_TIP_WEEKLY } = require('../../utils/notify')
@@ -42,7 +42,12 @@ Page({
       subscribed: false, subscribedText: WEEKLY_SUBSCRIBED_TEXT
     }),
     signPickerOpen: false,     // 星座选择弹层
-    signOptions: SIGN_OPTIONS  // 12 星座选项
+    signOptions: SIGN_OPTIONS,  // 12 星座选项
+    // ===== 改名（昵称全站唯一；input type="nickname" 可一键带出微信昵称） =====
+    nameEditing: false,
+    nameInput: '',
+    nameSaving: false,
+    nameError: ''
   },
 
   onShow() {
@@ -161,6 +166,35 @@ Page({
     const resolve = this._signResolve
     this._signResolve = null
     if (resolve) resolve(null)
+  },
+
+  /* ===== 改名 ===== */
+  toggleNameEdit() {
+    this.setData({
+      nameEditing: !this.data.nameEditing,
+      nameInput: this.data.userInfo && this.data.userInfo.nickname || '',
+      nameError: ''
+    })
+  },
+  onNameInput(e) {
+    this.setData({ nameInput: e.detail.value.slice(0, 20), nameError: '' })
+  },
+  async saveNickname() {
+    const nickname = (this.data.nameInput || '').trim()
+    if (!nickname) { this.setData({ nameError: '昵称不能为空' }); return }
+    if (this.data.nameSaving) return
+    this.setData({ nameSaving: true, nameError: '' })
+    try {
+      const saved = await updateProfile(nickname)
+      const userInfo = Object.assign({}, this.data.userInfo, { nickname: saved.nickname })
+      wx.setStorageSync('userInfo', userInfo)
+      this.setData({ userInfo, nameEditing: false })
+      wx.showToast({ title: '昵称已更新', icon: 'none' })
+    } catch (e) {
+      this.setData({ nameError: e.message || '保存失败，请稍后重试' })
+    } finally {
+      this.setData({ nameSaving: false })
+    }
   },
   noop() {}, // 弹层内容区阻止冒泡用
 

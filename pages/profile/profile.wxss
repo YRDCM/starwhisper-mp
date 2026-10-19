@@ -500,3 +500,38 @@
   font-size: 26rpx; color: var(--ink-dim);
   border-top: 1rpx solid rgba(139, 135, 176, 0.12);
 }
+
+/* ===== 改名（昵称编辑） ===== */
+.profile-edit {
+  font-size: 24rpx;
+  color: var(--ink-dim);
+  padding: 8rpx 4rpx;
+  margin-right: 16rpx;
+}
+.name-edit-card {
+  margin-top: 0;
+  border-top: 0;
+  border-radius: 0 0 12rpx 12rpx;
+  padding: 24rpx 32rpx 28rpx;
+}
+.name-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 18rpx 20rpx;
+  border: 1rpx solid var(--gold-hairline);
+  border-radius: 12rpx;
+  background: rgba(0, 0, 0, 0.15);
+  color: var(--ink);
+  font-size: 28rpx;
+  margin-bottom: 16rpx;
+}
+.name-edit-card .btn-gold {
+  width: 100%;
+  font-size: 26rpx;
+}
+.name-hint {
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  color: var(--ink-dim2);
+  text-align: center;
+}

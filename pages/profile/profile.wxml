@@ -121,7 +121,15 @@
         <view class="user-name">{{userInfo.nickname || '星友'}}</view>
         <view class="user-id mono">ID · {{userInfo.id}}</view>
       </view>
+      <view class="profile-edit mono" bindtap="toggleNameEdit">{{nameEditing ? '取消' : '改名'}}</view>
       <view class="logout mono" bindtap="onLogout">退出</view>
+    </view>
+    <!-- 改名：input type="nickname" 聚焦时微信会自动带出用户微信昵称供一键填入 -->
+    <view wx:if="{{nameEditing}}" class="glass-card name-edit-card">
+      <input class="name-input" type="nickname" value="{{nameInput}}" maxlength="20" placeholder="点这里，可用微信昵称一键填入" bindinput="onNameInput" />
+      <view wx:if="{{nameError}}" class="error-line">{{nameError}}</view>
+      <button size="mini" class="btn-gold {{nameSaving ? 'disabled' : ''}}" bindtap="saveNickname">{{nameSaving ? '保存中…' : '保存昵称'}}</button>
+      <view class="name-hint">昵称全站唯一，撞名会提示换一个</view>
     </view>
 
     <!-- 我的记录 -->

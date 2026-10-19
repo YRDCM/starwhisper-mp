@@ -111,5 +111,9 @@ module.exports = {
 
   /* ===== 每日一卦 ===== */
   fetchHexagramToday: (openid) =>
-    request({ url: '/hexagram/today', data: openid ? { openid } : {} })
+    request({ url: '/hexagram/today', data: openid ? { openid } : {} }),
+
+  /* ===== 资料更新（需登录）：昵称全站唯一，撞名后端会报错 ===== */
+  updateProfile: (nickname) =>
+    request({ url: '/user/profile', method: 'POST', data: { nickname } })
 }
