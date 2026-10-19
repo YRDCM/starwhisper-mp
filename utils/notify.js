@@ -1,4 +1,4 @@
-// 订阅消息（每日运势提醒）纯逻辑：条目状态文案、授权结果判断、星座选项
+// 订阅消息（每日/每周运势提醒）纯逻辑：条目状态文案、授权结果判断、星座选项
 // 抽成纯函数便于 node 测试；页面层只负责 wx API 与 setData
 
 // 12 星座选项（订阅时让用户选自己的星座，后端按它取运势推送）
@@ -18,16 +18,18 @@ const SIGN_OPTIONS = [
 ]
 
 /**
- * 「每日运势提醒」条目的展示状态
- * @param {object} input { templateId, loggedIn, subscribed }
+ * 「运势提醒」条目的展示状态（每日/每周通用）
+ * @param {object} input { templateId, loggedIn, subscribed, subscribedText? }
+ *   subscribedText：已订阅时的文案，默认每日的「已订阅 · 明日 8:00 推送」，
+ *   每周条目传「已订阅 · 每周一 8:05 推送」
  * @returns {{text: string, clickable: boolean}}
  *   模板 ID 未配置（运营还没去公众平台申请）→ 「即将上线」且不可点
  *   —— 绝不能拿空 tmplId 去调 wx.requestSubscribeMessage，会直接报错
  */
-function notifyEntryState({ templateId, loggedIn, subscribed }) {
+function notifyEntryState({ templateId, loggedIn, subscribed, subscribedText }) {
   if (!templateId || !String(templateId).trim()) return { text: '即将上线', clickable: false }
   if (!loggedIn) return { text: '登录后可订阅', clickable: true }
-  if (subscribed) return { text: '已订阅 · 明日 8:00 推送', clickable: true }
+  if (subscribed) return { text: subscribedText || '已订阅 · 明日 8:00 推送', clickable: true }
   return { text: '未订阅 · 点击开启', clickable: true }
 }
 
@@ -42,4 +44,8 @@ function isSubscribeAccepted(res, tmplId) {
 // 微信平台规则提示文案（如实告知：一次授权只推一天，次日想继续收需再次授权）
 const SUBSCRIBE_TIP = '微信规则：一次授权仅推送一天，推送后想继续每天收，请再次开启授权'
 
-module.exports = { SIGN_OPTIONS, notifyEntryState, isSubscribeAccepted, SUBSCRIBE_TIP }
+// 每周条目的已订阅文案与平台规则提示（每周一 08:05 推送，与每日任务错开）
+const WEEKLY_SUBSCRIBED_TEXT = '已订阅 · 每周一 8:05 推送'
+const SUBSCRIBE_TIP_WEEKLY = '微信规则：一次授权仅推送一次，推送后想继续每周收，请再次开启授权'
+
+module.exports = { SIGN_OPTIONS, notifyEntryState, isSubscribeAccepted, SUBSCRIBE_TIP, WEEKLY_SUBSCRIBED_TEXT, SUBSCRIBE_TIP_WEEKLY }

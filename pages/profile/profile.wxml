@@ -61,6 +61,19 @@
     <view class="nt-tip">{{notifyTip}}</view>
   </view>
 
+  <!-- ===== 每周运势订阅提醒（每周一 8:05 推送；模板未配置时显示「即将上线」） ===== -->
+  <view class="glass-card notify-card">
+    <view class="ci-head">
+      <text class="ci-title">每周运势提醒</text>
+      <text class="ci-title-en mono">WEEKLY FORTUNE</text>
+    </view>
+    <view class="nt-row {{weeklyEntry.clickable && !weeklyBusy ? '' : 'nt-disabled'}}" bindtap="onWeeklyNotifyTap">
+      <text class="nt-status {{weeklySubscribed ? 'nt-on' : ''}}">{{weeklyEntry.text}}</text>
+      <text wx:if="{{weeklyEntry.clickable}}" class="nt-arrow">{{weeklySubscribed ? '点击取消' : '›'}}</text>
+    </view>
+    <view class="nt-tip">{{weeklyTip}}</view>
+  </view>
+
   <!-- ===== 连续打卡 + 勋章墙（汇总接口失败时整块隐藏） ===== -->
   <view wx:if="{{token && checkinSummary}}" class="glass-card streak-card">
     <!-- 连续打卡横幅 -->
