@@ -13,6 +13,13 @@
   </view>
   <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
 
+  <!-- 登录引导条：未登录常驻（弹窗只出现一次，这个一直在，可随时去登录） -->
+  <view wx:if="{{!loggedIn}}" class="login-banner" bindtap="goLogin">
+    <text class="lb-star">✦</text>
+    <text class="lb-text">登录后可同步抽牌、起卦与打卡记录</text>
+    <text class="lb-go mono">去登录 ›</text>
+  </view>
+
   <!-- 断连错误态（不白屏） -->
   <view wx:if="{{error}}" class="glass-card state-box">
     <view class="state-icon">✧</view>
@@ -304,6 +311,23 @@
   <view class="footer mono">
     <view class="f-legal">星语 STARWHISPER · 仅供娱乐</view>
     <view class="f-wish"><text class="f-star">✦</text> 愿你被星辰温柔以待 <text class="f-star">✦</text></view>
+  </view>
+
+  <!-- 首次登录引导弹窗：只出现一次（看过或已登录都不再弹） -->
+  <view wx:if="{{showWelcome}}" class="welcome-mask">
+    <view class="welcome-modal">
+      <view class="welcome-star">✦</view>
+      <view class="welcome-title">欢迎来到星语</view>
+      <view class="welcome-sub mono">STARWHISPER</view>
+      <view class="welcome-perks">
+        <view class="perk">✧ 抽牌与起卦记录云端同步，换设备不丢</view>
+        <view class="perk">✧ 每日打卡，点亮你的星轨勋章墙</view>
+        <view class="perk">✧ 历史记录随时回看</view>
+      </view>
+      <button size="mini" class="btn-gold welcome-login {{welcomeLogging ? 'disabled' : ''}}" bindtap="onWelcomeLogin">{{welcomeLogging ? '登录中…' : '微信一键登录'}}</button>
+      <view class="welcome-skip" bindtap="onWelcomeSkip">先逛逛，稍后再说</view>
+      <view class="welcome-note">游客身份也可正常使用全部功能</view>
+    </view>
   </view>
 
   <!-- 分享海报：离屏 canvas（隐藏节点，仅用于绘制导出） -->
