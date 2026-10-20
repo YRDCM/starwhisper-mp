@@ -1,6 +1,6 @@
 // 星运页：星盘选择器 + 运势卡（FortuneVO v2 全字段）+ 雷达图 + 趋势图
 const {
-  fetchSigns, fetchTodayFortune, fetchWeekFortune, fetchWeeklyFortune
+  fetchSigns, fetchTodayFortune, fetchWeekFortune, fetchWeeklyFortune, fetchMpCode
 } = require('../../utils/request')
 const { profileOf } = require('../../utils/signProfiles')
 const { formatWeekRange } = require('../../utils/weekly')
@@ -157,7 +157,7 @@ Page({
     const query = this.createSelectorQuery()
     query.select('#poster-canvas')
       .fields({ node: true, size: true })
-      .exec((res) => {
+      .exec(async (res) => {
         if (!res || !res[0] || !res[0].node) {
           // vConsole 排查线索：节点查询失败通常是 canvas 被 display:none / 未渲染
           console.error('[poster] canvas node query failed:', JSON.stringify(res))
@@ -174,6 +174,8 @@ Page({
           canvas.width = 750 * dpr
           canvas.height = 1200 * dpr
           ctx.scale(dpr, dpr)
+          // 小程序码：拉取失败也能出海报（右下角回退占位框）
+          this._mpcodeImg = await this.loadMpCodeImage(canvas)
           this.paintPoster(ctx)
           // 绘制完成 → 导出临时图片 → 弹层预览
           wx.canvasToTempFilePath({
@@ -198,6 +200,23 @@ Page({
           wx.showToast({ title: '海报生成失败', icon: 'none' })
         }
       })
+  },
+
+  // 小程序码：base64 → 临时文件 → canvas Image；失败返回 null（海报回退占位框，不阻塞出图）
+  async loadMpCodeImage(canvas) {
+    try {
+      if (this._mpcodeImg) return this._mpcodeImg
+      const scene = this.data.currentSign ? this.data.currentSign.nameEn : 'fortune'
+      const { image } = await fetchMpCode(scene)
+      const path = `${wx.env.USER_DATA_PATH}/mpcode-${scene}.png`
+      wx.getFileSystemManager().writeFileSync(path, wx.base64ToArrayBuffer(image))
+      const img = canvas.createImage()
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = path })
+      return img
+    } catch (e) {
+      console.warn('[poster] mpcode load failed, fallback placeholder:', e && e.message)
+      return null
+    }
   },
 
   // 海报绘制（750×1200 逻辑像素）
@@ -320,22 +339,30 @@ Page({
     ctx.fillStyle = DIM
     ctx.font = '20px monospace'
     ctx.fillText('星辰低语 · 今日运势', MARGIN, fy + 88)
-    // 小程序码占位框（84×84，码图位预留）
+    // 小程序码（84×84）：拿到码图就画真码，拿不到回退占位框（海报照常出）
     const QS = 84
     const qx = RIGHT - QS
     const qy = fy + 16
-    ctx.strokeStyle = 'rgba(232,196,124,0.55)'
-    ctx.lineWidth = 1
-    ctx.strokeRect(qx, qy, QS, QS)
-    ctx.textAlign = 'center'
-    ctx.fillStyle = GOLD
-    ctx.font = '24px sans-serif'
-    ctx.fillText('✦', qx + QS / 2, qy + 36)
-    ctx.fillStyle = DIM
-    ctx.font = '14px sans-serif'
-    ctx.fillText('小程序码', qx + QS / 2, qy + 62)
-    ctx.font = '15px sans-serif'
-    ctx.fillText('长按识别小程序', qx + QS / 2, qy + QS + 26)
+    if (this._mpcodeImg) {
+      ctx.drawImage(this._mpcodeImg, qx, qy, QS, QS)
+      ctx.textAlign = 'center'
+      ctx.fillStyle = DIM
+      ctx.font = '15px sans-serif'
+      ctx.fillText('扫码看今日运势', qx + QS / 2, qy + QS + 26)
+    } else {
+      ctx.strokeStyle = 'rgba(232,196,124,0.55)'
+      ctx.lineWidth = 1
+      ctx.strokeRect(qx, qy, QS, QS)
+      ctx.textAlign = 'center'
+      ctx.fillStyle = GOLD
+      ctx.font = '24px sans-serif'
+      ctx.fillText('✦', qx + QS / 2, qy + 36)
+      ctx.fillStyle = DIM
+      ctx.font = '14px sans-serif'
+      ctx.fillText('小程序码', qx + QS / 2, qy + 62)
+      ctx.font = '15px sans-serif'
+      ctx.fillText('长按识别小程序', qx + QS / 2, qy + QS + 26)
+    }
   },
 
   // 幸运条目流式排版：「标签 值 · 标签 值 …」，超出右界自动换行（最多 2 行），

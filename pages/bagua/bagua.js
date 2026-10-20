@@ -169,5 +169,18 @@ Page({
   closeModal() {
     this.setData({ activeHex: null })
   },
-  noop() {} // 弹层内容区拦截冒泡
+    noop() {}, // 弹层内容区拦截冒泡
+
+  // 分享卡片：带起出的卦名
+  onShareAppMessage() {
+    const cast = this.data.castResult
+    const name = cast && cast.primary ? cast.primary.name : ''
+    return {
+      title: name ? `我起了一卦「${name}」，来看看卦象 ✦` : '易经起卦 · 三枚铜钱问问当下',
+      path: '/pages/bagua/bagua'
+    }
+  },
+  onShareTimeline() {
+    return { title: '星语易经 · 起一卦，看看当下的启示', query: '' }
+  }
 })

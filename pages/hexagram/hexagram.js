@@ -72,5 +72,18 @@ Page({
     } finally {
       if (!this._disposed && hex === this.data.hex) this.setData({ aiLoading: false })
     }
+  },
+
+  // 分享卡片：带今日卦名
+  onShareAppMessage() {
+    const hex = this.data.hex
+    return {
+      title: hex ? `今日卦象「${hex.name}」，看看你的 ✦` : '每日一卦 · 看看今天的启示',
+      path: '/pages/hexagram/hexagram'
+    }
+  },
+  onShareTimeline() {
+    const hex = this.data.hex
+    return { title: hex ? `今日卦象「${hex.name}」` : '每日一卦', query: '' }
   }
 })

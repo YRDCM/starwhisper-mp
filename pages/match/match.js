@@ -119,5 +119,17 @@ Page({
     } catch (e) {
       this.setData({ error: e.message || '配对失败，请稍后重试', loading: false })
     }
+  },
+
+  // 分享卡片：配对是分享率最高的板块，文案带钩子
+  onShareAppMessage() {
+    const r = this.data.result
+    return {
+      title: r && r.score != null ? `我们的星座配对 ${r.score} 分！快来测测你们的 ✦` : '星座配对 · 测测你们的缘分指数',
+      path: '/pages/match/match'
+    }
+  },
+  onShareTimeline() {
+    return { title: '星座配对 · 测测你们的缘分指数', query: '' }
   }
 })

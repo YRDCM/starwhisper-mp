@@ -115,5 +115,8 @@ module.exports = {
 
   /* ===== 资料更新（需登录）：昵称全站唯一，撞名后端会报错 ===== */
   updateProfile: (nickname) =>
-    request({ url: '/user/profile', method: 'POST', data: { nickname } })
+    request({ url: '/user/profile', method: 'POST', data: { nickname } }),
+
+  /* ===== 小程序码（海报用）：返回 {image: base64 PNG}，游客可用 ===== */
+  fetchMpCode: (scene) => request({ url: '/wechat/mpcode', data: { scene }, auth: false })
 }

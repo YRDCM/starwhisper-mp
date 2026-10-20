@@ -600,5 +600,17 @@ Page({
   closeModal() {
     this.setData({ activeCard: null })
   },
-  noop() {} // 弹层内容区拦截冒泡，防止误触关闭
+    noop() {}, // 弹层内容区拦截冒泡，防止误触关闭
+
+  // 分享卡片：带当前牌阵信息更有点击欲
+  onShareAppMessage() {
+    const n = (this.data.drawn || []).length
+    return {
+      title: n ? `我抽了 ${n} 张塔罗牌，看看牌面怎么说 ✦` : '每日塔罗 · 抽一张牌听听星辰的建议',
+      path: '/pages/tarot/tarot'
+    }
+  },
+  onShareTimeline() {
+    return { title: '星语塔罗 · 抽一组牌，听听星辰的建议', query: '' }
+  }
 })
