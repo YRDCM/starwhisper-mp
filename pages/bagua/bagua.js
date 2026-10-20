@@ -36,8 +36,8 @@ Page({
   },
 
   onLoad() {
-    this.setData({ todayStr: new Date().toISOString().slice(0, 10) })
-    this.loadDaily() // 进入页面即自动加载每日一卦
+    // 2026-10-20：板块临时下架（WXML 已是维护页），不再发任何数据请求
+    return
   },
 
   /* ===== 卦运等级 → 印章配色类名 ===== */

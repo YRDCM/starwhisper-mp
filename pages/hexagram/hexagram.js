@@ -16,7 +16,8 @@ Page({
   },
 
   onLoad() {
-    this.load()
+    // 2026-10-20：板块临时下架（WXML 已是维护页），不再发任何数据请求
+    return
   },
 
   async load() {

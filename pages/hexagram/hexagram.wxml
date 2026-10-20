@@ -1,69 +1,10 @@
-<!-- 每日一卦 -->
+<!-- 每日一卦：内容升级调整中（2026-10-20 起临时下架，恢复时间待定；代码保留） -->
 <view class="page">
   <star-layer />
-
-  <view class="eyebrow">DAILY HEXAGRAM · 每日一卦</view>
-  <view class="wordmark">
-    <text class="wm-zh">今日卦象</text>
-    <text class="wm-en">Hexagram</text>
-  </view>
-  <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
-
-  <!-- 断连错误态（不白屏） -->
-  <view wx:if="{{error}}" class="glass-card state-box">
-    <view class="state-icon">✧</view>
-    <view class="state-text">{{error}}</view>
-    <button size="mini" class="btn-gold" bindtap="retry">重新连接</button>
-  </view>
-
-  <!-- 加载态 -->
-  <view wx:elif="{{loading && !hex}}" class="glass-card state-box">
-    <view class="spinner"></view>
-    <view class="state-text">正在起卦…</view>
-  </view>
-
-  <!-- 卦象内容 -->
-  <block wx:elif="{{hex}}">
-    <view class="glass-card hex-card">
-      <view class="hex-date mono">{{hex.date}}</view>
-      <view class="hex-symbol">{{hex.symbol}}</view>
-      <view class="hex-name">{{hex.name}}</view>
-      <view class="hex-stars">
-        <text wx:for="{{stars}}" wx:key="index" class="{{item ? 'on' : 'off'}}">✦</text>
-      </view>
-      <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
-      <view class="guaci">{{hex.guaCi}}</view>
-    </view>
-
-    <view wx:if="{{hex.interpretation}}" class="glass-card reading-card">
-      <view class="sec-title">现代解读 <text class="sec-title-en mono">READING</text></view>
-      <view class="reading-text">{{hex.interpretation}}</view>
-    </view>
-
-    <view wx:if="{{hex.advice}}" class="advice-box">
-      <view class="advice-label mono">今日建议 · ADVICE</view>
-      <view class="advice-text">{{hex.advice}}</view>
-    </view>
-
-    <!-- ===== Kimi AI 解卦（与起卦页同款，游客可用） ===== -->
-    <view class="ai-reading">
-      <view class="m-label">Kimi · AI 解卦 <text class="ai-badge">游客可用</text></view>
-      <view class="spread-hint">你想问什么？（选填，最多 300 字）</view>
-      <textarea class="ai-question" value="{{aiQuestion}}" maxlength="300" bindinput="onAiQuestion" disabled="{{aiLoading || !!aiResult}}" placeholder="例如：今天适合推进哪件事？" />
-      <view class="ai-note">点击后会将问题与卦象发送给 Kimi，仅供娱乐与自我探索。每日一卦每天生成一次，同一网络有每日限额。</view>
-      <button size="mini" wx:if="{{!aiResult}}" class="btn-gold" disabled="{{aiLoading}}" bindtap="readWithAi">{{aiLoading ? '正在结合卦象解读…' : '用 Kimi 解读这一卦'}}</button>
-      <view wx:if="{{aiError}}" class="error-line">{{aiError}}</view>
-      <view wx:if="{{aiResult}}" class="ai-result">
-        <view class="m-text">{{aiResult.summary}}</view>
-        <button size="mini" class="detail-toggle" bindtap="toggleAiDetail">{{aiExpanded ? '收起详细解读 −' : '卦象联系与行动建议 +'}}</button>
-        <view wx:if="{{aiExpanded}}" class="m-text ai-detail">{{aiResult.detail}}</view>
-        <view class="ai-note">AI 解读 · 仅供参考</view>
-      </view>
-    </view>
-  </block>
-
-  <view class="footer mono">
-    <view class="f-legal">星语 STARWHISPER · 仅供娱乐</view>
-    <view class="f-wish"><text class="f-star">✦</text> 愿你被星辰温柔以待 <text class="f-star">✦</text></view>
+  <view class="maintain-card">
+    <view class="maintain-star">✦</view>
+    <view class="maintain-title">内容升级调整中</view>
+    <view class="maintain-text">该板块正在进行内容升级，暂时无法使用，感谢理解。</view>
+    <view class="maintain-text dim">星运、塔罗、配对等板块不受影响，欢迎继续探索。</view>
   </view>
 </view>

@@ -158,3 +158,17 @@ page {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ===== 板块维护页（临时下架板块共用） ===== */
+.maintain-card {
+  margin-top: 200rpx;
+  padding: 64rpx 48rpx;
+  text-align: center;
+  border: 1rpx solid var(--gold-hairline);
+  border-radius: 16rpx;
+  background: var(--panel-bg);
+}
+.maintain-star { font-size: 48rpx; color: var(--gold); }
+.maintain-title { margin-top: 20rpx; font-size: 32rpx; letter-spacing: 0.2em; color: var(--ink); }
+.maintain-text { margin-top: 20rpx; font-size: 26rpx; line-height: 1.8; color: var(--ink-dim); }
+.maintain-text.dim { font-size: 22rpx; color: var(--ink-dim2); }

@@ -33,12 +33,6 @@
         "selectedIconPath": "images/tabbar/tarot-active.png"
       },
       {
-        "pagePath": "pages/bagua/bagua",
-        "text": "八卦",
-        "iconPath": "images/tabbar/bagua.png",
-        "selectedIconPath": "images/tabbar/bagua-active.png"
-      },
-      {
         "pagePath": "pages/match/match",
         "text": "配对",
         "iconPath": "images/tabbar/match.png",
