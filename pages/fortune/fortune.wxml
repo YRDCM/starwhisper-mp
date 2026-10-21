@@ -313,23 +313,6 @@
     <view class="f-wish"><text class="f-star">✦</text> 愿你被星辰温柔以待 <text class="f-star">✦</text></view>
   </view>
 
-  <!-- 首次登录引导弹窗：只出现一次（看过或已登录都不再弹） -->
-  <view wx:if="{{showWelcome}}" class="welcome-mask">
-    <view class="welcome-modal">
-      <view class="welcome-star">✦</view>
-      <view class="welcome-title">欢迎来到星语</view>
-      <view class="welcome-sub mono">STARWHISPER</view>
-      <view class="welcome-perks">
-        <view class="perk">✧ 抽牌与起卦记录云端同步，换设备不丢</view>
-        <view class="perk">✧ 每日打卡，点亮你的星轨勋章墙</view>
-        <view class="perk">✧ 历史记录随时回看</view>
-      </view>
-      <button size="mini" class="btn-gold welcome-login {{welcomeLogging ? 'disabled' : ''}}" bindtap="onWelcomeLogin">{{welcomeLogging ? '登录中…' : '微信一键登录'}}</button>
-      <view class="welcome-skip" bindtap="onWelcomeSkip">先逛逛，稍后再说</view>
-      <view class="welcome-note">游客身份也可正常使用全部功能</view>
-    </view>
-  </view>
-
   <!-- 分享海报：离屏 canvas（隐藏节点，仅用于绘制导出） -->
   <canvas type="2d" id="poster-canvas" class="poster-canvas"></canvas>
 

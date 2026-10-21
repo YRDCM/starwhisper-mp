@@ -6,7 +6,7 @@
 const BASE_URL = 'https://mystarwhisper.cn'
 
 // 小程序版本号：每次发版递增，「我的」页页脚展示，便于区分当前是否最新版
-const APP_VERSION = '1.6.0'
+const APP_VERSION = '1.6.1'
 
 // ===== 订阅消息模板 ID =====
 // 到微信公众平台 mp.weixin.qq.com → 功能 → 订阅消息 申请模板后回填。

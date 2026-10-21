@@ -654,26 +654,3 @@ page {
 .lb-star { color: var(--gold); font-size: 22rpx; }
 .lb-text { flex: 1; font-size: 24rpx; color: var(--ink); letter-spacing: 0.02em; }
 .lb-go { font-size: 22rpx; color: var(--gold); letter-spacing: 0.1em; }
-
-/* ===== 首次登录引导弹窗 ===== */
-.welcome-mask {
-  position: fixed; inset: 0; z-index: 100;
-  background: rgba(10, 8, 24, 0.78);
-  display: flex; align-items: center; justify-content: center;
-}
-.welcome-modal {
-  width: 600rpx; box-sizing: border-box;
-  padding: 48rpx 44rpx 36rpx;
-  background: #1E1B36;
-  border: 1rpx solid var(--gold-hairline);
-  border-radius: 24rpx;
-  text-align: center;
-}
-.welcome-star { font-size: 56rpx; color: var(--gold); }
-.welcome-title { margin-top: 16rpx; font-size: 38rpx; letter-spacing: 0.2em; color: var(--ink); }
-.welcome-sub { margin-top: 8rpx; font-size: 20rpx; letter-spacing: 0.35em; color: var(--ink-dim2); }
-.welcome-perks { margin: 32rpx 0 36rpx; text-align: left; }
-.perk { font-size: 26rpx; line-height: 2; color: var(--ink-dim); }
-.welcome-login { width: 100%; font-size: 28rpx; }
-.welcome-skip { margin-top: 24rpx; font-size: 24rpx; color: var(--ink-dim); }
-.welcome-note { margin-top: 12rpx; font-size: 20rpx; color: var(--ink-dim2); }

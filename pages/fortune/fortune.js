@@ -4,10 +4,6 @@ const {
 } = require('../../utils/request')
 const { profileOf } = require('../../utils/signProfiles')
 const { formatWeekRange } = require('../../utils/weekly')
-const { wxQuickLogin, shouldShowWelcome } = require('../../utils/login')
-
-// 首次登录引导标记：看过就不再弹（登录态本身也会抑制）
-const WELCOME_KEY = 'starwhisper:welcomed:v1'
 // echarts 官方 UMD 构建（小程序兼容），由 ec-canvas 组件通过属性注入使用
 const echarts = require('../../components/ec-canvas/echarts.js')
 
@@ -56,9 +52,7 @@ Page({
     posterImage: '',
     posterDrawing: false,
     // ===== 登录引导 =====
-    loggedIn: false,      // 是否已登录（控制引导条显示）
-    showWelcome: false,   // 首次进入的登录引导弹窗
-    welcomeLogging: false // 弹窗内一键登录进行中
+    loggedIn: false       // 是否已登录（控制引导条显示）
   },
 
   onLoad() {
@@ -66,14 +60,13 @@ Page({
     const d = new Date()
     const weekNames = ['日', '一', '二', '三', '四', '五', '六']
     const p = (n) => String(n).padStart(2, '0')
-    // 登录引导：已登录只隐藏引导条；未登录且没看过引导 → 弹首次欢迎窗
+    // 登录引导条：已登录隐藏（被动入口，不弹窗不打扰——平台禁止一进首页就要求登录）
     const loggedIn = !!wx.getStorageSync('token')
     this.setData({
       todayText: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} · 星期${weekNames[d.getDay()]}`,
       radarEc: { onInit: (canvas, w, h, dpr) => this.initRadar(canvas, w, h, dpr) },
       trendEc: { onInit: (canvas, w, h, dpr) => this.initTrend(canvas, w, h, dpr) },
-      loggedIn,
-      showWelcome: shouldShowWelcome(!!wx.getStorageSync(WELCOME_KEY), loggedIn)
+      loggedIn
     })
     this.init()
   },
@@ -81,31 +74,10 @@ Page({
   onShow() {
     // 从「我的」页登录回来：隐藏引导条/弹窗
     const loggedIn = !!wx.getStorageSync('token')
-    if (loggedIn !== this.data.loggedIn) this.setData({ loggedIn, showWelcome: false })
+    if (loggedIn !== this.data.loggedIn) this.setData({ loggedIn })
   },
 
-  /* ===== 登录引导 ===== */
-  // 弹窗内一键微信登录：成功后引导条同步消失
-  async onWelcomeLogin() {
-    if (this.data.welcomeLogging) return
-    this.setData({ welcomeLogging: true })
-    try {
-      await wxQuickLogin()
-      wx.setStorageSync(WELCOME_KEY, 1)
-      this.setData({ loggedIn: true, showWelcome: false })
-      wx.showToast({ title: '登录成功，记录将同步保存', icon: 'none' })
-    } catch (e) {
-      wx.showModal({ title: '登录暂不可用', content: '可点「先逛逛」，稍后在「我的」页重试登录。', showCancel: false })
-    } finally {
-      this.setData({ welcomeLogging: false })
-    }
-  },
-  // 先逛逛：标记已看过，不再弹（引导条仍保留，用户随时可去「我的」登录）
-  onWelcomeSkip() {
-    wx.setStorageSync(WELCOME_KEY, 1)
-    this.setData({ showWelcome: false })
-  },
-  // 引导条 → 去「我的」页登录
+  /* ===== 登录引导条（被动入口，微信规则：不得一进首页就要求登录） ===== */
   goLogin() {
     wx.switchTab({ url: '/pages/profile/profile' })
   },
