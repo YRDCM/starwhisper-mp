@@ -105,7 +105,7 @@
   <view class="glass-card ritual">
     <view wx:if="{{drawn.length}}" class="spread-hint">{{restoreNotice || '本次牌阵在当前设备保留 7 天，重新抽牌会清除。'}}</view>
     <view wx:if="{{snapshotError}}" class="error-line">{{snapshotError}}</view>
-    <view class="sec-title">抽牌仪式 <text class="sec-title-en mono">RITUAL</text></view>
+    <view class="sec-title">抽一张牌 <text class="sec-title-en mono">DRAW</text></view>
 
     <!-- 牌阵选择：日常 / 进阶两组，按钮标注牌数 -->
     <view class="mode-group" wx:for="{{spreadGroups}}" wx:key="label">
@@ -343,6 +343,7 @@
             <view class="m-text">{{aiResult.summary}}</view>
             <button size="mini" class="detail-toggle" bindtap="toggleAiDetail">{{aiExpanded ? '收起详细解读 −' : '牌阵联系与行动建议 +'}}</button>
             <view wx:if="{{aiExpanded}}" class="m-text ai-detail">{{aiResult.detail}}</view>
+            <view class="ai-note">以上为娱乐向的自我探索内容，不构成任何决策依据。</view>
           </view>
         </block>
       </view>

@@ -73,8 +73,12 @@ test('配对分享：读 scores.overall（旧代码读 result.score 永远为空
 
   page.data.result = { scores: null } // 后端没给 scores：不能出现 undefined / NaN
   const fallback = page.onShareAppMessage().title
-  assert.equal(fallback, '星座配对 · 测测你们的缘分指数')
+  // 断言「兜底行为」而不是某句具体文案：文案会随运营调整，这里要保证的是
+  // 走兜底、且不会把 undefined / NaN 拼进分享标题
+  assert.match(fallback, /^星座配对 · /, '缺 scores 时要走兜底文案')
+  assert.ok(!/undefined|NaN/.test(fallback), '兜底文案不能带 undefined / NaN')
 
   page.data.result = null
-  assert.equal(page.onShareAppMessage().title, '星座配对 · 测测你们的缘分指数')
+  assert.equal(page.onShareAppMessage().title, fallback,
+    'result 为 null 与 scores 缺失应走同一套兜底文案')
 })

@@ -127,11 +127,11 @@ Page({
     const r = this.data.result
     const overall = r && r.scores && r.scores.overall != null ? r.scores.overall : null
     return {
-      title: overall != null ? `我们的星座配对 ${overall} 分！快来测测你们的 ✦` : '星座配对 · 测测你们的缘分指数',
+      title: overall != null ? `我们的星座配对 ${overall} 分，来看看你们的契合度 ✦` : '星座配对 · 看看你们的缘分指数',
       path: '/pages/match/match'
     }
   },
   onShareTimeline() {
-    return { title: '星座配对 · 测测你们的缘分指数', query: '' }
+    return { title: '星座配对 · 看看你们的缘分指数', query: '' }
   }
 })
