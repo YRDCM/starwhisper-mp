@@ -13,17 +13,17 @@
   </view>
   <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
 
-  <!-- 首次/未选星座提示：点星盘上自己那一格就好（被动提示，不弹窗、不挡内容） -->
-  <view wx:if="{{!hasMySign && !loading}}" class="pick-hint">
-    <text class="ph-mark">☾</text>
-    <text class="ph-text">点星盘选你的星座，之后的运势就是你的</text>
+  <!-- 单条上下文提示：同一时刻只出现一条，把首屏让给星盘
+       · 还没选星座 → 教他点星盘（核心动作优先）
+       · 已经选过   → 才提登录（此时他已经在用了，登录才有说服力） -->
+  <view wx:if="{{!loggedIn && !hasMySign && !loading}}" class="hint-line">
+    <text class="hl-mark">☾</text>
+    <text class="hl-text">点星盘选你的星座，之后的运势就是你的</text>
   </view>
-
-  <!-- 登录引导条：未登录常驻（弹窗只出现一次，这个一直在，可随时去登录） -->
-  <view wx:if="{{!loggedIn}}" class="login-banner" bindtap="goLogin">
-    <text class="lb-star">✦</text>
-    <text class="lb-text">{{hasMySign ? '登录后你的星座跟着账号走，换手机也不丢' : '登录后可同步抽牌、配对与打卡记录'}}</text>
-    <text class="lb-go mono">去登录 ›</text>
+  <view wx:elif="{{!loggedIn && hasMySign}}" class="hint-line hint-tap" bindtap="goLogin">
+    <text class="hl-mark">✦</text>
+    <text class="hl-text">登录后星座和记录跟着账号走，换手机也不丢</text>
+    <text class="hl-go mono">去登录 ›</text>
   </view>
 
   <!-- 断连错误态（不白屏） -->

@@ -641,27 +641,24 @@ page {
 }
 
 /* ===== 登录引导条（未登录常驻） ===== */
-.login-banner {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  margin: 20rpx 0 0;
-  padding: 18rpx 24rpx;
-  border: 1rpx solid var(--gold-hairline);
-  border-radius: 999rpx;
-  background: rgba(232, 196, 124, 0.07);
-}
-.lb-star { color: var(--gold); font-size: 22rpx; }
-.lb-text { flex: 1; font-size: 24rpx; color: var(--ink); letter-spacing: 0.02em; }
-.lb-go { font-size: 22rpx; color: var(--gold); letter-spacing: 0.1em; }
-
-/* 首次提示「先选你的星座」：比登录条更轻，无边框，只在还没记住星座时出现 */
-.pick-hint {
+/* ===== 单条上下文提示 =====
+   原来「选星座提示」+「登录引导条」两条并排堆着，占掉首屏近 1/4，
+   把星盘挤到下半屏。现在合并成一条、去掉胶囊外框、收紧上间距，
+   首屏让给星盘（这一页唯一的核心视觉）。 */
+.hint-line {
   display: flex;
   align-items: center;
   gap: 10rpx;
-  margin: 20rpx 0 0;
-  padding: 4rpx 8rpx;
+  margin: 14rpx 0 2rpx;
+  padding: 2rpx 4rpx;
 }
-.ph-mark { color: var(--gold); font-size: 22rpx; opacity: 0.85; }
-.ph-text { flex: 1; font-size: 23rpx; color: var(--ink-dim, #A9A4CC); letter-spacing: 0.02em; }
+/* 可点击的版本（已选星座、还没登录）：整行都能点去登录 */
+.hint-tap {
+  padding: 12rpx 16rpx;
+  margin: 12rpx 0 0;
+  border-radius: 12rpx;
+  background: rgba(232, 196, 124, 0.05);
+}
+.hl-mark { flex: none; color: var(--gold); font-size: 22rpx; opacity: 0.9; }
+.hl-text { flex: 1; font-size: 24rpx; line-height: 1.5; color: var(--ink-dim2); letter-spacing: 0.02em; }
+.hl-go { flex: none; font-size: 22rpx; color: var(--gold); letter-spacing: 0.08em; }

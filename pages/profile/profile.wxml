@@ -211,31 +211,28 @@
 
   <!-- ===== 帮助与反馈（游客也能用：这是目前唯一的真实触达通道） ===== -->
   <view class="glass-card feedback-card">
-    <view class="sec-title">帮助与反馈 <text class="sec-title-en mono">FEEDBACK</text></view>
-
-    <!-- 我的星座：登录后跟账号走；游客只存本机 -->
-    <view wx:if="{{mySignName}}" class="my-sign-row">
-      <text class="ms-label mono">MY SIGN</text>
-      <text class="ms-value">{{mySignName}}</text>
+    <view class="fb-head">
+      <view class="sec-title">帮助与反馈 <text class="sec-title-en mono">FEEDBACK</text></view>
+      <!-- 我的星座：登录后跟账号走；游客只存本机 -->
+      <text wx:if="{{mySignName}}" class="fb-sign mono">{{mySignName}}</text>
     </view>
 
-    <view class="fb-hint">{{token ? '遇到问题、或者有想要的星座内容，都可以直接告诉我。' : '不用登录也能留言。想让我记住你的星座，登录就行。'}}</view>
+    <view class="fb-hint">{{token ? '遇到问题、或者有想要的星座内容，都可以直接说。' : '不用登录也能留言。'}}</view>
     <textarea
       class="fb-input"
       value="{{fbContent}}"
       maxlength="500"
-      placeholder="比如：我想看每日塔罗日签 / 某个页面点不动了"
+      placeholder="说点什么…例如：想看每日塔罗日签"
       bindinput="onFbInput"
       disabled="{{fbSending}}"
     />
     <view wx:if="{{fbError}}" class="error-line">{{fbError}}</view>
     <view wx:if="{{fbDone}}" class="fb-done">收到了，谢谢你说这些 ✦</view>
-    <view class="fb-actions">
-      <button size="mini" class="btn-gold {{fbSending || !fbContent ? 'disabled' : ''}}" disabled="{{fbSending || !fbContent}}" bindtap="submitFeedback">
-        {{fbSending ? '发送中…' : '发送反馈'}}
-      </button>
-      <button size="mini" class="btn-ghost" open-type="contact">联系客服</button>
-    </view>
+    <button size="mini" class="btn-gold fb-submit {{fbSending ? 'disabled' : ''}}" disabled="{{fbSending}}" bindtap="submitFeedback">
+      {{fbSending ? '发送中…' : '发送反馈'}}
+    </button>
+    <!-- 客服降级为文字链：一个主按钮 + 一个安静的出口，不再两个按钮抢注意力 -->
+    <button size="mini" class="fb-help" open-type="contact">遇到账号问题？联系客服 ›</button>
   </view>
 
   <view class="footer mono">
