@@ -203,6 +203,35 @@
     </view>
   </block>
 
+  <!-- ===== 帮助与反馈（游客也能用：这是目前唯一的真实触达通道） ===== -->
+  <view class="glass-card feedback-card">
+    <view class="sec-title">帮助与反馈 <text class="sec-title-en mono">FEEDBACK</text></view>
+
+    <!-- 我的星座：登录后跟账号走；游客只存本机 -->
+    <view wx:if="{{mySignName}}" class="my-sign-row">
+      <text class="ms-label mono">MY SIGN</text>
+      <text class="ms-value">{{mySignName}}</text>
+    </view>
+
+    <view class="fb-hint">{{token ? '遇到问题、或者有想要的星座内容，都可以直接告诉我。' : '不用登录也能留言。想让我记住你的星座，登录就行。'}}</view>
+    <textarea
+      class="fb-input"
+      value="{{fbContent}}"
+      maxlength="500"
+      placeholder="比如：我想看每日塔罗日签 / 某个页面点不动了"
+      bindinput="onFbInput"
+      disabled="{{fbSending}}"
+    />
+    <view wx:if="{{fbError}}" class="error-line">{{fbError}}</view>
+    <view wx:if="{{fbDone}}" class="fb-done">收到了，谢谢你说这些 ✦</view>
+    <view class="fb-actions">
+      <button size="mini" class="btn-gold {{fbSending || !fbContent ? 'disabled' : ''}}" disabled="{{fbSending || !fbContent}}" bindtap="submitFeedback">
+        {{fbSending ? '发送中…' : '发送反馈'}}
+      </button>
+      <button size="mini" class="btn-ghost" open-type="contact">联系客服</button>
+    </view>
+  </view>
+
   <view class="footer mono">
     <view class="f-legal">星语 STARWHISPER · 仅供娱乐</view>
     <view class="f-wish"><text class="f-star">✦</text> 愿你被星辰温柔以待 <text class="f-star">✦</text></view>

@@ -13,10 +13,16 @@
   </view>
   <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
 
+  <!-- 首次/未选星座提示：点星盘上自己那一格就好（被动提示，不弹窗、不挡内容） -->
+  <view wx:if="{{!hasMySign && !loading}}" class="pick-hint">
+    <text class="ph-mark">☾</text>
+    <text class="ph-text">点星盘选你的星座，之后的运势就是你的</text>
+  </view>
+
   <!-- 登录引导条：未登录常驻（弹窗只出现一次，这个一直在，可随时去登录） -->
   <view wx:if="{{!loggedIn}}" class="login-banner" bindtap="goLogin">
     <text class="lb-star">✦</text>
-    <text class="lb-text">登录后可同步抽牌、配对与打卡记录</text>
+    <text class="lb-text">{{hasMySign ? '登录后你的星座跟着账号走，换手机也不丢' : '登录后可同步抽牌、配对与打卡记录'}}</text>
     <text class="lb-go mono">去登录 ›</text>
   </view>
 

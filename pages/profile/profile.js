@@ -1,6 +1,7 @@
 // 我的页：登录（微信）+ 打卡 + 历史记录（塔罗 / 配对各最近 5 条）+ 每日/每周运势订阅提醒
 const { wechatLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus, fetchCheckinSummary,
-  subscribeNotify, unsubscribeNotify, fetchNotifyStatus, updateProfile } = require('../../utils/request')
+  subscribeNotify, unsubscribeNotify, fetchNotifyStatus, updateProfile,
+  submitFeedback: postFeedback } = require('../../utils/request')
 const { APP_VERSION, SUBSCRIBE_TEMPLATES } = require('../../utils/config')
 const { SIGN_OPTIONS, notifyEntryState, isSubscribeAccepted, SUBSCRIBE_TIP,
   WEEKLY_SUBSCRIBED_TEXT, SUBSCRIBE_TIP_WEEKLY } = require('../../utils/notify')
@@ -50,7 +51,14 @@ Page({
     nameEditing: false,
     nameInput: '',
     nameSaving: false,
-    nameError: ''
+    nameError: '',
+    // ===== 我的星座（登录后跟账号走；游客存本机） =====
+    mySignName: '',
+    // ===== 反馈（游客也能提交，这是目前唯一的真实触达通道） =====
+    fbContent: '',
+    fbSending: false,
+    fbError: '',
+    fbDone: false
   },
 
   onShow() {
@@ -63,9 +71,16 @@ Page({
       this._cache = {}
     }
     // 登录态 + 两个订阅条目原本是 3 次 setData，合并成 1 次
+    // 我的星座：优先账号里的（登录用户换设备也能看到），其次本机存的
+    const accountSign = (userInfo && userInfo.signNameEn) || ''
+    const localSign = wx.getStorageSync('mySignNameEn') || ''
+    const mySignEn = accountSign || localSign
+    if (mySignEn && mySignEn !== localSign) wx.setStorageSync('mySignNameEn', mySignEn)
+    const signDef = SIGN_OPTIONS.find((s) => s.nameEn === mySignEn)
     this.setData({
       token,
       userInfo,
+      mySignName: signDef ? signDef.name : (mySignEn || ''),
       notifyEntry: notifyEntryState({
         templateId: this.data.notifyTemplateId,
         loggedIn: !!token,
@@ -271,6 +286,29 @@ Page({
     }
   },
   noop() {}, // 弹层内容区阻止冒泡用
+
+  /* ===== 反馈（游客也能提交） ===== */
+  onFbInput(e) {
+    this.setData({ fbContent: e.detail.value.slice(0, 500), fbError: '', fbDone: false })
+  },
+  async submitFeedback() {
+    const content = (this.data.fbContent || '').trim()
+    if (content.length < 2) {
+      this.setData({ fbError: '说点什么再发吧' })
+      return
+    }
+    if (this.data.fbSending) return
+    this.setData({ fbSending: true, fbError: '', fbDone: false })
+    try {
+      await postFeedback(content, '', 'profile')
+      this.setData({ fbContent: '', fbDone: true })
+      wx.showToast({ title: '收到了，谢谢', icon: 'none' })
+    } catch (e) {
+      this.setData({ fbError: e.message || '发送失败，请稍后再试' })
+    } finally {
+      this.setData({ fbSending: false })
+    }
+  },
 
   confirmUnsubscribe() {
     wx.showModal({

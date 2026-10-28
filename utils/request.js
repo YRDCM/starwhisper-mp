@@ -130,6 +130,15 @@ module.exports = {
   updateProfile: (nickname) =>
     request({ url: '/user/profile', method: 'POST', data: { nickname } }),
 
+  // 保存「我的星座」到账号（换手机、清缓存都不丢）；游客只能存在本地
+  syncMySign: (signNameEn) =>
+    request({ url: '/user/profile', method: 'POST', data: { signNameEn } }),
+
+  /* ===== 反馈（游客也能提交，不需要登录） ===== */
+  // body: { content, contact?, page? }
+  submitFeedback: (content, contact, page) =>
+    request({ url: '/feedback', method: 'POST', auth: false, data: { content, contact, page } }),
+
   /* ===== 小程序码（海报用）：返回 {image: base64 PNG}，游客可用 ===== */
   fetchMpCode: (scene) => request({ url: '/wechat/mpcode', data: { scene }, auth: false })
 }

@@ -1,6 +1,7 @@
 // 星运页：星盘选择器 + 运势卡（FortuneVO v2 全字段）+ 雷达图 + 趋势图
 const {
-  fetchSigns, fetchTodayFortune, fetchWeekFortune, fetchWeeklyFortune, fetchMpCode
+  fetchSigns, fetchTodayFortune, fetchWeekFortune, fetchWeeklyFortune, fetchMpCode,
+  syncMySign, fetchMe
 } = require('../../utils/request')
 const { profileOf } = require('../../utils/signProfiles')
 const { formatWeekRange } = require('../../utils/weekly')
@@ -53,12 +54,19 @@ Page({
     posterImage: '',
     posterDrawing: false,
     // ===== 登录引导 =====
-    loggedIn: false       // 是否已登录（控制引导条显示）
+    loggedIn: false,      // 是否已登录（控制引导条显示）
+    // ===== 我的星座 =====
+    // 有没有"记住的星座"。没有时首页给一条轻提示让用户先选自己 —— 这是留存的关键：
+    // 之前首页按「今天日期」推算太阳星座，10 月底所有新用户看到的都是天蝎座运势，
+    // 跟他本人无关，自然看完就走。
+    hasMySign: false
   },
 
   onLoad(options) {
     // 好友从分享卡片进来时会带 ?sign=leo：等 signs 拉回来再按 nameEn 选中
     this._sharedSignNameEn = options && typeof options.sign === 'string' ? options.sign : ''
+    // 记住的星座（本地优先；登录用户还会从账号里同步，见 init）
+    this._mySignNameEn = wx.getStorageSync('mySignNameEn') || ''
     // 今日日期：2026-09-24 · 星期四
     const d = new Date()
     const weekNames = ['日', '一', '二', '三', '四', '五', '六']
@@ -78,7 +86,58 @@ Page({
     // 从「我的」页登录回来：隐藏引导条/弹窗
     const loggedIn = !!wx.getStorageSync('token')
     if (loggedIn !== this.data.loggedIn) this.setData({ loggedIn })
+    // 换设备/清缓存：本地没有星座记录但已登录 → 从账号回填一次
+    if (loggedIn && !this._mySignNameEn && !this._signFetched) {
+      this._signFetched = true
+      fetchMe()
+        .then((me) => {
+          const en = me && me.signNameEn
+          if (!en) return
+          this._mySignNameEn = en
+          wx.setStorageSync('mySignNameEn', en)
+          this.applyMySign(en)
+        })
+        .catch(() => {
+          this._signFetched = false // 失败允许下次再试
+        })
+    }
+    // 刚从「我的」页登录回来：把本地记住的星座补同步到账号（只补一次，失败不影响使用）
+    if (loggedIn && this._mySignNameEn && !this._signSynced) {
+      this.syncSignToServer(this._mySignNameEn)
+    }
     this.toggleChartAnimation(true) // 切回来恢复动画帧
+  },
+
+  /* ===== 「我的星座」：本地记住 + 登录后同步到账号 ===== */
+  rememberMySign(sign) {
+    if (!sign || !sign.nameEn) return
+    this._mySignNameEn = sign.nameEn
+    wx.setStorageSync('mySignNameEn', sign.nameEn)
+    if (!this.data.hasMySign) this.setData({ hasMySign: true })
+    // 登录用户存到账号：换手机、清缓存都不会丢 —— 这是「登录有什么用」最直观的一条
+    if (wx.getStorageSync('token')) this.syncSignToServer(sign.nameEn)
+  },
+
+  syncSignToServer(signNameEn) {
+    this._signSynced = true
+    syncMySign(signNameEn).catch(() => {
+      // 同步失败不影响本地体验，下次进页面会再试
+      this._signSynced = false
+    })
+  },
+
+  // 从账号取回星座后，切到那个星座（用户本次已经手选过就不抢）
+  applyMySign(nameEn) {
+    const sign = this.findSignByNameEn(this.data.signs, nameEn)
+    if (!sign || sign.id === this.data.currentSignId) {
+      if (sign) this.setData({ hasMySign: true })
+      return
+    }
+    if (this._manualSelection) return
+    this._manualSelection = true
+    this.setData({ currentSignId: sign.id, currentSign: sign, hasMySign: true })
+    this.rotateRingTo(sign.id, true)
+    this.loadFortune(sign)
   },
 
   // Tab 页切走：canvas 已停止刷新，顺手停掉 echarts 的动画帧。
@@ -111,16 +170,25 @@ Page({
     if (fromPullDown) this._weeklyCache = {} // 下拉刷新：清掉周运缓存，强制重拉
     try {
       const signs = await fetchSigns()
-      // 分享链接带进来的星座优先（能匹配上就选中它），否则按今天日期选
+      // 选中优先级：分享链接带的星座 > 记住的「我的星座」> 按今天日期兜底
+      // （记住的星座同时来自本地和账号，init 里已合并到 this._mySignNameEn）
       const sharedSign = this.findSignByNameEn(signs, this._sharedSignNameEn)
-      const todaySign = sharedSign || this.findTodaySign(signs)
+      const mySign = this.findSignByNameEn(signs, this._mySignNameEn)
+      const todaySign = sharedSign || mySign || this.findTodaySign(signs)
       if (sharedSign) this._manualSelection = true // 用户是冲着这个星座点进来的，别再被服务器日期校正覆盖
+      if (mySign) this._manualSelection = true     // 记住的星座也不该被日期校正覆盖
       // 星盘节点定位样式：rotate(i*30-90) → 外推 → 反向转正
       const nodeStyles = signs.map((s, i) => {
         const a = i * 30 - 90
         return `transform:rotate(${a}deg) translate(${WHEEL_RADIUS}rpx) rotate(${-a}deg)`
       })
-      this.setData({ signs, currentSignId: todaySign.id, currentSign: todaySign, nodeStyles })
+      this.setData({
+        signs,
+        currentSignId: todaySign.id,
+        currentSign: todaySign,
+        nodeStyles,
+        hasMySign: !!mySign
+      })
       this.rotateRingTo(todaySign.id, true)
       await this.loadFortune(todaySign)
       // 设备本地日期可能不准：以运势接口返回的服务器日期 fortuneDate 为准校正默认选中
@@ -604,7 +672,10 @@ Page({
     this._manualSelection = true
     this.setData({ currentSignId: id, currentSign: sign || null })
     this.rotateRingTo(id, false)
-    if (sign) this.loadFortune(sign)
+    if (sign) {
+      this.rememberMySign(sign) // 用户亲自选的星座 = 他的星座，记住
+      this.loadFortune(sign)
+    }
   },
 
   /* ===== 星盘旋转：把选中星座转到正上方（最短路径） ===== */
