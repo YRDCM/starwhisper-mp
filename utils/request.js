@@ -6,6 +6,35 @@ const { BASE_URL } = require('./config')
 const API_PREFIX = '/api'
 const TIMEOUT = 8000
 
+// 401 单飞节流：同一时刻多个请求一起失效时（「我的」页 onShow 就是并发 6 个），
+// 只弹一次 toast、只 switchTab 一次，否则真机上会连闪多个提示与跳转。
+const AUTH_FAIL_THROTTLE = 3000
+let lastAuthFailAt = 0
+
+/**
+ * 登录态失效：清 storage + globalData 两处（页面读 storage，请求层/其它页读 globalData，
+ * 少清一处就退不干净），并按节流只提示 + 跳转一次。
+ */
+function handleAuthFail() {
+  wx.removeStorageSync('token')
+  wx.removeStorageSync('userInfo')
+  try {
+    // getApp 在单测/App 启动阶段可能不可用，取不到就只清 storage
+    const app = typeof getApp === 'function' ? getApp() : null
+    if (app && app.globalData) {
+      app.globalData.token = ''
+      app.globalData.userInfo = null
+    }
+  } catch (e) {
+    // 忽略：storage 已清干净，globalData 会在下次 onLaunch/登录时重建
+  }
+  const now = Date.now()
+  if (now - lastAuthFailAt < AUTH_FAIL_THROTTLE) return
+  lastAuthFailAt = now
+  wx.showToast({ title: '请先登录', icon: 'none' })
+  wx.switchTab({ url: '/pages/profile/profile' })
+}
+
 /**
  * 统一请求：成功 resolve(body.data)，失败 reject(Error(友好中文提示))
  * @param {object} opts { url, method, data, auth }
@@ -28,10 +57,7 @@ function request({ url, method = 'GET', data, auth = true, timeout = TIMEOUT }) 
         const body = res.data
         // 未登录 / token 失效：清本地登录态并提示
         if (res.statusCode === 401 || (body && body.code === 401)) {
-          wx.removeStorageSync('token')
-          wx.removeStorageSync('userInfo')
-          wx.showToast({ title: '请先登录', icon: 'none' })
-          wx.switchTab({ url: '/pages/profile/profile' })
+          handleAuthFail()
           reject(new Error('登录已失效，请重新登录'))
           return
         }
@@ -73,20 +99,11 @@ module.exports = {
   fetchTarotCards: () => request({ url: '/tarot/cards' }),
   fetchTarotReading: (drawId, question) => request({ url: '/tarot/ai-reading', method: 'POST', data: { drawId, question }, timeout: 60000 }),
 
-  /* ===== 八卦 ===== */
-  fetchBaguaDaily: () => request({ url: '/bagua/daily' }),
-  castBagua: () => request({ url: '/bagua/cast', method: 'POST' }),
-  fetchHexagrams: () => request({ url: '/bagua/hexagrams' }),
-  // Kimi AI 解卦：payload = { primarySeq, changedSeq, changingLines, question }，响应 { summary, detail } 同塔罗
-  fetchBaguaReading: (payload) => request({ url: '/bagua/ai-reading', method: 'POST', data: payload, timeout: 60000 }),
-
   /* ===== 用户系统 ===== */
-  // 开发期通道：直接发昵称换 token
-  devLogin: (nickname) => request({ url: '/auth/dev', method: 'POST', data: { nickname }, auth: false }),
   // 微信登录：wx.login 拿 code 换 token（后端未配 AppID 时会返回错误文案）
   wechatLogin: (code) => request({ url: '/auth/wechat', method: 'POST', data: { code }, auth: false }),
   fetchMe: () => request({ url: '/user/me' }),
-  // 历史记录：type = TAROT / BAGUA / 空（全部），最新在前
+  // 历史记录：type = TAROT / MATCH / 空（全部），最新在前
   fetchHistory: (type) => request({ url: '/user/history', data: type ? { type } : {} }),
 
   /* ===== 星座配对 ===== */
@@ -108,10 +125,6 @@ module.exports = {
   unsubscribeNotify: (scene) => request({ url: '/notify/unsubscribe', method: 'POST', data: { scene } }),
   // 返回 { scenes: ['DAILY_FORTUNE', ...] }（仅 ACTIVE 状态）
   fetchNotifyStatus: () => request({ url: '/notify/status' }),
-
-  /* ===== 每日一卦 ===== */
-  fetchHexagramToday: (openid) =>
-    request({ url: '/hexagram/today', data: openid ? { openid } : {} }),
 
   /* ===== 资料更新（需登录）：昵称全站唯一，撞名后端会报错 ===== */
   updateProfile: (nickname) =>

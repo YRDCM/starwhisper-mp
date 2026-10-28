@@ -1,9 +1,12 @@
-// 我的页：登录（微信 / 游客体验）+ 打卡 + 历史记录（塔罗 / 八卦各最近 5 条）+ 每日/每周运势订阅提醒
-const { wechatLogin, devLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus, fetchCheckinSummary,
+// 我的页：登录（微信）+ 打卡 + 历史记录（塔罗 / 配对各最近 5 条）+ 每日/每周运势订阅提醒
+const { wechatLogin, fetchMe, fetchHistory, checkin, fetchCheckinStatus, fetchCheckinSummary,
   subscribeNotify, unsubscribeNotify, fetchNotifyStatus, updateProfile } = require('../../utils/request')
 const { APP_VERSION, SUBSCRIBE_TEMPLATES } = require('../../utils/config')
 const { SIGN_OPTIONS, notifyEntryState, isSubscribeAccepted, SUBSCRIBE_TIP,
   WEEKLY_SUBSCRIBED_TEXT, SUBSCRIBE_TIP_WEEKLY } = require('../../utils/notify')
+
+// onShow 数据缓存 TTL：60s 内重复切回本页不重复打后端；登录态变化或写操作会主动清缓存
+const CACHE_TTL = 60 * 1000
 
 Page({
   data: {
@@ -13,9 +16,9 @@ Page({
     logging: false,
     loginError: '',
     historyTarot: [],   // 塔罗最近 5 条
-    historyBagua: [],   // 八卦最近 5 条
     historyMatch: [],   // 配对最近 5 条
     historyLoaded: false,
+    historyError: '',   // 历史记录加载失败文案（空串=正常）；失败要显示错误态 + 重试，不能吞成「暂无记录」
     expandedId: null,   // 展开详情的记录 id
     // 打卡
     checkinStatus: null, // {todayDone, streak, totalDays, recentDates}
@@ -54,14 +57,70 @@ Page({
     // 每次进入同步全局登录态（其他页 401 后会清掉 storage）
     const token = wx.getStorageSync('token') || ''
     const userInfo = wx.getStorageSync('userInfo') || null
-    this.setData({ token, userInfo })
-    this.refreshNotifyEntry()
-    this.refreshWeeklyEntry()
-    if (token) {
-      this.loadHistory()
-      this.loadCheckinStatus() // onShow 刷新打卡状态
-      this.loadCheckinSummary() // 连续打卡 + 勋章墙（失败静默）
-      this.loadNotifyStatus() // 订阅状态（失败静默）
+    // 换号 / 退出登录：整张缓存表作废（避免看到上一个人的记录）
+    if (token !== this._tokenKey) {
+      this._tokenKey = token
+      this._cache = {}
+    }
+    // 登录态 + 两个订阅条目原本是 3 次 setData，合并成 1 次
+    this.setData({
+      token,
+      userInfo,
+      notifyEntry: notifyEntryState({
+        templateId: this.data.notifyTemplateId,
+        loggedIn: !!token,
+        subscribed: this.data.notifySubscribed
+      }),
+      weeklyEntry: notifyEntryState({
+        templateId: this.data.weeklyTemplateId,
+        loggedIn: !!token,
+        subscribed: this.data.weeklySubscribed,
+        subscribedText: WEEKLY_SUBSCRIBED_TEXT
+      })
+    })
+    // 6 个请求并行（命中缓存则不发），结果合并成 1 次 setData
+    if (token) this.refreshAll()
+  },
+
+  /* ===== 数据加载：并行 + 60s 缓存 + 一次 setData ===== */
+
+  cacheFresh(key) {
+    const at = this._cache && this._cache[key]
+    return !!at && Date.now() - at < CACHE_TTL
+  },
+  cacheMark(key) {
+    this._cache = this._cache || {}
+    this._cache[key] = Date.now()
+  },
+  clearCache() { this._cache = {} },
+
+  // 各 build* 返回待合并的 patch（命中缓存返回 null），全部回来后一次性 setData
+  async refreshAll(force) {
+    const parts = await Promise.all([
+      this.buildUserInfo(force),
+      this.buildHistory(force),
+      this.buildCheckinStatus(force),
+      this.buildCheckinSummary(force),
+      this.buildNotifyStatus(force)
+    ])
+    const patch = {}
+    parts.forEach((part) => { if (part) Object.assign(patch, part) })
+    if (Object.keys(patch).length) this.setData(patch)
+  },
+
+  // 用户信息：60s TTL 拉一次（换设备/改名后昵称能同步）；失败静默用本地缓存
+  async buildUserInfo(force) {
+    if (!force && this.cacheFresh('me')) return null
+    try {
+      const user = await fetchMe()
+      // 契约：/user/me 直接返回用户对象（页面只用到 id/nickname/avatarUrl）。
+      // 拿不到 id 视为异常响应，宁可保留本地缓存也不要把 storage 写脏
+      if (!user || typeof user !== 'object' || user.id == null) return null
+      this.cacheMark('me')
+      wx.setStorageSync('userInfo', user)
+      return { userInfo: user }
+    } catch (e) {
+      return null
     }
   },
 
@@ -78,19 +137,34 @@ Page({
     })
   },
 
-  async loadNotifyStatus() {
-    if (!this.data.notifyTemplateId && !this.data.weeklyTemplateId) return // 模板都未配置不打扰后端
+  // 订阅状态：进页面拉一次（60s 内复用）。失败静默：保持上次状态，不打断页面
+  async buildNotifyStatus(force) {
+    if (!this.data.notifyTemplateId && !this.data.weeklyTemplateId) return null // 模板都未配置不打扰后端
+    if (!force && this.cacheFresh('notify')) return null
     try {
       const res = await fetchNotifyStatus()
       const scenes = res.scenes || []
-      this.setData({
-        notifySubscribed: scenes.includes('DAILY_FORTUNE'),
-        weeklySubscribed: scenes.includes('WEEKLY_FORTUNE')
-      })
-      this.refreshNotifyEntry()
-      this.refreshWeeklyEntry()
+      const notifySubscribed = scenes.includes('DAILY_FORTUNE')
+      const weeklySubscribed = scenes.includes('WEEKLY_FORTUNE')
+      this.cacheMark('notify')
+      // 两个条目的展示状态一起算进 patch，避免再单独 setData 两次
+      return {
+        notifySubscribed,
+        weeklySubscribed,
+        notifyEntry: notifyEntryState({
+          templateId: this.data.notifyTemplateId,
+          loggedIn: !!this.data.token,
+          subscribed: notifySubscribed
+        }),
+        weeklyEntry: notifyEntryState({
+          templateId: this.data.weeklyTemplateId,
+          loggedIn: !!this.data.token,
+          subscribed: weeklySubscribed,
+          subscribedText: WEEKLY_SUBSCRIBED_TEXT
+        })
+      }
     } catch (e) {
-      // 失败静默：保持上次状态，不打断页面
+      return null
     }
   },
 
@@ -309,7 +383,7 @@ Page({
     })
   },
 
-  /* ===== 微信登录：wx.login → /api/auth/wechat；失败给游客通道 ===== */
+  /* ===== 微信登录：wx.login → /api/auth/wechat ===== */
   async onWechatLogin() {
     if (this.data.logging) return
     this.setData({ logging: true, loginError: '' })
@@ -321,22 +395,8 @@ Page({
       const data = await wechatLogin(code)
       this.applyLogin(data)
     } catch (e) {
-      // 后端未配置 AppID 等情况：提示并展示游客体验入口
-      this.setData({ loginError: (e.message || '微信登录暂不可用') + '，可试试下方游客体验登录' })
-    } finally {
-      this.setData({ logging: false })
-    }
-  },
-
-  /* ===== 游客体验登录：/api/auth/dev ===== */
-  async onDevLogin() {
-    if (this.data.logging) return
-    this.setData({ logging: true, loginError: '' })
-    try {
-      const data = await devLogin('星友' + String(Date.now()).slice(-4))
-      this.applyLogin(data)
-    } catch (e) {
-      this.setData({ loginError: e.message || '登录失败，请稍后重试' })
+      // 后端未配置 AppID 等情况：如实提示（个人主体已下线游客通道）
+      this.setData({ loginError: e.message || '微信登录暂不可用' })
     } finally {
       this.setData({ logging: false })
     }
@@ -349,7 +409,10 @@ Page({
     getApp().globalData.userInfo = data.user
     this.setData({ token: data.token, userInfo: data.user })
     wx.showToast({ title: '登录成功', icon: 'none' })
-    this.loadHistory()
+    // 登录后数据全变（历史/打卡/订阅都是这个人的）：清缓存并强制拉一次
+    this._tokenKey = data.token
+    this.clearCache()
+    this.refreshAll(true)
   },
 
   onLogout() {
@@ -357,9 +420,12 @@ Page({
     wx.removeStorageSync('userInfo')
     getApp().globalData.token = ''
     getApp().globalData.userInfo = null
+    // 退出即作废缓存，避免下次登录前又看到上一个人的数据
+    this._tokenKey = ''
+    this.clearCache()
     this.setData({
       token: '', userInfo: null,
-      historyTarot: [], historyBagua: [], historyMatch: [], historyLoaded: false, expandedId: null,
+      historyTarot: [], historyMatch: [], historyLoaded: false, historyError: '', expandedId: null,
       checkinStatus: null, checkinDots: [], checkinSummary: null, badges: [], checkinError: '',
       notifySubscribed: false, weeklySubscribed: false
     })
@@ -369,31 +435,41 @@ Page({
   },
 
   /* ===== 打卡 ===== */
-  async loadCheckinStatus() {
-    this.setData({ checkinError: '' })
+
+  // 打卡状态：首次/过期才拉；失败必须显式置错误态——否则打卡卡会一直停在 loading spinner
+  async buildCheckinStatus(force) {
+    if (!force && this.cacheFresh('checkin')) return null
     try {
       const st = await fetchCheckinStatus()
-      this.setData({ checkinStatus: st, checkinDots: this.buildDots(st.recentDates), checkinError: '' })
+      this.cacheMark('checkin')
+      return { checkinStatus: st, checkinDots: this.buildDots(st.recentDates), checkinError: '' }
     } catch (e) {
-      // 失败必须显式置错误态——否则打卡卡会一直停在 loading  spinner
-      this.setData({ checkinError: e.message || '打卡状态加载失败，请重试' })
+      return { checkinError: e.message || '打卡状态加载失败，请重试' }
     }
   },
 
+  // wxml「重新加载」按钮的绑定（强制绕过缓存）
+  async loadCheckinStatus() {
+    const patch = await this.buildCheckinStatus(true)
+    if (patch) this.setData(patch)
+  },
+
   // 打卡汇总：连续/最长/总天数 + 勋章墙；失败静默兜底（置 null，不打扰用户）
-  async loadCheckinSummary() {
+  async buildCheckinSummary(force) {
+    if (!force && this.cacheFresh('summary')) return null
     try {
       // 只传真实 openid；没有就不传，后端从 token 解析身份（id 当 openid 传会查不到用户）
       const openid = (this.data.userInfo && this.data.userInfo.openid) || ''
       const sum = await fetchCheckinSummary(openid)
+      this.cacheMark('summary')
       const badges = (sum.badges || []).map((b) => ({
         ...b,
         // 未解锁显示进度：当前连续天数 / 解锁门槛
         progressText: b.unlocked ? '' : `${Math.min(sum.currentStreak || 0, b.threshold)}/${b.threshold}`
       }))
-      this.setData({ checkinSummary: sum, badges })
+      return { checkinSummary: sum, badges }
     } catch (e) {
-      this.setData({ checkinSummary: null, badges: [] })
+      return { checkinSummary: null, badges: [] }
     }
   },
 
@@ -416,8 +492,13 @@ Page({
     try {
       await checkin()
       wx.showToast({ title: '打卡成功', icon: 'none' })
-      this.loadCheckinStatus()
-      this.loadCheckinSummary()
+      // 打卡后状态必然变了：强制重拉两项，合并成 1 次 setData
+      const [statusPatch, summaryPatch] = await Promise.all([
+        this.buildCheckinStatus(true),
+        this.buildCheckinSummary(true)
+      ])
+      const patch = Object.assign({}, statusPatch, summaryPatch)
+      if (Object.keys(patch).length) this.setData(patch)
     } catch (e) {
       wx.showToast({ title: e.message || '打卡失败', icon: 'none' })
     } finally {
@@ -425,24 +506,34 @@ Page({
     }
   },
 
-  /* ===== 历史记录：塔罗 / 八卦 / 配对 各取最近 5 条 ===== */
-  async loadHistory() {
+  /* ===== 历史记录：塔罗 / 配对 各取最近 5 条 ===== */
+
+  // 首次进入（或 60s 过期、force）才拉；失败显示错误态 + 重试，绝不吞成「暂无记录」
+  async buildHistory(force) {
+    if (!force && this.cacheFresh('history')) return null
     try {
-      const [tarot, bagua, match] = await Promise.all([
+      const [tarot, match] = await Promise.all([
         fetchHistory('TAROT'),
-        fetchHistory('BAGUA'),
         fetchHistory('MATCH')
       ])
-      this.setData({
+      this.cacheMark('history')
+      return {
         historyTarot: this.formatList(tarot).map((it) => this.decorateTarot(it)),
-        historyBagua: this.formatList(bagua).map((it) => this.decorateBagua(it)),
         historyMatch: this.formatList(match).map((it) => this.decorateMatch(it)),
-        historyLoaded: true
-      })
+        historyLoaded: true,
+        historyError: ''
+      }
     } catch (e) {
-      // token 失效等场景 request 已统一提示
-      this.setData({ historyLoaded: true })
+      // token 失效等场景 request 已统一提示；这里只负责页面错误态（历史加载成功前 historyLoaded 保持 false）
+      return { historyError: e.message || '记录加载失败，请重试' }
     }
+  },
+
+  // 「重新加载」按钮：绕过缓存重试
+  async retryHistory() {
+    this.setData({ historyError: '' })
+    const patch = await this.buildHistory(true)
+    if (patch) this.setData(patch)
   },
 
   formatList(list) {
@@ -471,26 +562,6 @@ Page({
     } catch (e) {
       return null
     }
-  },
-
-  // 八卦记录：detail 是 CastVO JSON {primary, changed, changingLines, linesDetail}
-  // → 结构化行 [{label, text}]，解析失败兜底「暂无详情」
-  decorateBagua(item) {
-    const c = this.safeParse(item.detail)
-    if (!c || !c.primary) return { ...item, detailLines: [{ text: '暂无详情' }] }
-    const p = c.primary
-    const hexLine = (h) =>
-      [h.symbol, h.name].filter(Boolean).join(' ') + (h.fortuneLevel ? ` · ${h.fortuneLevel}` : '')
-    const lines = [{ label: '本卦', text: hexLine(p) }]
-    if (p.judgment) lines.push({ label: '卦辞', text: p.judgment })
-    if (p.meaning) lines.push({ label: '象曰', text: p.meaning })
-    if (c.changed && c.changed.name && c.changed.name !== p.name) {
-      lines.push({ label: '变卦', text: hexLine(c.changed) })
-      if (c.changed.judgment) lines.push({ label: '变卦卦辞', text: c.changed.judgment })
-    }
-    const moving = (c.linesDetail || []).filter((l) => l.changing).map((l) => l.position)
-    if (moving.length) lines.push({ label: '动爻', text: `第 ${moving.join('、')} 爻` })
-    return { ...item, detailLines: lines }
   },
 
   // 塔罗记录：detail 是 DrawResultVO JSON {spread, spreadName, cards:[{card, orientation,

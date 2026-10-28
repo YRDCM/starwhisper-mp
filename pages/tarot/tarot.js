@@ -71,6 +71,20 @@ function splitKw(s) {
   return String(s).split(/[、,，\/|]/).map((x) => x.trim()).filter(Boolean)
 }
 
+// 翻牌/牌位渲染只需要这几个轻字段。长文本（meaning，几十字到上百字）留在 data.drawn 里
+// 按索引取，不再随每次翻牌整份复制进视图层——10 张牌的牌阵一次翻完原本要序列化 10 遍长牌义。
+function slimCard(d) {
+  if (!d) return null
+  return {
+    card: d.card,
+    orientation: d.orientation,
+    position: d.position,
+    positionDesc: d.positionDesc,
+    keywordsArr: d.keywordsArr,
+    orderIndex: d.orderIndex
+  }
+}
+
 // 牌阵 key → 牌数（与 data.spreadGroups 同步的唯一口径）
 function countOf(spreadGroups, mode) {
   let count = 1
@@ -104,7 +118,7 @@ function cardImgUrl(card) {
 Page({
   data: {
     drawCreatedAt: 0, restoreNotice: '', snapshotError: '',
-    compact: true, detailIndex: 0, detailCards: [], meaningOpen: false,
+    compact: true, detailIndex: 0, detailCards: [], detailMeaning: '', meaningOpen: false,
     drawId: '', aiQuestion: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false,
     todayStr: '',
     moodOptions: MOODS, todayMood: '', moodRecords: [], moodHistoryOpen: false, moodError: '',
@@ -425,25 +439,25 @@ Page({
         drawn,
         spread: result.spread || this.data.mode,
         spreadName: result.spreadName || '',
-        revealedCount: 0, revealedCards: [], nextCard: drawn[0],
+        revealedCount: 0, revealedCards: [], nextCard: slimCard(drawn[0]),
         // 抽牌成功即退出选牌态
         picking: false, deck: [], pickedCount: 0, pickFull: false
       }
       // 二选一布局：现状居中略小（顶）+ 选择 A/B 两翼
       if (patch.spread === 'choice') {
-        patch.choiceTop = drawn[0] || null
-        patch.choiceWings = drawn.slice(1)
+        patch.choiceTop = slimCard(drawn[0])
+        patch.choiceWings = drawn.slice(1).map(slimCard)
       }
       // 爱情十字布局：按牌位名映射五宫格
       if (patch.spread === 'love') {
         const byPos = {}
         drawn.forEach((d) => { byPos[d.position] = d })
         patch.loveCells = {
-          top: byPos['现实阻碍'] || null,
-          left: byPos['你的状态'] || null,
-          center: byPos['关系现状'] || null,
-          right: byPos['对方的状态'] || null,
-          bottom: byPos['结果与建议'] || null
+          top: slimCard(byPos['现实阻碍']),
+          left: slimCard(byPos['你的状态']),
+          center: slimCard(byPos['关系现状']),
+          right: slimCard(byPos['对方的状态']),
+          bottom: slimCard(byPos['结果与建议'])
         }
       }
       this.setData(patch)
@@ -472,12 +486,26 @@ Page({
     else if (index === this.data.revealedCount) this.revealNext()
   },
   updateRevealed(count) {
-    this.setData({ revealedCount: count, revealedCards: this.data.drawn.slice(0, count), nextCard: this.data.drawn[count] || null })
+    const drawn = this.data.drawn
+    // 翻牌只发轻字段：长牌义留在 drawn 里，详情面板按索引单取
+    this.setData({
+      revealedCount: count,
+      revealedCards: drawn.slice(0, count).map(slimCard),
+      nextCard: slimCard(drawn[count])
+    })
     this.selectDetailIndex(count - 1)
   },
   selectDetailIndex(index) {
     if (!Number.isInteger(index) || index < 0 || index >= this.data.revealedCount) return
-    this.setData({ detailIndex: index, detailCards: [this.data.drawn[index]], meaningOpen: this.data.drawn.length === 1 })
+    const source = this.data.drawn[index]
+    const card = slimCard(source)
+    this.setData({
+      detailIndex: index,
+      detailCards: card ? [card] : [],
+      // 长牌义单独一个字符串字段：牌义收起时也不用把整张牌对象再序列化一遍
+      detailMeaning: (source && source.meaning) || '',
+      meaningOpen: this.data.drawn.length === 1
+    })
     this.saveSnapshot()
   },
   selectDetail(e) { this.selectDetailIndex(Number(e.currentTarget.dataset.index)) },
@@ -486,7 +514,7 @@ Page({
   toggleAiDetail() { this.setData({ aiExpanded: !this.data.aiExpanded }) },
   onAiQuestion(e) { if (!this.data.aiLoading && !this.data.aiResult) { this.setData({ aiQuestion: e.detail.value.slice(0, 300) }); this.saveSnapshot() } },
   clearReading() {
-    this.setData({ restoreNotice: '', drawId: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false, detailIndex: 0, detailCards: [], meaningOpen: false })
+    this.setData({ restoreNotice: '', drawId: '', aiLoading: false, aiResult: null, aiError: '', aiExpanded: false, detailIndex: 0, detailCards: [], detailMeaning: '', meaningOpen: false })
   },
   async readWithAi() {
     if (!this.data.drawId || this.data.nextCard || this.data.aiLoading || this.data.aiResult) return
@@ -534,12 +562,13 @@ Page({
       const expired = Date.now() - s.createdAt >= 2 * 3600000
       const byPos = {}; drawn.forEach(d => { byPos[d.position] = d })
       const detailIndex = Number.isInteger(s.detailIndex) && s.detailIndex >= 0 && s.detailIndex < s.revealedCount ? s.detailIndex : 0
+      const detailSource = s.revealedCount ? drawn[detailIndex] : null
       this.setData({ drawn, mode: s.spread, spread: s.spread, spreadName: typeof s.spreadName === 'string' ? s.spreadName : '',
         needCount: count, backCount: Array.from({length: count}, (_,i) => i), drawCreatedAt: s.createdAt,
-        revealedCount: s.revealedCount, revealedCards: drawn.slice(0,s.revealedCount), nextCard: drawn[s.revealedCount] || null,
-        detailIndex, detailCards: s.revealedCount ? [drawn[detailIndex]] : [], meaningOpen: count === 1,
-        choiceTop: drawn[0], choiceWings: drawn.slice(1),
-        loveCells: { top: byPos['现实阻碍'] || null, left: byPos['你的状态'] || null, center: byPos['关系现状'] || null, right: byPos['对方的状态'] || null, bottom: byPos['结果与建议'] || null },
+        revealedCount: s.revealedCount, revealedCards: drawn.slice(0,s.revealedCount).map(slimCard), nextCard: slimCard(drawn[s.revealedCount]),
+        detailIndex, detailCards: detailSource ? [slimCard(detailSource)] : [], detailMeaning: detailSource ? (detailSource.meaning || '') : '', meaningOpen: count === 1,
+        choiceTop: slimCard(drawn[0]), choiceWings: drawn.slice(1).map(slimCard),
+        loveCells: { top: slimCard(byPos['现实阻碍']), left: slimCard(byPos['你的状态']), center: slimCard(byPos['关系现状']), right: slimCard(byPos['对方的状态']), bottom: slimCard(byPos['结果与建议']) },
         aiQuestion: typeof s.question === 'string' ? s.question.slice(0,300) : '',
         aiResult: s.reading && typeof s.reading.summary === 'string' && typeof s.reading.detail === 'string' ? s.reading : null,
         drawId: !expired && typeof s.drawId === 'string' ? s.drawId : '',

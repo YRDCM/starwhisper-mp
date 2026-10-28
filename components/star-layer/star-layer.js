@@ -1,7 +1,12 @@
 // 星点层：组件外生成一次——位置 / 大小 / 闪烁周期全部随机
 Component({
+  properties: {
+    // 外部手动暂停（页面也可直接传 true 冻住星空）；默认跟随页面显隐自动暂停，见 pageLifetimes
+    paused: { type: Boolean, value: false }
+  },
   data: {
-    stars: []
+    stars: [],
+    pageHidden: false // 页面切走（onHide）→ 42 个 CSS 无限动画一起暂停，onShow 恢复
   },
   lifetimes: {
     attached() {
@@ -17,6 +22,16 @@ Component({
         )
       })
       this.setData({ stars })
+    }
+  },
+  // 页面级生命周期：Tab 页切走时 42 个 twinkle 无限动画仍在跑，白耗 CPU/GPU；
+  // 这里统一按页面显隐暂停/恢复，页面侧不用写任何一行样板代码。
+  pageLifetimes: {
+    hide() {
+      if (!this.data.pageHidden) this.setData({ pageHidden: true })
+    },
+    show() {
+      if (this.data.pageHidden) this.setData({ pageHidden: false })
     }
   }
 })

@@ -326,7 +326,7 @@
             <text wx:for="{{item.keywordsArr}}" wx:for-item="k" wx:key="index" class="kw-chip">{{k}}</text>
           </view>
           <button size="mini" class="detail-toggle" bindtap="toggleMeaning">{{meaningOpen ? '收起完整牌义 −' : '展开完整牌义 +'}}</button>
-          <view wx:if="{{meaningOpen}}" class="m-text">{{item.meaning}}</view>
+          <view wx:if="{{meaningOpen}}" class="m-text">{{detailMeaning}}</view>
         </view>
       </view>
 

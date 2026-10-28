@@ -2,10 +2,8 @@
   "pages": [
     "pages/fortune/fortune",
     "pages/tarot/tarot",
-    "pages/bagua/bagua",
     "pages/match/match",
-    "pages/profile/profile",
-    "pages/hexagram/hexagram"
+    "pages/profile/profile"
   ],
   "window": {
     "navigationBarBackgroundColor": "#070B1E",
@@ -47,5 +45,6 @@
     ]
   },
   "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }

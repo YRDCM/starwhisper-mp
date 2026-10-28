@@ -152,33 +152,52 @@ Component({
     isUseNewCanvas: false
   },
 
-  ready: function ready() {
-    if (!this.data.echarts) {
-      console.warn('组件需要传入 echarts');
-      return;
-    }
-
-    // Disable prograssive because drawImage doesn't support DOM as parameter
-    // See https://developers.weixin.qq.com/miniprogram/dev/api/canvas/CanvasContext.drawImage.html
-    this.data.echarts.registerPreprocessor(function (option) {
-      if (option && option.series) {
-        if (option.series.length > 0) {
-          option.series.forEach(function (series) {
-            series.progressive = 0;
-          });
-        } else if (_typeof(option.series) === 'object') {
-          option.series.progressive = 0;
-        }
+  // 生命周期统一走 lifetimes（与顶层同名声明并存时 lifetimes 优先，两处都写容易踩坑，故整体搬入）：
+  // - ready：原实现，初始化 echarts 实例
+  // - detached：组件销毁时释放图表实例与 canvas 节点引用（原实现完全没有清理，
+  //   页面反复进出 / 图表随 wx:if 卸载时，zrender 挂在 canvas 上的定时器与事件会持续累积）
+  lifetimes: {
+    ready: function ready() {
+      if (!this.data.echarts) {
+        console.warn('组件需要传入 echarts');
+        return;
       }
-    });
 
-    if (!this.data.ec) {
-      console.warn('组件需绑定 ec 变量，例：<ec-canvas id="mychart-dom-bar" ' + 'canvas-id="mychart-bar" ec="{{ ec }}"></ec-canvas>');
-      return;
-    }
+      // Disable prograssive because drawImage doesn't support DOM as parameter
+      // See https://developers.weixin.qq.com/miniprogram/dev/api/canvas/CanvasContext.drawImage.html
+      this.data.echarts.registerPreprocessor(function (option) {
+        if (option && option.series) {
+          if (option.series.length > 0) {
+            option.series.forEach(function (series) {
+              series.progressive = 0;
+            });
+          } else if (_typeof(option.series) === 'object') {
+            option.series.progressive = 0;
+          }
+        }
+      });
 
-    if (!this.data.ec.lazyLoad) {
-      this.init();
+      if (!this.data.ec) {
+        console.warn('组件需绑定 ec 变量，例：<ec-canvas id="mychart-dom-bar" ' + 'canvas-id="mychart-bar" ec="{{ ec }}"></ec-canvas>');
+        return;
+      }
+
+      if (!this.data.ec.lazyLoad) {
+        this.init();
+      }
+    },
+
+    detached: function detached() {
+      // 顺序很重要：先 dispose 再断引用，否则实例上的定时器仍在跑
+      try {
+        if (this.chart && typeof this.chart.dispose === 'function') {
+          this.chart.dispose();
+        }
+      } catch (e) {
+        // canvas 可能已随页面销毁，dispose 抛错直接忽略
+      }
+      this.chart = null;
+      this.canvasNode = null;
     }
   },
 

@@ -32,7 +32,24 @@
     "condition": {},
     "simulatorPluginLibVersion": {},
     "packOptions": {
-        "ignore": [],
+        "ignore": [
+            {
+                "type": "folder",
+                "value": "tests"
+            },
+            {
+                "type": "folder",
+                "value": "tools"
+            },
+            {
+                "type": "file",
+                "value": "project.private.config.json"
+            },
+            {
+                "type": "suffix",
+                "value": ".bak"
+            }
+        ],
         "include": []
     },
     "editorSetting": {}

@@ -4,6 +4,7 @@ const {
 } = require('../../utils/request')
 const { profileOf } = require('../../utils/signProfiles')
 const { formatWeekRange } = require('../../utils/weekly')
+const { shareImageUrl } = require('../../utils/share')
 // echarts 官方 UMD 构建（小程序兼容），由 ec-canvas 组件通过属性注入使用
 const echarts = require('../../components/ec-canvas/echarts.js')
 
@@ -55,7 +56,9 @@ Page({
     loggedIn: false       // 是否已登录（控制引导条显示）
   },
 
-  onLoad() {
+  onLoad(options) {
+    // 好友从分享卡片进来时会带 ?sign=leo：等 signs 拉回来再按 nameEn 选中
+    this._sharedSignNameEn = options && typeof options.sign === 'string' ? options.sign : ''
     // 今日日期：2026-09-24 · 星期四
     const d = new Date()
     const weekNames = ['日', '一', '二', '三', '四', '五', '六']
@@ -75,6 +78,21 @@ Page({
     // 从「我的」页登录回来：隐藏引导条/弹窗
     const loggedIn = !!wx.getStorageSync('token')
     if (loggedIn !== this.data.loggedIn) this.setData({ loggedIn })
+    this.toggleChartAnimation(true) // 切回来恢复动画帧
+  },
+
+  // Tab 页切走：canvas 已停止刷新，顺手停掉 echarts 的动画帧。
+  // 注意不能 dispose——切回来组件不会重建，销毁后图表会空白；真正释放放在 onUnload。
+  onHide() {
+    this.toggleChartAnimation(false)
+  },
+
+  onUnload() {
+    // 图表实例必须显式销毁：zrender 在 canvas 上挂的定时器/事件不会随页面回收，
+    // 反复进出会累积泄漏（写法对齐 tarot.js 的 _moodChart）
+    this.disposeChart('_radarChart')
+    this.disposeChart('_trendChart')
+    this._mpcodeImg = null
   },
 
   /* ===== 登录引导条（被动入口，微信规则：不得一进首页就要求登录） ===== */
@@ -93,7 +111,10 @@ Page({
     if (fromPullDown) this._weeklyCache = {} // 下拉刷新：清掉周运缓存，强制重拉
     try {
       const signs = await fetchSigns()
-      const todaySign = this.findTodaySign(signs)
+      // 分享链接带进来的星座优先（能匹配上就选中它），否则按今天日期选
+      const sharedSign = this.findSignByNameEn(signs, this._sharedSignNameEn)
+      const todaySign = sharedSign || this.findTodaySign(signs)
+      if (sharedSign) this._manualSelection = true // 用户是冲着这个星座点进来的，别再被服务器日期校正覆盖
       // 星盘节点定位样式：rotate(i*30-90) → 外推 → 反向转正
       const nodeStyles = signs.map((s, i) => {
         const a = i * 30 - 90
@@ -444,26 +465,32 @@ Page({
     })
   },
 
-  // 转发给好友/群：标题带星座与星级，附海报图（若已生成）
+  // 转发给好友/群：标题带星座与星级；path 带 ?sign= 让好友点开直达同一星座
+  // （原来固定 /pages/fortune/fortune，好友打开只能看到自己日期的星座）
   onShareAppMessage() {
     const f = this.data.fortune || {}
+    const sign = this.data.currentSign
     const score = Math.max(0, Math.min(5, Number(f.overallScore) || 0))
     const stars = '★'.repeat(score) + '☆'.repeat(5 - score)
     return {
       title: `${f.signName || '星语'}今日运势${stars} 速看`,
-      path: '/pages/fortune/fortune',
-      imageUrl: this.data.posterImage || undefined
+      path: sign && sign.nameEn
+        ? `/pages/fortune/fortune?sign=${encodeURIComponent(sign.nameEn)}`
+        : '/pages/fortune/fortune',
+      // 海报是 canvasToTempFilePath 的本地临时文件才能当卡片图；base64 会被丢弃
+      imageUrl: shareImageUrl(this.data.posterImage)
     }
   },
 
-  // 分享到朋友圈
+  // 分享到朋友圈：query 同样带星座，从朋友圈点进来也直达
   onShareTimeline() {
     const f = this.data.fortune || {}
+    const sign = this.data.currentSign
     const score = Math.max(0, Math.min(5, Number(f.overallScore) || 0))
     const stars = '★'.repeat(score) + '☆'.repeat(5 - score)
     return {
       title: `${f.signName || '星语'}今日运势${stars}`,
-      query: ''
+      query: sign && sign.nameEn ? `sign=${encodeURIComponent(sign.nameEn)}` : ''
     }
   },
 
@@ -612,6 +639,13 @@ Page({
     return this.findSignByDate(list, now.getMonth() + 1, now.getDate())
   },
 
+  // 分享链接的 ?sign= 传的是 nameEn（英文，大小写不敏感）；匹配不到返回 null 走默认
+  findSignByNameEn(list, nameEn) {
+    const key = typeof nameEn === 'string' ? nameEn.trim().toLowerCase() : ''
+    if (!key) return null
+    return list.find((s) => s && typeof s.nameEn === 'string' && s.nameEn.toLowerCase() === key) || null
+  },
+
   // 默认选中校正：设备本地日期可能不准（真机曾出现按设备日期选出的星座与
   // 服务器日期不符）——运势接口返回的 fortuneDate 是服务器权威日期，
   // 用它重新判定太阳星座；不一致则校正（仅在加载流程内调用，不覆盖用户手动选择）
@@ -685,6 +719,36 @@ Page({
     if (this._trendChart && this.data.week.length) {
       this._trendChart.setOption(this.buildTrendOption(), true)
     }
+  },
+
+  // 开/关 echarts 动画帧（zrender 的 Animation 自带 start/stop，闲置时它自己也会睡）。
+  // 只碰动画帧，不动实例：页面切回来 canvas 内容还在，销毁重建反而会闪白。
+  toggleChartAnimation(playing) {
+    const charts = [this._radarChart, this._trendChart]
+    charts.forEach((chart) => {
+      if (!chart || typeof chart.getZr !== 'function') return
+      const zr = chart.getZr()
+      const animation = zr && zr.animation
+      const action = animation && animation[playing ? 'start' : 'stop']
+      if (typeof action !== 'function') return
+      try {
+        action.call(animation)
+      } catch (e) {
+        // 动画帧状态不影响静态绘制，失败忽略
+      }
+    })
+  },
+
+  // 销毁单个图表实例并置空引用（onUnload 用；dispose 会解绑 zrender 在 canvas 上的定时器与事件）
+  disposeChart(key) {
+    const chart = this[key]
+    if (!chart) return
+    try {
+      if (typeof chart.dispose === 'function') chart.dispose()
+    } catch (e) {
+      // canvas 已卸载时 dispose 可能抛错，忽略
+    }
+    this[key] = null
   },
 
   // 雷达图：香槟金主线；healthScore 为 null → 四象

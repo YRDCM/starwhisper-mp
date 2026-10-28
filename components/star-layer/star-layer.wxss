@@ -14,6 +14,10 @@
   opacity: 0.16;
   animation: twinkle 3s ease-in-out infinite;
 }
+/* 页面切走 / 外部暂停：42 个无限动画一起停（play-state 冻结在当前帧，恢复时不跳变） */
+.star-layer.paused .star {
+  animation-play-state: paused;
+}
 @keyframes twinkle {
   0%, 100% { opacity: 0.14; }
   50% { opacity: 0.58; }

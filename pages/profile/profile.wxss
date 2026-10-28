@@ -279,6 +279,19 @@
   padding: 20rpx 0;
   letter-spacing: 0.1em;
 }
+/* 历史记录加载失败：错误文案 + 重试按钮同一行（失败不再伪装成「暂无记录」） */
+.history-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  color: var(--cinnabar);
+}
+.history-error-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--cinnabar);
+}
 .record {
   padding: 16rpx 8rpx;
   border-bottom: 1px solid rgba(139, 135, 176, 0.1);

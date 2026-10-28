@@ -104,12 +104,11 @@
   <!-- ===== 未登录 ===== -->
   <view wx:if="{{!token}}" class="glass-card login-card">
     <view class="avatar-placeholder">✦</view>
-    <view class="login-tip">登录后可同步保存塔罗抽牌与起卦记录</view>
+    <view class="login-tip">登录后可同步保存塔罗抽牌与配对比对记录</view>
     <button size="mini" class="btn-gold login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
       {{logging ? '登录中…' : '微信登录'}}
     </button>
     <view wx:if="{{loginError}}" class="error-line">{{loginError}}</view>
-    <button size="mini" class="btn-ghost" bindtap="onDevLogin">游客体验登录</button>
   </view>
 
   <!-- ===== 已登录 ===== -->
@@ -136,10 +135,16 @@
     <view class="glass-card history-card">
       <view class="sec-title">我的记录 <text class="sec-title-en mono">HISTORY</text></view>
 
+      <!-- 加载失败：错误态 + 重试（不能吞成「暂无记录」骗用户说没数据） -->
+      <view wx:if="{{historyError}}" class="empty-line history-error">
+        <text class="history-error-text">{{historyError}}</text>
+        <button size="mini" class="btn-ghost" bindtap="retryHistory">重新加载</button>
+      </view>
+
       <view class="history-group">
         <view class="group-label mono">塔罗 TAROT</view>
         <view wx:if="{{!historyTarot.length}}" class="empty-line">
-          {{historyLoaded ? '暂无记录，去抽一张牌吧' : '读取中…'}}
+          {{historyError ? '读取失败' : (historyLoaded ? '暂无记录，去抽一张牌吧' : '读取中…')}}
         </view>
         <view
           wx:for="{{historyTarot}}"
@@ -169,40 +174,10 @@
       <view class="history-group">
         <view class="group-label mono">配对 MATCH</view>
         <view wx:if="{{!historyMatch.length}}" class="empty-line">
-          {{historyLoaded ? '暂无记录，去配个对吧' : '读取中…'}}
+          {{historyError ? '读取失败' : (historyLoaded ? '暂无记录，去配个对吧' : '读取中…')}}
         </view>
         <view
           wx:for="{{historyMatch}}"
-          wx:key="id"
-          class="record {{expandedId === item.id ? 'open' : ''}}"
-          data-id="{{item.id}}"
-          bindtap="onRecordTap"
-        >
-          <view class="record-head">
-            <text class="record-title">{{item.title}}</text>
-            <text class="record-time mono">{{item.timeText}}</text>
-          </view>
-          <view wx:if="{{expandedId === item.id}}" class="record-detail">
-            <view
-              wx:for="{{item.detailLines}}"
-              wx:for-item="line"
-              wx:key="index"
-              class="rd-line {{line.cont ? 'rd-cont' : ''}}"
-            >
-              <text wx:if="{{line.label}}" class="rd-label">{{line.label}}</text>
-              <text class="rd-text">{{line.text}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <view class="history-group">
-        <view class="group-label mono">八卦 BAGUA</view>
-        <view wx:if="{{!historyBagua.length}}" class="empty-line">
-          {{historyLoaded ? '暂无记录，去起一卦吧' : '读取中…'}}
-        </view>
-        <view
-          wx:for="{{historyBagua}}"
           wx:key="id"
           class="record {{expandedId === item.id ? 'open' : ''}}"
           data-id="{{item.id}}"

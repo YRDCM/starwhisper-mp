@@ -121,11 +121,13 @@ Page({
     }
   },
 
-  // 分享卡片：配对是分享率最高的板块，文案带钩子
+  // 分享卡片：配对是分享率最高的板块，文案带钩子。
+  // 综合分在 result.scores.overall（不是 result.score，旧代码读错字段导致分享文案永远走兜底）
   onShareAppMessage() {
     const r = this.data.result
+    const overall = r && r.scores && r.scores.overall != null ? r.scores.overall : null
     return {
-      title: r && r.score != null ? `我们的星座配对 ${r.score} 分！快来测测你们的 ✦` : '星座配对 · 测测你们的缘分指数',
+      title: overall != null ? `我们的星座配对 ${overall} 分！快来测测你们的 ✦` : '星座配对 · 测测你们的缘分指数',
       path: '/pages/match/match'
     }
   },

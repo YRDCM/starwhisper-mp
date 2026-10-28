@@ -16,7 +16,7 @@
   <!-- 登录引导条：未登录常驻（弹窗只出现一次，这个一直在，可随时去登录） -->
   <view wx:if="{{!loggedIn}}" class="login-banner" bindtap="goLogin">
     <text class="lb-star">✦</text>
-    <text class="lb-text">登录后可同步抽牌、起卦与打卡记录</text>
+    <text class="lb-text">登录后可同步抽牌、配对与打卡记录</text>
     <text class="lb-go mono">去登录 ›</text>
   </view>
 
