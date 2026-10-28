@@ -649,16 +649,19 @@ page {
   display: flex;
   align-items: center;
   gap: 10rpx;
-  margin: 14rpx 0 2rpx;
-  padding: 2rpx 4rpx;
+  /* 上下留白对齐：原来 margin-bottom 只有 2rpx，字几乎贴在星盘上。
+     现在上面 28+10+8=46rpx、下面 8+6+40+10=64rpx，视觉上接近对称，
+     文字本身也有 8rpx 的内边距，不再显得被"夹"住。 */
+  margin: 10rpx 0 6rpx;
+  padding: 8rpx 4rpx;
 }
 /* 可点击的版本（已选星座、还没登录）：整行都能点去登录 */
 .hint-tap {
-  padding: 12rpx 16rpx;
-  margin: 12rpx 0 0;
+  padding: 16rpx 20rpx;
+  margin: 10rpx 0 6rpx;
   border-radius: 12rpx;
   background: rgba(232, 196, 124, 0.05);
 }
 .hl-mark { flex: none; color: var(--gold); font-size: 22rpx; opacity: 0.9; }
-.hl-text { flex: 1; font-size: 24rpx; line-height: 1.5; color: var(--ink-dim2); letter-spacing: 0.02em; }
+.hl-text { flex: 1; font-size: 24rpx; line-height: 1.6; color: var(--ink-dim2); letter-spacing: 0.02em; }
 .hl-go { flex: none; font-size: 22rpx; color: var(--gold); letter-spacing: 0.08em; }
