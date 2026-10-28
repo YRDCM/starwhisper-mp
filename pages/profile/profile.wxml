@@ -9,18 +9,32 @@
   </view>
   <view class="divider"><view class="d-line"></view><text>✦</text><view class="d-line"></view></view>
 
-  <!-- ===== 打卡卡（顶部） ===== -->
+  <!-- ===== 未登录：整页只有这一张卡（原来要翻过打卡/订阅/勋章四块才看到登录按钮） ===== -->
+  <view wx:if="{{!token}}" class="glass-card login-card">
+    <view class="lc-mark">✦</view>
+    <view class="lc-title">登录后，星语会记住你</view>
+    <view class="lc-list">
+      <view class="lc-item"><text class="lc-dot">·</text><text class="lc-text">记住你的星座，换手机也不丢</text></view>
+      <view class="lc-item"><text class="lc-dot">·</text><text class="lc-text">保存抽牌与配对记录</text></view>
+      <view class="lc-item"><text class="lc-dot">·</text><text class="lc-text">每日打卡与勋章</text></view>
+    </view>
+    <button size="mini" class="btn-gold login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
+      {{logging ? '登录中…' : '微信一键登录'}}
+    </button>
+    <view class="lc-note">只用于保存你的记录</view>
+    <view wx:if="{{loginError}}" class="error-line">{{loginError}}</view>
+  </view>
+
+  <!-- ===== 以下全部是已登录内容 ===== -->
+  <block wx:if="{{token}}">
+
+  <!-- ===== 打卡卡 ===== -->
   <view class="glass-card checkin-card">
     <view class="ci-head">
       <text class="ci-title">每日打卡</text>
       <text class="ci-title-en mono">CHECK-IN</text>
     </view>
-    <!-- 未登录：引导复用登录 -->
-    <view wx:if="{{!token}}" class="ci-anon">
-      <view class="ci-anon-text">登录后开启打卡，记录每一天的星辰</view>
-    </view>
-    <!-- 已登录 -->
-    <block wx:elif="{{checkinStatus}}">
+    <block wx:if="{{checkinStatus}}">
       <view class="ci-stats">
         <text class="ci-streak">连续 {{checkinStatus.streak}} 天</text>
         <text class="ci-sep">✦</text>
@@ -101,18 +115,8 @@
     </block>
   </view>
 
-  <!-- ===== 未登录 ===== -->
-  <view wx:if="{{!token}}" class="glass-card login-card">
-    <view class="avatar-placeholder">✦</view>
-    <view class="login-tip">登录后可同步保存塔罗抽牌与配对比对记录</view>
-    <button size="mini" class="btn-gold login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
-      {{logging ? '登录中…' : '微信登录'}}
-    </button>
-    <view wx:if="{{loginError}}" class="error-line">{{loginError}}</view>
-  </view>
-
-  <!-- ===== 已登录 ===== -->
-  <block wx:else>
+  <!-- ===== 账号信息 ===== -->
+  <block>
     <view class="glass-card user-card">
       <image wx:if="{{userInfo.avatarUrl}}" class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill" />
       <view wx:else class="avatar-placeholder sm">✦</view>
@@ -202,6 +206,8 @@
       </view>
     </view>
   </block>
+  </block>
+  <!-- /已登录内容结束 -->
 
   <!-- ===== 帮助与反馈（游客也能用：这是目前唯一的真实触达通道） ===== -->
   <view class="glass-card feedback-card">

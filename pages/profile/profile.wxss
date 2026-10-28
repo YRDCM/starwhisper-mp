@@ -148,14 +148,69 @@
   letter-spacing: 0.04em;
 }
 
-/* ===== 登录卡片 ===== */
+/* ===== 登录卡片 =====
+   游客进「我的」页看到的就是这一张，所以它是整页唯一的说服位置：
+   一句承诺 + 三条具体收益 + 一个动作。克制、不堆装饰。 */
 .login-card {
   margin-top: 28rpx;
-  padding: 64rpx 48rpx;
+  padding: 56rpx 44rpx 44rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28rpx;
+  gap: 0;
+}
+/* 星标记：用径向渐变做一圈极淡的金晕，替代原来那个空头像圆 */
+.lc-mark {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 1px solid var(--gold-hairline);
+  background: radial-gradient(circle at 50% 40%, rgba(232, 196, 124, 0.16), rgba(232, 196, 124, 0.02) 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34rpx;
+  color: var(--gold);
+  margin-bottom: 28rpx;
+}
+.lc-title {
+  font-size: 34rpx;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+.lc-list {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  margin-bottom: 40rpx;
+  padding: 0 24rpx;
+}
+.lc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+}
+.lc-dot {
+  flex: none;
+  color: var(--gold-dim);
+  font-size: 26rpx;
+  line-height: 1.7;
+}
+.lc-text {
+  flex: 1;
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: var(--ink-dim2);
+  letter-spacing: 0.02em;
+}
+.lc-note {
+  margin-top: 22rpx;
+  font-size: 22rpx;
+  color: var(--ink-dim);
+  letter-spacing: 0.04em;
 }
 .avatar-placeholder {
   width: 140rpx;
@@ -174,13 +229,6 @@
   height: 96rpx;
   font-size: 36rpx;
   flex: none;
-}
-.login-tip {
-  font-size: 28rpx;
-  letter-spacing: 0.1em;
-  color: var(--ink-dim2);
-  text-align: center;
-  line-height: 1.8;
 }
 .login-btn {
   width: 100%;
