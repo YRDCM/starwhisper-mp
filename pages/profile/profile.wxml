@@ -14,14 +14,14 @@
     <view class="lc-mark">✦</view>
     <view class="lc-title">登录后，星语会记住你</view>
     <view class="lc-list">
-      <view class="lc-item"><text class="lc-dot">·</text><text class="lc-text">记住你的星座，换手机也不丢</text></view>
-      <view class="lc-item"><text class="lc-dot">·</text><text class="lc-text">保存抽牌与配对记录</text></view>
-      <view class="lc-item"><text class="lc-dot">·</text><text class="lc-text">每日打卡与勋章</text></view>
+      <view class="lc-item"><text class="lc-dot">✦</text><text class="lc-text">记住你的星座，换手机也不丢</text></view>
+      <view class="lc-item"><text class="lc-dot">✦</text><text class="lc-text">保存抽牌与配对记录</text></view>
+      <view class="lc-item"><text class="lc-dot">✦</text><text class="lc-text">每日打卡与勋章</text></view>
     </view>
-    <button size="mini" class="btn-gold login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
+    <button class="btn-gold btn-solid login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
       {{logging ? '登录中…' : '微信一键登录'}}
     </button>
-    <view class="lc-note">只用于保存你的记录</view>
+    <view class="lc-note">仅用于同步你的记录</view>
     <view wx:if="{{loginError}}" class="error-line">{{loginError}}</view>
   </view>
 
@@ -222,17 +222,19 @@
       class="fb-input"
       value="{{fbContent}}"
       maxlength="500"
-      placeholder="说点什么…例如：想看每日塔罗日签"
+      placeholder="说点什么…"
+      placeholder-class="fb-ph"
       bindinput="onFbInput"
       disabled="{{fbSending}}"
     />
     <view wx:if="{{fbError}}" class="error-line">{{fbError}}</view>
     <view wx:if="{{fbDone}}" class="fb-done">收到了，谢谢你说这些 ✦</view>
-    <button size="mini" class="btn-gold fb-submit {{fbSending ? 'disabled' : ''}}" disabled="{{fbSending}}" bindtap="submitFeedback">
+    <!-- 注意：这里不能加 size="mini" —— 它会覆盖 width:100%，两个按钮会挤在同一行 -->
+    <button class="btn-gold fb-submit {{fbSending ? 'disabled' : ''}}" disabled="{{fbSending}}" bindtap="submitFeedback">
       {{fbSending ? '发送中…' : '发送反馈'}}
     </button>
     <!-- 客服降级为文字链：一个主按钮 + 一个安静的出口，不再两个按钮抢注意力 -->
-    <button size="mini" class="fb-help" open-type="contact">遇到账号问题？联系客服 ›</button>
+    <button class="fb-help" open-type="contact">遇到账号问题？联系客服 ›</button>
   </view>
 
   <view class="footer mono">

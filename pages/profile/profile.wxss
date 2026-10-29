@@ -1,4 +1,4 @@
-/* ===== 我的页样式 ===== */
+﻿/* ===== 我的页样式 ===== */
 .page {
   position: relative;
   z-index: 1;
@@ -149,60 +149,66 @@
 }
 
 /* ===== 登录卡片 =====
-   游客进「我的」页看到的就是这一张，所以它是整页唯一的说服位置：
-   一句承诺 + 三条具体收益 + 一个动作。克制、不堆装饰。 */
+   游客进「我的」页只看到这一张卡，它是整页唯一的说服位置：
+   一枚星标 + 一句承诺 + 三条具体收益 + 一个实心主按钮。
+   之前主按钮是描边款，在暗底上太弱，撑不起"唯一行动"。 */
 .login-card {
   margin-top: 28rpx;
-  padding: 56rpx 44rpx 44rpx;
+  padding: 64rpx 44rpx 52rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
+  /* 两张卡共用：轻微抬升，让卡片从纯色背景里"浮"出来 */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  border: 1px solid rgba(232, 196, 124, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6rpx 20rpx rgba(0, 0, 0, 0.28);
 }
-/* 星标记：用径向渐变做一圈极淡的金晕，替代原来那个空头像圆 */
 .lc-mark {
-  width: 96rpx;
-  height: 96rpx;
+  width: 104rpx;
+  height: 104rpx;
   border-radius: 50%;
-  border: 1px solid var(--gold-hairline);
-  background: radial-gradient(circle at 50% 40%, rgba(232, 196, 124, 0.16), rgba(232, 196, 124, 0.02) 70%);
+  border: 1px solid rgba(232, 196, 124, 0.34);
+  background: radial-gradient(circle at 50% 42%, rgba(232, 196, 124, 0.22), rgba(232, 196, 124, 0.02) 72%);
+  box-shadow: 0 0 26rpx rgba(232, 196, 124, 0.14);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 34rpx;
   color: var(--gold);
-  margin-bottom: 28rpx;
+  margin-bottom: 34rpx;
 }
 .lc-title {
-  font-size: 34rpx;
+  font-family: var(--font-display);
+  font-size: 38rpx;
   letter-spacing: 0.06em;
   color: var(--ink);
   text-align: center;
-  margin-bottom: 30rpx;
+  margin-bottom: 40rpx;
 }
 .lc-list {
   align-self: stretch;
   display: flex;
   flex-direction: column;
-  gap: 14rpx;
-  margin-bottom: 40rpx;
-  padding: 0 24rpx;
+  gap: 20rpx;
+  margin-bottom: 48rpx;
+  padding: 0 18rpx;
 }
 .lc-item {
   display: flex;
-  align-items: flex-start;
-  gap: 12rpx;
+  align-items: center;
+  gap: 16rpx;
 }
+/* 小金色星点代替原来的「·」，更像这个产品的语言 */
 .lc-dot {
   flex: none;
   color: var(--gold-dim);
-  font-size: 26rpx;
-  line-height: 1.7;
+  font-size: 16rpx;
+  line-height: 1.5;
 }
 .lc-text {
   flex: 1;
   font-size: 26rpx;
-  line-height: 1.7;
+  line-height: 1.5;
   color: var(--ink-dim2);
   letter-spacing: 0.02em;
 }
@@ -211,6 +217,14 @@
   font-size: 22rpx;
   color: var(--ink-dim);
   letter-spacing: 0.04em;
+}
+
+/* 实心主按钮：唯一的主行动，必须够重 */
+.page .btn-solid {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #14122E;
+  font-weight: 500;
 }
 .avatar-placeholder {
   width: 140rpx;
@@ -230,9 +244,11 @@
   font-size: 36rpx;
   flex: none;
 }
-.login-btn {
+/* 主按钮占满整行：它是这张卡唯一能点的地方，不需要留白边 */
+.page .login-btn {
+  display: block;
   width: 100%;
-  max-width: 480rpx;
+  letter-spacing: 0.14em;
 }
 .page .btn-ghost {
   background: none;
@@ -599,23 +615,31 @@
 
 /* ===== 帮助与反馈卡 ===== */
 .feedback-card {
-  margin: 20rpx 0 0;
-  padding: 32rpx;
+  margin: 24rpx 0 0;
+  padding: 36rpx 32rpx 30rpx;
+  /* 与登录卡同一套"抬起"处理 */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  border: 1px solid rgba(232, 196, 124, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6rpx 20rpx rgba(0, 0, 0, 0.28);
 }
 .fb-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 16rpx;
-  margin-bottom: 14rpx;
+  margin-bottom: 16rpx;
 }
 /* .sec-title 自带 20rpx 下边距，放进这一行会多出一截；由 .fb-head 统一控制 */
 .fb-head .sec-title {
   margin-bottom: 0;
 }
+/* 我的星座：做成小胶囊，比裸文字更像"我的东西" */
 .fb-sign {
   flex: none;
-  font-size: 22rpx;
+  padding: 4rpx 14rpx;
+  border: 1rpx solid var(--gold-hairline);
+  border-radius: 999rpx;
+  font-size: 20rpx;
   letter-spacing: 0.08em;
   color: var(--gold-dim);
 }
@@ -623,44 +647,51 @@
   font-size: 23rpx;
   line-height: 1.6;
   color: var(--ink-dim2);
-  margin-bottom: 16rpx;
+  margin-bottom: 18rpx;
 }
-/* 输入框给死高度（不是 min-height）：小程序 textarea 有自己的默认高度，
-   只设 min-height 会撑成一整块"白纸"，把按钮推得很远 */
+/* 输入框：给死高度（小程序 textarea 有自己的默认高度，只设 min-height 会撑成一张白纸）；
+   底色比卡片更深、边框极淡，形成"凹陷"，不再是一圈显眼的亮框 */
 .fb-input {
   width: 100%;
-  height: 176rpx;
+  height: 180rpx;
   box-sizing: border-box;
-  padding: 18rpx 20rpx;
-  border: 1rpx solid rgba(232, 196, 124, 0.14);
-  border-radius: 14rpx;
-  /* 比卡片再深一点，形成"凹陷"层次，而不是又一张卡片 */
-  background: rgba(0, 0, 0, 0.18);
+  padding: 20rpx 22rpx;
+  border: 1rpx solid rgba(232, 196, 124, 0.10);
+  border-radius: 12rpx;
+  background: rgba(0, 0, 0, 0.30);
   color: var(--ink);
-  font-size: 24rpx;
+  font-size: 26rpx;
   line-height: 1.6;
 }
-/* 主按钮占满一行；客服降成文字链，不再和主按钮抢注意力 */
-.fb-submit {
-  width: 100%;
-  margin-top: 20rpx;
+.fb-ph {
+  color: var(--ink-dim);
+  font-size: 25rpx;
 }
-.fb-help {
+/* 主按钮占满一行；客服降成文字链，不再和主按钮抢注意力 */
+.page .fb-submit {
+  display: block;
   width: 100%;
-  margin-top: 4rpx;
-  padding: 12rpx 0;
+  margin-top: 22rpx;
+  letter-spacing: 0.14em;
+}
+.page .fb-help {
+  display: block;
+  width: 100%;
+  margin-top: 6rpx;
+  padding: 14rpx 0;
   background: none;
   border: none;
   font-size: 22rpx;
   color: var(--ink-dim);
   letter-spacing: 0.02em;
   line-height: 1.6;
+  text-align: center;
 }
 .fb-help::after {
   border: none;
 }
 .fb-done {
-  margin-top: 12rpx;
+  margin-top: 14rpx;
   font-size: 23rpx;
   color: var(--gold);
 }
