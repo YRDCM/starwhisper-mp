@@ -19,17 +19,19 @@ const SIGN_OPTIONS = [
 
 /**
  * 「运势提醒」条目的展示状态（每日/每周通用）
- * @param {object} input { templateId, loggedIn, subscribed, subscribedText? }
- *   subscribedText：已订阅时的文案，默认每日的「已订阅 · 明日 8:00 推送」，
- *   每周条目传「已订阅 · 每周一 8:05 推送」
+ * @param {object} input { templateId, loggedIn, subscribed, consumed, subscribedText?, consumedText? }
+ *   subscribed：后端 ACTIVE（还有待推送额度）
+ *   consumed：已推送过、额度用完——必须和「从没订阅」区分开，
+ *             否则用户刚收到推送，回到页面却看到「未订阅」，会以为没订上
  * @returns {{text: string, clickable: boolean}}
  *   模板 ID 未配置（运营还没去公众平台申请）→ 「即将上线」且不可点
  *   —— 绝不能拿空 tmplId 去调 wx.requestSubscribeMessage，会直接报错
  */
-function notifyEntryState({ templateId, loggedIn, subscribed, subscribedText }) {
+function notifyEntryState({ templateId, loggedIn, subscribed, consumed, subscribedText, consumedText }) {
   if (!templateId || !String(templateId).trim()) return { text: '即将上线', clickable: false }
   if (!loggedIn) return { text: '登录后可订阅', clickable: true }
   if (subscribed) return { text: subscribedText || '已订阅 · 明日 8:00 推送', clickable: true }
+  if (consumed) return { text: consumedText || '本次已推送 · 点击再次开启', clickable: true }
   return { text: '未订阅 · 点击开启', clickable: true }
 }
 

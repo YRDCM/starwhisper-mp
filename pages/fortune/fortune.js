@@ -1,8 +1,10 @@
 // 星运页：星盘选择器 + 运势卡（FortuneVO v2 全字段）+ 雷达图 + 趋势图
 const {
   fetchSigns, fetchTodayFortune, fetchWeekFortune, fetchWeeklyFortune, fetchMpCode,
-  syncMySign, fetchMe
+  syncMySign, fetchMe, fetchNotifyStatus, subscribeNotify
 } = require('../../utils/request')
+const { SUBSCRIBE_TEMPLATES } = require('../../utils/config')
+const { isSubscribeAccepted } = require('../../utils/notify')
 const { profileOf } = require('../../utils/signProfiles')
 const { formatWeekRange } = require('../../utils/weekly')
 const { shareImageUrl } = require('../../utils/share')
@@ -59,7 +61,12 @@ Page({
     // 有没有"记住的星座"。没有时首页给一条轻提示让用户先选自己 —— 这是留存的关键：
     // 之前首页按「今天日期」推算太阳星座，10 月底所有新用户看到的都是天蝎座运势，
     // 跟他本人无关，自然看完就走。
-    hasMySign: false
+    hasMySign: false,
+    // ===== 订阅提醒闭环 =====
+    // 微信规则：一次授权只推一条，推完额度就没了。用户点推送进来，
+    // 如果首页什么都不说，明天就又断了 —— 所以在首页补一条"再开一次"的轻提示。
+    notifyHint: '',
+    notifyConsumed: false
   },
 
   onLoad(options) {
@@ -85,7 +92,11 @@ Page({
   onShow() {
     // 从「我的」页登录回来：隐藏引导条/弹窗
     const loggedIn = !!wx.getStorageSync('token')
-    if (loggedIn !== this.data.loggedIn) this.setData({ loggedIn })
+    if (loggedIn !== this.data.loggedIn) {
+      this.setData({ loggedIn })
+      this._notifyChecked = false // 登录态变了，重新拉一次订阅状态
+    }
+    this.refreshNotifyHint()
     // 换设备/清缓存：本地没有星座记录但已登录 → 从账号回填一次
     if (loggedIn && !this._mySignNameEn && !this._signFetched) {
       this._signFetched = true
@@ -152,6 +163,70 @@ Page({
     this.disposeChart('_radarChart')
     this.disposeChart('_trendChart')
     this._mpcodeImg = null
+  },
+
+  /* ===== 订阅提醒闭环 =====
+     微信规则：一次授权只推一条，推送成功后额度就消耗掉了。
+     用户点了推送进来，如果首页什么都不提示，明天就又断了。
+     这里在首页补一条轻提示（被动文案，不弹窗）：
+       · 还有额度   → 不打扰
+       · 已推送过   → 「今日提醒已送达 · 明天还想收就再开一次」
+       · 从没订阅过 → 「开启每日运势提醒，明早 8 点推给你」 */
+  refreshNotifyHint() {
+    const loggedIn = !!wx.getStorageSync('token')
+    if (!loggedIn) {
+      if (this.data.notifyHint) this.setData({ notifyHint: '', notifyConsumed: false })
+      return
+    }
+    if (!SUBSCRIBE_TEMPLATES.dailyFortune) return // 模板没配就不提这事
+    if (this._notifyChecked) return
+    this._notifyChecked = true
+
+    fetchNotifyStatus()
+      .then((res) => {
+        const scenes = (res && res.scenes) || []
+        const consumed = (res && res.consumed) || []
+        if (scenes.indexOf('DAILY_FORTUNE') >= 0) {
+          this.setData({ notifyHint: '', notifyConsumed: false })
+          return
+        }
+        const isConsumed = consumed.indexOf('DAILY_FORTUNE') >= 0
+        this.setData({
+          notifyConsumed: isConsumed,
+          notifyHint: isConsumed
+            ? '今日提醒已送达 · 明天还想收就再开一次'
+            : '开启每日运势提醒，明早 8 点推给你'
+        })
+      })
+      .catch(() => {
+        this._notifyChecked = false // 失败下次再试，不打扰用户
+      })
+  },
+
+  // 点提示 = 用户手势，符合微信对 requestSubscribeMessage 的要求
+  onNotifyHintTap() {
+    const tmplId = SUBSCRIBE_TEMPLATES.dailyFortune
+    if (!tmplId) return
+    wx.requestSubscribeMessage({
+      tmplIds: [tmplId],
+      success: (res) => {
+        if (!isSubscribeAccepted(res, tmplId)) {
+          wx.showToast({ title: '已取消，随时可以再来开', icon: 'none' })
+          return
+        }
+        subscribeNotify('DAILY_FORTUNE', this._mySignNameEn || '')
+          .then(() => {
+            this.setData({ notifyHint: '', notifyConsumed: false })
+            wx.showToast({ title: '已开启，明早 8 点提醒你', icon: 'none' })
+          })
+          .catch((e) => {
+            wx.showToast({ title: e.message || '开启失败，稍后再试', icon: 'none' })
+          })
+      },
+      fail: () => {
+        wx.showToast({ title: '授权弹窗未打开，请稍后再试', icon: 'none' })
+      }
+    })
   },
 
   /* ===== 登录引导条（被动入口，微信规则：不得一进首页就要求登录） ===== */

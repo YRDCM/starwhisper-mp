@@ -25,6 +25,28 @@ test('已配置模板：按登录态与订阅态给文案', () => {
     { text: '已订阅 · 明日 8:00 推送', clickable: true })
 })
 
+test('刚推送完（额度已消耗）不能显示成「未订阅」', () => {
+  // 微信一次授权只推一条，推送成功后记录变 CONSUMED。
+  // 如果这时还显示「未订阅 · 点击开启」，用户明明刚收到消息，
+  // 会以为推送没生效或自己没订上。
+  const consumed = notifyEntryState({
+    templateId: 'tmpl_1', loggedIn: true, subscribed: false, consumed: true
+  })
+  assert.equal(consumed.clickable, true, '仍然可点，点一下就是再次授权')
+  assert.match(consumed.text, /已推送/, '文案必须体现「推送已发生」：' + consumed.text)
+  assert.doesNotMatch(consumed.text, /未订阅/, '不能显示成未订阅')
+
+  // ACTIVE 优先于 CONSUMED（理论上不会同时存在，但语义上订阅态更高）
+  assert.equal(
+    notifyEntryState({ templateId: 'tmpl_1', loggedIn: true, subscribed: true, consumed: true }).text,
+    '已订阅 · 明日 8:00 推送')
+
+  // 未登录时即便有历史记录，也只提登录，不提推送
+  assert.equal(
+    notifyEntryState({ templateId: 'tmpl_1', loggedIn: false, consumed: true }).text,
+    '登录后可订阅')
+})
+
 test('授权结果判断：只有 accept 才算订阅成功', () => {
   assert.equal(isSubscribeAccepted({ tmpl_1: 'accept' }, 'tmpl_1'), true)
   assert.equal(isSubscribeAccepted({ tmpl_1: 'reject' }, 'tmpl_1'), false)

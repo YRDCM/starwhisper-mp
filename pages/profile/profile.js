@@ -31,7 +31,8 @@ Page({
     badges: [],           // [{code, name, desc, threshold, unlocked, progressText}]
     // ===== 每日运势订阅提醒 =====
     notifyTemplateId: SUBSCRIBE_TEMPLATES.dailyFortune || '', // 空 = 未配置，条目显示「即将上线」
-    notifySubscribed: false,   // 后端 ACTIVE 订阅状态
+    notifySubscribed: false,   // 后端 ACTIVE 订阅状态（还有待推送额度）
+    notifyConsumed: false,     // 已推送过、额度用完（区分「从没订阅」和「刚推完」）
     notifyBusy: false,         // 订阅/退订进行中（防连点）
     notifyTip: SUBSCRIBE_TIP,  // 微信平台规则说明文案
     // 条目展示状态 {text, clickable}，由 refreshNotifyEntry 维护（WXML 不能调方法）
@@ -84,7 +85,8 @@ Page({
       notifyEntry: notifyEntryState({
         templateId: this.data.notifyTemplateId,
         loggedIn: !!token,
-        subscribed: this.data.notifySubscribed
+        subscribed: this.data.notifySubscribed,
+        consumed: this.data.notifyConsumed
       }),
       weeklyEntry: notifyEntryState({
         templateId: this.data.weeklyTemplateId,
@@ -147,7 +149,8 @@ Page({
       notifyEntry: notifyEntryState({
         templateId: this.data.notifyTemplateId,
         loggedIn: !!this.data.token,
-        subscribed: this.data.notifySubscribed
+        subscribed: this.data.notifySubscribed,
+        consumed: this.data.notifyConsumed
       })
     })
   },
@@ -159,17 +162,21 @@ Page({
     try {
       const res = await fetchNotifyStatus()
       const scenes = res.scenes || []
+      const consumed = res.consumed || []
       const notifySubscribed = scenes.includes('DAILY_FORTUNE')
+      const notifyConsumed = consumed.includes('DAILY_FORTUNE')
       const weeklySubscribed = scenes.includes('WEEKLY_FORTUNE')
       this.cacheMark('notify')
       // 两个条目的展示状态一起算进 patch，避免再单独 setData 两次
       return {
         notifySubscribed,
+        notifyConsumed,
         weeklySubscribed,
         notifyEntry: notifyEntryState({
           templateId: this.data.notifyTemplateId,
           loggedIn: !!this.data.token,
-          subscribed: notifySubscribed
+          subscribed: notifySubscribed,
+          consumed: notifyConsumed
         }),
         weeklyEntry: notifyEntryState({
           templateId: this.data.weeklyTemplateId,
@@ -220,7 +227,7 @@ Page({
     this.setData({ notifyBusy: true })
     try {
       await subscribeNotify('DAILY_FORTUNE', sign.nameEn)
-      this.setData({ notifySubscribed: true })
+      this.setData({ notifySubscribed: true, notifyConsumed: false })
       this.refreshNotifyEntry()
       // 如实告知微信规则：一次授权只推一天，想每天收需在推送后再次授权
       wx.showModal({
@@ -320,7 +327,7 @@ Page({
         this.setData({ notifyBusy: true })
         try {
           await unsubscribeNotify('DAILY_FORTUNE')
-          this.setData({ notifySubscribed: false })
+          this.setData({ notifySubscribed: false, notifyConsumed: false })
           this.refreshNotifyEntry()
           wx.showToast({ title: '已取消订阅', icon: 'none' })
         } catch (e) {
@@ -465,7 +472,7 @@ Page({
       token: '', userInfo: null,
       historyTarot: [], historyMatch: [], historyLoaded: false, historyError: '', expandedId: null,
       checkinStatus: null, checkinDots: [], checkinSummary: null, badges: [], checkinError: '',
-      notifySubscribed: false, weeklySubscribed: false
+      notifySubscribed: false, notifyConsumed: false, weeklySubscribed: false
     })
     this.refreshNotifyEntry()
     this.refreshWeeklyEntry()

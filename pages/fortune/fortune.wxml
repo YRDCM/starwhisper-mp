@@ -15,7 +15,8 @@
 
   <!-- 单条上下文提示：同一时刻只出现一条，把首屏让给星盘
        · 还没选星座 → 教他点星盘（核心动作优先）
-       · 已经选过   → 才提登录（此时他已经在用了，登录才有说服力） -->
+       · 已经选过   → 才提登录（此时他已经在用了，登录才有说服力）
+       · 已登录     → 提提醒（微信一次授权只推一条，推完要再开一次） -->
   <view wx:if="{{!loggedIn && !hasMySign && !loading}}" class="hint-line">
     <text class="hl-mark">☾</text>
     <text class="hl-text">点星盘选你的星座，之后的运势就是你的</text>
@@ -24,6 +25,11 @@
     <text class="hl-mark">✦</text>
     <text class="hl-text">登录后星座和记录跟着账号走，换手机也不丢</text>
     <text class="hl-go mono">去登录 ›</text>
+  </view>
+  <view wx:elif="{{notifyHint}}" class="hint-line hint-tap" bindtap="onNotifyHintTap">
+    <text class="hl-mark">{{notifyConsumed ? '✧' : '✦'}}</text>
+    <text class="hl-text">{{notifyHint}}</text>
+    <text class="hl-go mono">开启 ›</text>
   </view>
 
   <!-- 断连错误态（不白屏） -->
