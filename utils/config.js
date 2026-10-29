@@ -13,10 +13,11 @@ const APP_VERSION = '1.7.0'
 // 到微信公众平台 mp.weixin.qq.com → 功能 → 订阅消息 申请模板后回填。
 // 留空 = 功能未上线：「我的」页条目显示「即将上线」且不可点（不会拿空 ID 调 wx.requestSubscribeMessage）
 const SUBSCRIBE_TEMPLATES = {
-  // 2026-10-19 起推送功能整体暂停（微信一次性订阅"授权一次只能推一条"，体验不闭环）
-  // 模板 ID 留档：每日运势提醒 = 7MKQhnJvNlWoHAEdkQ7VnBrv51Z5c4U8PxPCNMWjW7c；恢复时回填即可
-  dailyFortune: '',
-  weeklyFortune: '' // 每周运势提醒（占位；空 = 「即将上线」不可点）
+  // 模板 71514「今日运势提醒」｜类目：信息查询｜2026-10-29 接回
+  // 字段：日期 time3 / 运势简述 thing2 / 运势关键词 thing1（后端 DailyFortuneNotifyJob 按此组装）
+  // 微信规则：一次授权只能推一条，所以推送成功后额度即消耗，页面会提示再次授权
+  dailyFortune: '7MKQhnJvNlWoHAEdkQ7VnBrv51Z5c4U8PxPCNMWjW7c',
+  weeklyFortune: '' // 每周运势提醒（占位；空 = 「即将上线」不可点，等运营申请第二个模板）
 }
 
 module.exports = { BASE_URL, APP_VERSION, SUBSCRIBE_TEMPLATES }
