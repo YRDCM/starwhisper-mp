@@ -26,6 +26,12 @@
     <text class="hl-text">登录后星座和记录跟着账号走，换手机也不丢</text>
     <text class="hl-go mono">去登录 ›</text>
   </view>
+  <!-- 已登录但还没选星座：之前这条链里没有对应分支，登录用户看不到任何提示，
+       不选星座时运势一直按日期兜底（不是他的）→ 补一条，把人推去点星盘 -->
+  <view wx:elif="{{loggedIn && !hasMySign && !loading}}" class="hint-line">
+    <text class="hl-mark">☾</text>
+    <text class="hl-text">还没选星座 —— 点上面星盘选一个，运势才是你的</text>
+  </view>
   <view wx:elif="{{notifyHint}}" class="hint-line hint-tap" bindtap="onNotifyHintTap">
     <text class="hl-mark">{{notifyConsumed ? '✧' : '✦'}}</text>
     <text class="hl-text">{{notifyHint}}</text>
